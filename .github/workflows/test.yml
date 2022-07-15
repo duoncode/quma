@@ -1,0 +1,42 @@
+name: Application Test
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    env:
+      DB_MYSQL_HOST: localhost
+      DB_PGSQL_HOST: localhost
+      DB_NAME: chuck_test
+      DB_USER: root
+      DB_PASSWORD: root
+    steps:
+      - name: Setup PHP extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: sqlite3, pgsql, mysql, gd, pcov, curl, xml, zip
+
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install packages with composer
+        run: composer install
+
+      - name: Start mysql server and create test db
+        run: |
+          sudo systemctl start mysql.service
+          mysql -e 'CREATE DATABASE `${{ env.DB_NAME }}`;' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
+
+      - name: Start postgresql server and create test db
+        run: |
+          sudo systemctl start postgresql.service
+          sudo -u postgres createdb ${{ env.DB_NAME }}
+          sudo -u postgres psql -c "CREATE USER ${{ env.DB_USER }} WITH SUPERUSER PASSWORD '${{ env.DB_PASSWORD }}';"
+
+      - name: Run tests
+        run: ./vendor/bin/pest --ci --coverage --min=100
+
+      - name: Run Psalm
+        run: ./vendor/bin/psalm --output-format=github

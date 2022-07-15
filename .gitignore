@@ -1,0 +1,9 @@
+*.log
+.cache
+.env
+.php_cs.cache
+.phpunit.result.cache
+__pycache__
+composer.lock
+/tmp
+/vendor
