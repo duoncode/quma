@@ -1,0 +1,9 @@
+<?php if ($driver === 'sqlite') : ?>
+    ALTER TABLE genres ADD COLUMN desc_sqlite TEXT;
+<?php elseif ($driver === 'pgsql'): ?>
+    ALTER TABLE genres ADD COLUMN desc_pgsql TEXT;
+<?php elseif ($driver === 'mysql'): ?>
+    ALTER TABLE genres ADD COLUMN desc_mysql TEXT;
+<?php else: ?>
+    not supported
+<?php endif ?>
