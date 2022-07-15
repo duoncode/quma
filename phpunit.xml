@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/Setup/bootstrap.php"
+         colors="true">
+    <testsuites>
+        <testsuite name="Chuck Test Suite">
+            <directory suffix="Test.php">tests</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">src</directory>
+            <exclude>
+                <directory suffix=".php">src/Scripts</directory>
+                <directory suffix=".php">bin</directory>
+                <file>src/Cli/Server/Server.php</file>
+                <file>src/Cli/Server/Router.php</file>
+            </exclude>
+        </whitelist>
+    </filter>
+    <coverage processUncoveredFiles="true" pathCoverage="true">
+        <include>
+            <directory>src</directory>
+        </include>
+        <report>
+            <html outputDirectory="coverage" lowUpperBound="20" highLowerBound="50"/>
+        </report>
+    </coverage>
+</phpunit>
