@@ -1,6 +1,9 @@
-name: Application Test
+name: CI
 
-on: [push]
+on: 
+  push:
+    branches:
+      - main
 
 jobs:
   test:
@@ -35,8 +38,20 @@ jobs:
           sudo -u postgres createdb ${{ env.DB_NAME }}
           sudo -u postgres psql -c "CREATE USER ${{ env.DB_USER }} WITH SUPERUSER PASSWORD '${{ env.DB_PASSWORD }}';"
 
-      - name: Run tests
-        run: ./vendor/bin/pest --ci --coverage --min=100
+      # - name: Run tests
+        # run: ./vendor/bin/pest --ci --coverage
+        # run: ./vendor/bin/pest --ci --coverage --min=100
 
-      - name: Run Psalm
-        run: ./vendor/bin/psalm --output-format=github
+      # - name: Run Psalm
+        # run: ./vendor/bin/psalm --output-format=github
+
+  docs:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - run: pip install mkdocs-conia
+      - run: mkdocs gh-deploy --force
