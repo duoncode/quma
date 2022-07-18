@@ -5,5 +5,6 @@
 .phpunit.result.cache
 __pycache__
 composer.lock
+/site
 /tmp
 /vendor
