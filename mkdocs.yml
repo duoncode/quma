@@ -1,0 +1,15 @@
+site_name: Conia Puma
+copyright: © 2022 ebene fünf GmbH
+nav:
+  - index.md
+theme:
+    name: conia
+repo_url: https://github.com/coniadev/puma
+extra:
+    project: Conia Puma
+plugins:
+    - search
+    - macros:
+        module_name: docs/main
+markdown_extensions:
+  - admonition
