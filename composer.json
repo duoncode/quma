@@ -26,8 +26,11 @@
             "Conia\\Puma\\Tests\\": "tests"
         }
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.1",
+        "conia/cli": "dev-main"
     },
     "require-dev": {
         "pestphp/pest": "^1",
