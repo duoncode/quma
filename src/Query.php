@@ -7,7 +7,7 @@ namespace Conia\Puma;
 use InvalidArgumentException;
 use PDO;
 
-class Query implements QueryInterface
+class Query
 {
     protected \PDOStatement $stmt;
     protected bool $executed = false;
@@ -22,7 +22,7 @@ class Query implements QueryInterface
     const PATTERN_COMMENT_SINGLE = '/--.*$/m';
 
     public function __construct(
-        protected DatabaseInterface $db,
+        protected Database $db,
         protected string $query,
         protected Args $args
     ) {
@@ -32,7 +32,7 @@ class Query implements QueryInterface
             $this->bindArgs($args->get(), $args->type());
         }
 
-        if ($db->shouldPrint()) {
+        if ($db->print()) {
             $msg = "\n\n-----------------------------------------------\n\n" .
                 $this->interpolate() .
                 "\n------------------------------------------------\n";
