@@ -6,7 +6,7 @@ namespace Conia\Puma\Migrations;
 
 use Conia\Cli\Opts;
 use Conia\Puma\Connection;
-use Conia\Puma\DatabaseInterface;
+use Conia\Puma\Database;
 use PDOException;
 use RuntimeException;
 use Throwable;
@@ -54,7 +54,7 @@ class Migrations extends Command
     }
 
     protected function migrate(
-        DatabaseInterface $db,
+        Database $db,
         ConfigInterface $config,
         Connection $conn,
         bool $showStacktrace,
@@ -112,7 +112,7 @@ class Migrations extends Command
         return $this->finish($db, $result, $apply, $numApplied);
     }
 
-    protected function begin(DatabaseInterface $db): void
+    protected function begin(Database $db): void
     {
         if ($this->supportsTransactions()) {
             $db->begin();
@@ -120,7 +120,7 @@ class Migrations extends Command
     }
 
     protected function finish(
-        DatabaseInterface $db,
+        Database $db,
         string $result,
         bool $apply,
         int $numApplied,
@@ -185,7 +185,7 @@ class Migrations extends Command
         // @codeCoverageIgnoreEnd
     }
 
-    protected function getAppliedMigrations(DatabaseInterface $db): array
+    protected function getAppliedMigrations(Database $db): array
     {
         $table = $this->env->table;
         $column = $this->env->columnMigration;
@@ -214,7 +214,7 @@ class Migrations extends Command
     }
 
     protected function migrateSQL(
-        DatabaseInterface $db,
+        Database $db,
         string $migration,
         string $script,
         bool $showStacktrace
@@ -233,7 +233,7 @@ class Migrations extends Command
     }
 
     protected function migrateTPQL(
-        DatabaseInterface $db,
+        Database $db,
         ConfigInterface $config,
         Connection $conn,
         string $migration,
@@ -287,7 +287,7 @@ class Migrations extends Command
     }
 
     protected function migratePHP(
-        DatabaseInterface $db,
+        Database $db,
         ConfigInterface $config,
         Connection $conn,
         string $migration,
@@ -308,7 +308,7 @@ class Migrations extends Command
         }
     }
 
-    protected function logMigration(DatabaseInterface $db, string $migration): void
+    protected function logMigration(Database $db, string $migration): void
     {
         $name = basename($migration);
         $db->execute(

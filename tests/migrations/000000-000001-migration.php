@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Conia\Puma\DatabaseInterface;
 use Conia\Puma\MigrationInterface;
+use Conia\Puma\Migrations\Environment;
 
 if (class_exists('TestMigration_1')) {
     return new TestMigration_1();
@@ -11,9 +11,10 @@ if (class_exists('TestMigration_1')) {
 
 class TestMigration_1 implements MigrationInterface
 {
-    public function run(DatabaseInterface $db, Connection $conn): void
+    public function run(Environment $env): void
     {
-        $driver = $db->getPdoDriver();
+        $db = $env->db;
+        $driver = $env->driver;
 
         switch ($driver) {
             case 'sqlite';

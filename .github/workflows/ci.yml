@@ -38,8 +38,8 @@ jobs:
           sudo -u postgres createdb ${{ env.DB_NAME }}
           sudo -u postgres psql -c "CREATE USER ${{ env.DB_USER }} WITH SUPERUSER PASSWORD '${{ env.DB_PASSWORD }}';"
 
-      # - name: Run tests
-        # run: ./vendor/bin/pest --ci --coverage
+      - name: Run tests
+        run: ./vendor/bin/pest --ci --coverage
         # run: ./vendor/bin/pest --ci --coverage --min=100
 
       # - name: Run Psalm

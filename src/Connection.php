@@ -11,7 +11,9 @@ use Conia\Puma\Util;
 
 class Connection
 {
-    protected readonly string $driver;
+    use GetsSetsPrint;
+
+    public readonly string $driver;
     protected array $sql;
     protected array $migrations;
 
@@ -20,18 +22,19 @@ class Connection
     protected string $migrationsColumnApplied = 'applied';
 
     public function __construct(
-        protected readonly string $dsn,
+        public readonly string $dsn,
         string|array $sql,
         string|array $migrations = null,
-        protected readonly ?string $username = null,
-        protected readonly ?string $password = null,
-        protected readonly array $options = [],
-        protected readonly int $fetchMode = PDO::FETCH_BOTH,
-        protected bool $print = false
+        public readonly ?string $username = null,
+        public readonly ?string $password = null,
+        public readonly array $options = [],
+        public readonly int $fetchMode = PDO::FETCH_BOTH,
+        bool $print = false
     ) {
         $this->driver = $this->readDriver($this->dsn);
         $this->sql = $this->readDirs($sql);
         $this->migrations = $this->readDirs($migrations ?? []);
+        $this->print = $print;
     }
 
     protected function preparePath(string $path): string
@@ -165,41 +168,6 @@ class Connection
     public function migrationsColumnApplied(): string
     {
         return $this->getColumnName($this->migrationsColumnApplied);
-    }
-
-    public function dsn(): string
-    {
-        return $this->dsn;
-    }
-
-    public function username(): ?string
-    {
-        return $this->username;
-    }
-
-    public function password(): ?string
-    {
-        return $this->password;
-    }
-
-    public function options(): array
-    {
-        return $this->options;
-    }
-
-    public function print(bool $print = false): bool
-    {
-        // Normally this is bad practise but setting print should
-        // only be used for debugging purposes
-        if (func_num_args() > 0) {
-            $this->print = $print;
-        }
-
-        return $this->print;
-    }
-    public function driver(): string
-    {
-        return $this->driver;
     }
 
     public function fetchMode(): int

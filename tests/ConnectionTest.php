@@ -13,7 +13,7 @@ test('Initialization', function () {
     $sql = $this->getSqlDirs();
     $conn = new Connection($dsn, $sql);
 
-    expect($conn->dsn())->toBe($dsn);
+    expect($conn->dsn)->toBe($dsn);
     expect(realpath($conn->sql()[0]))->toBe(realpath($sql));
     expect($conn->print())->toBe(false);
     expect($conn->print(true))->toBe(true);

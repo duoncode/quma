@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Conia\Puma;
 
-use Conia\Puma\Connection;
-use Conia\Puma\DatabaseInterface;
+use Conia\Puma\Migrations\Environment;
 
 interface MigrationInterface
 {
-    public function run(DatabaseInterface $db, Connection $conn): void;
+    public function run(Environment $env): void;
 }

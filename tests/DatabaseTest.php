@@ -26,9 +26,9 @@ test('Database connection', function () {
 test('Set whether it should print sql to stdout', function () {
     $db = $this->getDb();
 
-    expect($db->shouldPrint())->toBe(false);
-    $db->setPrint(true);
-    expect($db->shouldPrint())->toBe(true);
+    expect($db->print())->toBe(false);
+    $db->print(true);
+    expect($db->print())->toBe(true);
 });
 
 
@@ -213,7 +213,7 @@ test('Script instance', function () {
 
 test('Query printing named parameters', function () {
     $db = $this->getDb();
-    $db->setPrint(true);
+    $db->print(true);
 
     ob_start();
     $result = $db->members->joined([
@@ -235,7 +235,7 @@ test('Query printing named parameters', function () {
 
 test('Query printing positional parameters', function () {
     $db = $this->getDb();
-    $db->setPrint(true);
+    $db->print(true);
 
     ob_start();
     $result = $db->members->left(2001)->one();

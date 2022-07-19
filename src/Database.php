@@ -6,85 +6,59 @@ namespace Conia\Puma;
 
 use PDO;
 use RuntimeException;
-use Conia\Puma\DatabaseInterface;
-use Conia\Puma\QueryInterface;
 use Conia\Puma\Connection;
 
-class Database implements DatabaseInterface
+class Database
 {
+    use GetsSetsPrint;
+
     /** @psalm-suppress PropertyNotSetInConstructor */
-    protected readonly PDO $conn;
-    protected readonly string $dsn;
-    protected readonly ?string $username;
-    protected readonly ?string $password;
-    protected readonly array $options;
-    protected readonly int $fetchMode;
-    protected readonly string $driver;
-    protected readonly array $sqlDirs;
-    protected bool $print = false;
+    protected readonly PDO $pdo;
 
-    public function __construct(protected Connection $config)
+    public function __construct(protected readonly Connection $conn)
     {
-        $this->dsn = $config->dsn();
-        $this->username = $config->username();
-        $this->password = $config->password();
-        $this->options = $config->options();
-        $this->fetchMode = $config->fetchMode();
-        $this->print = $config->print();
-        $this->driver = $config->driver();
-        $this->sqlDirs = $config->sql();
-    }
-
-    public function setPrint(bool $print): static
-    {
-        $this->print = $print;
-
-        return $this;
-    }
-
-    public function shouldPrint(): bool
-    {
-        return $this->print;
+        $this->print = $conn->print();
     }
 
     public function getFetchMode(): int
     {
-        return $this->fetchMode;
+        return $this->conn->fetchMode;
     }
 
     public function getPdoDriver(): string
     {
-        return $this->driver;
+        return $this->conn->driver;
     }
 
     public function getSqlDirs(): array
     {
-        return $this->sqlDirs;
+        return $this->conn->sql();
     }
 
     public function connect(): static
     {
         /** @psalm-suppress RedundantPropertyInitializationCheck */
-        if (isset($this->conn)) {
+        if (isset($this->pdo)) {
             return $this;
         }
 
+        $conn = $this->conn;
         /** @psalm-suppress InaccessibleProperty */
-        $this->conn = new PDO(
-            $this->dsn,
-            $this->username,
-            $this->password,
-            $this->options,
+        $this->pdo = new PDO(
+            $conn->dsn,
+            $conn->username,
+            $conn->password,
+            $conn->options,
         );
 
         // Always throw an exception when an error occures
-        $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         // Allow getting the number of rows
-        $this->conn->setAttribute(PDO::ATTR_CURSOR, PDO::CURSOR_SCROLL);
+        $this->pdo->setAttribute(PDO::ATTR_CURSOR, PDO::CURSOR_SCROLL);
         // deactivate native prepared statements by default
-        $this->conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
+        $this->pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
         // do not alter casing of the columns from sql
-        $this->conn->setAttribute(PDO::ATTR_CASE, PDO::CASE_NATURAL);
+        $this->pdo->setAttribute(PDO::ATTR_CASE, PDO::CASE_NATURAL);
 
         return $this;
     }
@@ -92,26 +66,26 @@ class Database implements DatabaseInterface
     public function begin(): bool
     {
         $this->connect();
-        return $this->conn->beginTransaction();
+        return $this->pdo->beginTransaction();
     }
 
     public function commit(): bool
     {
-        return $this->conn->commit();
+        return $this->pdo->commit();
     }
 
     public function rollback(): bool
     {
-        return $this->conn->rollback();
+        return $this->pdo->rollback();
     }
 
     public function getConn(): PDO
     {
         $this->connect();
-        return $this->conn;
+        return $this->pdo;
     }
 
-    public function execute(string $query, mixed ...$args): QueryInterface
+    public function execute(string $query, mixed ...$args): Query
     {
         return new Query($this, $query, new Args($args));
     }
@@ -120,7 +94,7 @@ class Database implements DatabaseInterface
     {
         $exists = false;
 
-        foreach ($this->sqlDirs as $path) {
+        foreach ($this->conn->sql() as $path) {
             $exists = is_dir($path . DIRECTORY_SEPARATOR . $key);
 
             if ($exists) {

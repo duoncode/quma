@@ -8,11 +8,11 @@ use Conia\Cli\Opts;
 
 class Add extends Command
 {
-    public static string $group = 'Database';
-    public static string $title = 'Initialize a new migrations';
-    public static string $desc;
+    protected string $name = 'add-migration';
+    protected string $group = 'Migrations';
+    protected string $description = 'Initialize a new migrations';
 
-    protected function run(): string|int
+    public function run(): string|int
     {
         $env = $this->env;
         $opts = new Opts();
