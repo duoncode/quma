@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Conia\Puma\Migrations;
 
-use PDO;
 use Conia\Cli\Opts;
 use Conia\Puma\Connection;
-use Conia\Puma\{Database, DatabaseInterface};
+use Conia\Puma\Database;
+use PDO;
+use Throwable;
 
 class Environment
 {
@@ -18,26 +19,27 @@ class Environment
     public readonly string $table;
     public readonly string $columnMigration;
     public readonly string $columnApplied;
-    public readonly DatabaseInterface $db;
+    public readonly Database $db;
 
-    public function __construct(Conncection $conn)
-    {
+    public function __construct(
+        array $connections,
+        public readonly array $options,
+    ) {
         $opts = new Opts();
-        $conn = $config->connection($opts->get('--conn', Config::DEFAULT));
-        $this->conn = $conn;
-        $this->showStacktrace = $opts->has('--stacktrace');
-        $this->db = $this->db($this->conn);
-        $this->driver = $this->db->getPdoDriver();
-        $this->convenience = in_array($this->driver, ['sqlite', 'mysql', 'pgsql']);
-        $this->table = $conn->migrationsTable();
-        $this->columnMigration = $conn->migrationsColumnMigration();
-        $this->columnApplied = $conn->migrationsColumnApplied();
-        $this->config = $config;
-    }
 
-    public function db(Connection $conn): DatabaseInterface
-    {
-        return new Database($conn);
+        try {
+            $this->conn = $connections[$opts->get('--conn', 'default')];
+        } catch (Throwable $e) {
+            throw $e;
+        }
+
+        $this->showStacktrace = $opts->has('--stacktrace');
+        $this->db = new Database($this->conn);
+        $this->driver = $this->conn->driver();
+        $this->convenience = in_array($this->driver, ['sqlite', 'mysql', 'pgsql']);
+        $this->table = $this->conn->migrationsTable();
+        $this->columnMigration = $this->conn->migrationsColumnMigration();
+        $this->columnApplied = $this->conn->migrationsColumnApplied();
     }
 
     public function getMigrations(Connection $conn): array|false
@@ -68,7 +70,7 @@ class Environment
         return $migrations;
     }
 
-    public function checkIfMigrationsTableExists(DatabaseInterface $db): bool
+    public function checkIfMigrationsTableExists(Database $db): bool
     {
         $driver = $db->getPdoDriver();
         $table = $this->table;

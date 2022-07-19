@@ -4,19 +4,17 @@ declare(strict_types=1);
 
 namespace Conia\Puma\Migrations;
 
-use Conia\Cli\CommandInterface;
 use Throwable;
 
-class CreateMigrationsTable implements CommandInterface
+class CreateMigrationsTable extends Command
 {
-    public static string $group = 'Database';
-    public static string $title = 'Apply missing database migrations';
-    public static string $desc;
+    protected string $name = 'create-migration-table';
+    protected string $group = 'Migrations';
+    protected string $description = 'Creates a migrations table';
 
-    public function run(App $app): string|int
+    public function run(): string|int
     {
-        $config = $app->config();
-        $env = new Environment($config);
+        $env = $this->env;
 
         if ($env->checkIfMigrationsTableExists($env->db)) {
             echo "Table '$env->table' already exists. Aborting\n";

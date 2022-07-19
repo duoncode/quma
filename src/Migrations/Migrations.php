@@ -4,36 +4,27 @@ declare(strict_types=1);
 
 namespace Conia\Puma\Migrations;
 
+use Conia\Cli\Opts;
+use Conia\Puma\Connection;
+use Conia\Puma\DatabaseInterface;
 use PDOException;
 use RuntimeException;
 use Throwable;
-use Conia\Cli\Opts;
-use Conia\Cli\CommandInterface};
-use Conia\Puma\Connection;
-use Conia\Puma\DatabaseInterface;
 
-class Migrations implements CommandInterface
+class Migrations extends Command
 {
-    public static string $group = 'Database';
-    public static string $title = 'Apply missing database migrations';
-    public static string $desc;
+    protected string $name = 'migrations';
+    protected string $group = 'Migrations';
+    protected string $description = 'Apply missing database migrations';
 
-    /** @psalm-suppress PropertyNotSetInConstructor */
-    protected readonly Environment $env;
     protected const STARTED = 'start';
     protected const ERROR = 'error';
     protected const WARNING = 'warning';
     protected const SUCCESS = 'success';
 
-    public function run(App $app): string|int
+    public function run(): string|int
     {
-        $config = $app->config();
-        /**
-         * @psalm-suppress InaccessibleProperty
-         *
-         * See docs/contributing.md
-         */
-        $this->env = $env = new Environment($config);
+        $env = $this->env;
         $opts = new Opts();
 
         if (!$env->convenience || $env->checkIfMigrationsTableExists($env->db)) {

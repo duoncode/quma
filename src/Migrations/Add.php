@@ -4,42 +4,25 @@ declare(strict_types=1);
 
 namespace Conia\Puma\Migrations;
 
-use Conia\Cli\{CommandInterface, Opts};
+use Conia\Cli\Opts;
 
-/** @psalm-suppress MissingConstructor */
-class Add implements CommandInterface
+class Add extends Command
 {
-    public readonly string $fileName;
-    public readonly string $conn;
     public static string $group = 'Database';
     public static string $title = 'Initialize a new migrations';
     public static string $desc;
 
-    public function run(App $app): string|int
+    protected function run(): string|int
     {
+        $env = $this->env;
         $opts = new Opts();
-        $config = $app->config();
-        /**
-         * @psalm-suppress InaccessibleProperty
-         *
-         * See docs/contributing.md
-         */
-        $this->conn = $opts->get('--conn', Config::DEFAULT);
-        /** @psalm-suppress InaccessibleProperty */
-        $this->fileName = $opts->get('-f', $opts->get('--file', ''));
+        $fileName = $opts->get('-f', $opts->get('--file', ''));
 
-        return $this->add($config);
-    }
-
-    protected function add(ConfigInterface $config): string|int
-    {
-        if (empty($this->fileName)) {
+        if (empty($fileName)) {
             // Would stop the test suit and wait for input
             // @codeCoverageIgnoreStart
             $fileName = readline('Name of the migration script: ');
             // @codeCoverageIgnoreEnd
-        } else {
-            $fileName = $this->fileName;
         }
 
         $fileName = str_replace(' ', '-', $fileName);
@@ -56,7 +39,8 @@ class Add implements CommandInterface
             }
         }
 
-        $migrations = $config->connection($this->conn)->migrations();
+        $migrations = $env->getMigrations();
+
         // Get the first migrations directory from the list (the last one added)
         // TODO: let the user choose the migrations dir if there are more than one
         $migrationsDir = $migrations[0];
@@ -120,7 +104,7 @@ use Conia\Puma\MigrationInterface;
 
 class $className implements MigrationInterface
 {
-    public function run(Database \$db, Config \$config, Connection \$conn): bool
+    public function run(Database \$db): bool
     {
         \$db->execute('')->run();
         \$result = \$db->execute('')->all(PDO::FETCH_ASSOC);
