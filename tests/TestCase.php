@@ -17,15 +17,12 @@ use Throwable;
 class TestCase extends BaseTestCase
 {
     protected const DS = DIRECTORY_SEPARATOR;
+    protected const DB_FILE_1 = 'chuck_test_db1.sqlite3';
+    protected const DB_FILE_2 = 'chuck_test_db2.sqlite3';
 
     public static function root(): string
     {
         return  __DIR__ . '/';
-    }
-
-    public static function tmp(): string
-    {
-        return  sys_get_temp_dir() . DIRECTORY_SEPARATOR;
     }
 
     public function connection(
@@ -40,6 +37,14 @@ class TestCase extends BaseTestCase
         $conn->setMigrationsTable(str_starts_with($dsn, 'pgsql') ? 'public.migrations' : 'migrations');
 
         return $conn;
+    }
+
+    public function connections(string $key = 'default'): array
+    {
+        return [
+            $key => $this->connection(),
+            '' => $this->connection($this->getDsn(self::DB_FILE_2)),
+        ];
     }
 
     protected function commands(
@@ -213,7 +218,8 @@ class TestCase extends BaseTestCase
 
     public static function cleanUpTestDbs(): void
     {
-        @unlink(self::getDbFile());
+        @unlink(self::getDbFile(self::DB_FILE_1));
+        @unlink(self::getDbFile(self::DB_FILE_2));
 
         foreach (self::getServerDsns() as $dsn) {
             try {
@@ -227,13 +233,13 @@ class TestCase extends BaseTestCase
         }
     }
 
-    protected static function getDbFile(): string
+    protected static function getDbFile(string $file = self::DB_FILE_1): string
     {
-        return sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'chuck_test_db.sqlite3';
+        return sys_get_temp_dir() . DIRECTORY_SEPARATOR . $file;
     }
 
-    protected static function getDsn(): string
+    protected static function getDsn(string $file = self::DB_FILE_1): string
     {
-        return 'sqlite:' . self::getDbFile();
+        return 'sqlite:' . self::getDbFile($file);
     }
 }
