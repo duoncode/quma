@@ -32,6 +32,7 @@ class Environment
             $key = $opts->get('--conn', 'default');
             $this->conn = $connections[$key];
         } catch (Throwable) {
+            $key = $key ?? '<undefied>';
             throw new RuntimeException("Connection '$key' does not exist");
         }
 

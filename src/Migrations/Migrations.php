@@ -64,7 +64,7 @@ class Migrations extends Command
         $result = self::STARTED;
         $numApplied = 0;
 
-        $migrations = $this->env->getMigrations($conn);
+        $migrations = $this->env->getMigrations();
 
         if (!$migrations) {
             return 1;
