@@ -13,13 +13,13 @@ class Query
     protected bool $executed = false;
 
     // Matches multi line single and double quotes and handles \' \" escapes
-    const PATTERN_STRING = '/([\'"])(?:\\\1|[\s\S])*?\1/';
+    public const PATTERN_STRING = '/([\'"])(?:\\\1|[\s\S])*?\1/';
     // PostgreSQL blocks delimited with $$
-    const PATTERN_BLOCK = '/(\$\$)[\s\S]*?\1/';
+    public const PATTERN_BLOCK = '/(\$\$)[\s\S]*?\1/';
     // Multi line comments /* */
-    const PATTERN_COMMENT_MULTI = '/\/\*([\s\S]*?)\*\//';
+    public const PATTERN_COMMENT_MULTI = '/\/\*([\s\S]*?)\*\//';
     // Single line comments --
-    const PATTERN_COMMENT_SINGLE = '/--.*$/m';
+    public const PATTERN_COMMENT_SINGLE = '/--.*$/m';
 
     public function __construct(
         protected Database $db,

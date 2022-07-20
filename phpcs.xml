@@ -2,6 +2,8 @@
 <ruleset name="e5-ruleset">
     <description>coding standard</description>
 
+    <exclude-pattern>*/tests/migrations/*.php$</exclude-pattern>
+
     <rule ref="PSR12"/>
 
     <rule ref="Generic.Files.LineLength">

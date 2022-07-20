@@ -47,8 +47,8 @@ class Connection
 
         throw new ValueError("Path does not exist: $path");
     }
-    protected function readDriver(string $dsn): string
 
+    protected function readDriver(string $dsn): string
     {
         $driver = explode(':', $dsn)[0];
 
