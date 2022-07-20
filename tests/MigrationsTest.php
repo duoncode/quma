@@ -41,7 +41,7 @@ test('Run migrations :: no migrations table', function () {
     $_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
     ob_start();
-    $result = Runner::run($this->app());
+    $result = (new Runner($this->commands()))->run();
     $content = ob_get_contents();
     ob_end_clean();
 
@@ -54,7 +54,7 @@ test('Create migrations table :: success', function (string $dsn) {
     $_SERVER['argv'] = ['run', 'create-migrations-table'];
 
     ob_start();
-    $result = Runner::run($this->app($this->config(dsn: $dsn)));
+    $result = (new Runner($this->commands(dsn: $dsn)))->run();
     ob_end_clean();
 
     expect($result)->toBe(0);
@@ -65,7 +65,7 @@ test('Create migrations table :: already exists', function (string $dsn) {
     $_SERVER['argv'] = ['run', 'create-migrations-table'];
 
     ob_start();
-    $result = Runner::run($this->app($this->config(dsn: $dsn)));
+    $result = (new Runner($this->commands(dsn: $dsn)))->run();
     $content = ob_get_contents();
     ob_end_clean();
 
@@ -82,7 +82,7 @@ test('Run migrations :: no migrations directories defined', function () {
     $_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
     ob_start();
-    $result = Runner::run($this->app($this->config(migrations: [])));
+    $result = (new Runner($this->commands(migrations: [])))->run();
     $content = ob_get_contents();
     ob_end_clean();
 
@@ -96,7 +96,7 @@ test('Run migrations :: success without apply', function (string $dsn) {
     $driver = strtok($dsn, ':');
 
     ob_start();
-    $result = Runner::run($this->app($this->config(dsn: $dsn)));
+    $result = (new Runner($this->commands(dsn: $dsn)))->run();
     $content = ob_get_contents();
     ob_end_clean();
 
@@ -114,7 +114,7 @@ test('Run migrations :: success', function (string $dsn) {
     $driver = strtok($dsn, ':');
 
     ob_start();
-    $result = Runner::run($this->app($this->config(dsn: $dsn)));
+    $result = (new Runner($this->commands(dsn: $dsn)))->run();
     $content = ob_get_contents();
     ob_end_clean();
 
@@ -131,7 +131,7 @@ test('Run migrations :: again', function (string $dsn) {
     $_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
     ob_start();
-    $result = Runner::run($this->app($this->config(dsn: $dsn)));
+    $result = (new Runner($this->commands(dsn: $dsn)))->run();
     $content = ob_get_contents();
     ob_end_clean();
 
@@ -145,7 +145,7 @@ test('Add migration SQL', function () {
     $_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration'];
 
     ob_start();
-    $migration = Runner::run($this->app());
+    $migration = (new Runner($this->commands()))->run();
     ob_end_clean();
 
     expect(is_file($migration))->toBe(true);
@@ -157,7 +157,7 @@ test('Add migration SQL', function () {
     $_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
     ob_start();
-    $result = Runner::run($this->app());
+    $result = (new Runner($this->commands()))->run();
     $content = ob_get_contents();
     ob_end_clean();
     @unlink($migration);
@@ -173,7 +173,7 @@ test('Add migration TPQL', function () {
     $_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration.tpql'];
 
     ob_start();
-    $migration = Runner::run($this->app());
+    $migration = (new Runner($this->commands()))->run();
     ob_end_clean();
 
     expect(is_file($migration))->toBe(true);
@@ -193,7 +193,7 @@ test('Add migration PHP', function () {
     $_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration.php'];
 
     ob_start();
-    $migration = Runner::run($this->app());
+    $migration = (new Runner($this->commands()))->run();
     ob_end_clean();
 
     expect(is_file($migration))->toBe(true);
@@ -214,7 +214,7 @@ test('Add migration with wrong file extension', function () {
     $_SERVER['argv'] = ['run', 'add-migration', '-f', 'test.exe'];
 
     ob_start();
-    Runner::run($this->app());
+    (new Runner($this->commands()))->run();
     $output = ob_get_contents();
     ob_end_clean();
 
@@ -223,7 +223,7 @@ test('Add migration with wrong file extension', function () {
 
 
 test('Wrong migrations directory', function () {
-    $this->config(migrations: 'not/available');
+    $this->connection(migrations: 'not/available');
 })->throws(ValueError::class, 'Path does not exist: not/available');
 
 
@@ -231,7 +231,7 @@ test('Add migration to vendor', function () {
     $_SERVER['argv'] = ['run', 'add-migration', '-f', 'test'];
 
     ob_start();
-    Runner::run($this->app($this->conn(migrations: TestCase::root() . '/../vendor')));
+    (new Runner($this->commands(migrations: TestCase::root() . '/../vendor')))->run();
     $output = ob_get_contents();
     ob_end_clean();
 
@@ -243,13 +243,13 @@ test('Failing SQL migration', function ($dsn, $ext) {
     $_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-failing$ext"];
 
     ob_start();
-    $migration = Runner::run($this->app($this->config(dsn: $dsn)));
+    $migration = (new Runner($this->commands(dsn: $dsn)))->run();
 
     // Add content and run it
     file_put_contents($migration, 'RUBBISH;');
     $_SERVER['argv'] = ['run', 'migrations', '--apply', '--stacktrace'];
 
-    $result = Runner::run($this->app($this->config(dsn: $dsn)));
+    $result = (new Runner($this->commands(dsn: $dsn)))->run();
     $content = ob_get_contents();
     ob_end_clean();
     @unlink($migration);
@@ -275,13 +275,13 @@ test('Failing TPQL/PHP migration (PHP error)', function ($dsn, $ext) {
     $_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-php-failing.$ext"];
 
     ob_start();
-    $migration = Runner::run($this->app($this->config(dsn: $dsn)));
+    $migration = (new Runner($this->commands(dsn: $dsn)))->run();
 
     // Add content and run it
     file_put_contents($migration, '<?php echo if)');
     $_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
-    $result = Runner::run($this->app($this->config(dsn: $dsn)));
+    $result = (new Runner($this->commands(dsn: $dsn)))->run();
     $content = ob_get_contents();
     ob_end_clean();
     @unlink($migration);
@@ -301,7 +301,7 @@ test('Failing due to missing migrations directory', function () {
     $_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration.sql"];
 
     ob_start();
-    Runner::run($this->app($this->config(migrations: '/wrong/dir')));
+    (new Runner($this->commands(migrations: '/wrong/dir')))->run();
     $content = ob_get_contents();
     ob_end_clean();
 
@@ -316,7 +316,7 @@ test('Failing due to readonly migrations directory', function () {
     $_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration.sql"];
 
     ob_start();
-    Runner::run($this->app($this->config(migrations: $tmpdir)));
+    (new Runner($this->commands(migrations: $tmpdir)))->run();
     $content = ob_get_contents();
     ob_end_clean();
 

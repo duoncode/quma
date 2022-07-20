@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Conia\Puma\MigrationInterface;
+use Conia\Puma\Migrations\MigrationInterface;
 use Conia\Puma\Migrations\Environment;
 
 if (class_exists('TestMigration_1')) {

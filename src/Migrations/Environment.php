@@ -35,17 +35,17 @@ class Environment
 
         $this->showStacktrace = $opts->has('--stacktrace');
         $this->db = new Database($this->conn);
-        $this->driver = $this->conn->driver();
+        $this->driver = $this->conn->driver;
         $this->convenience = in_array($this->driver, ['sqlite', 'mysql', 'pgsql']);
         $this->table = $this->conn->migrationsTable();
         $this->columnMigration = $this->conn->migrationsColumnMigration();
         $this->columnApplied = $this->conn->migrationsColumnApplied();
     }
 
-    public function getMigrations(Connection $conn): array|false
+    public function getMigrations(): array|false
     {
         $migrations = [];
-        $migrationDirs = $conn->migrations();
+        $migrationDirs = $this->conn->migrations();
 
         if (count($migrationDirs) === 0) {
             echo "\033[1;31mNotice\033[0m: No migration directories defined in configuration\033[0m\n";

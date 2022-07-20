@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Conia\Puma;
+namespace Conia\Puma\Migrations;
 
 use Conia\Puma\Migrations\Environment;
 

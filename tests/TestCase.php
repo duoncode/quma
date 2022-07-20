@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Conia\Puma\Tests;
 
+use Conia\Cli\Commands;
+use Conia\Puma\Migrations\Add;
+use Conia\Puma\Migrations\CreateMigrationsTable;
+use Conia\Puma\Migrations\Migrations;
 use Conia\Puma\Connection;
 use Conia\Puma\Database;
 use PHPUnit\Framework\TestCase as BaseTestCase;
@@ -32,11 +36,23 @@ class TestCase extends BaseTestCase
         $dsn = $dsn ?: $this->getDsn();
         $sql = $this->getSqlDirs($additionalDirs);
         $migrations = $migrations ??  self::root() . 'migrations';
-
         $conn = new Connection($dsn, $sql, migrations: $migrations);
         $conn->setMigrationsTable(str_starts_with($dsn, 'pgsql') ? 'public.migrations' : 'migrations');
 
         return $conn;
+    }
+
+    protected function commands(
+        string $dsn = null,
+        array|string $migrations = null,
+    ): Commands {
+        $conn = $this->connection(dsn: $dsn, migrations: $migrations);
+
+        return new Commands([
+            new Add($conn),
+            new CreateMigrationsTable($conn),
+            new Migrations($conn),
+        ]);
     }
 
     public function getSqlDirs(bool $additionalDirs = false): array|string

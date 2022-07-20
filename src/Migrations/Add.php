@@ -39,13 +39,12 @@ class Add extends Command
             }
         }
 
-        $migrations = $env->getMigrations();
+        $migrations = $env->conn->migrations();
 
         // Get the first migrations directory from the list (the last one added)
         // TODO: let the user choose the migrations dir if there are more than one
         $migrationsDir = $migrations[0];
 
-        echo ($migrationsDir . PHP_EOL);
         if ($migrationsDir && strpos($migrationsDir, '/vendor') !== false) {
             echo "The migrations directory is inside './vendor'.\n  -> $migrationsDir\nAborting.\n";
             return 1;

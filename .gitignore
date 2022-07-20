@@ -5,6 +5,7 @@
 .phpunit.result.cache
 __pycache__
 composer.lock
+tests/migratons/2*
 /site
 /tmp
 /vendor

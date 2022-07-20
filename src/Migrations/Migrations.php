@@ -28,7 +28,7 @@ class Migrations extends Command
         $opts = new Opts();
 
         if (!$env->convenience || $env->checkIfMigrationsTableExists($env->db)) {
-            return $this->migrate($env->db, $config, $env->conn, $opts->has('--stacktrace'), $opts->has('--apply'));
+            return $this->migrate($env->db, $env->conn, $opts->has('--stacktrace'), $opts->has('--apply'));
         } else {
             $ddl = $env->getMigrationsTableDDL();
 
@@ -55,7 +55,6 @@ class Migrations extends Command
 
     protected function migrate(
         Database $db,
-        ConfigInterface $config,
         Connection $conn,
         bool $showStacktrace,
         bool $apply
@@ -93,10 +92,10 @@ class Migrations extends Command
                     $result = $this->migrateSQL($db, $migration, $script, $showStacktrace);
                     break;
                 case 'tpql':
-                    $result = $this->migrateTPQL($db, $config, $conn, $migration, $showStacktrace);
+                    $result = $this->migrateTPQL($db, $conn, $migration, $showStacktrace);
                     break;
                 case 'php':
-                    $result = $this->migratePHP($db, $config, $conn, $migration, $showStacktrace);
+                    $result = $this->migratePHP($db, $migration, $showStacktrace);
                     break;
             }
 
@@ -234,7 +233,6 @@ class Migrations extends Command
 
     protected function migrateTPQL(
         Database $db,
-        ConfigInterface $config,
         Connection $conn,
         string $migration,
         bool $showStacktrace
@@ -254,7 +252,6 @@ class Migrations extends Command
             $context = [
                 'driver' => $db->getPdoDriver(),
                 'db' => $db,
-                'config' => $config,
                 'conn' => $conn,
             ];
 
@@ -288,15 +285,13 @@ class Migrations extends Command
 
     protected function migratePHP(
         Database $db,
-        ConfigInterface $config,
-        Connection $conn,
         string $migration,
         bool $showStacktrace
     ): string {
         try {
             /** @psalm-suppress UnresolvableInclude */
             $migObj = require $migration;
-            $migObj->run($db, $config, $conn);
+            $migObj->run($this->env);
             $this->logMigration($db, $migration);
             $this->showMessage($migration);
 

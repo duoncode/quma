@@ -170,11 +170,6 @@ class Connection
         return $this->getColumnName($this->migrationsColumnApplied);
     }
 
-    public function fetchMode(): int
-    {
-        return $this->fetchMode;
-    }
-
     public function addMigrationDir(string $migrations): void
     {
         $migrations = $this->readDirs($migrations);
