@@ -8,6 +8,7 @@ use Conia\Cli\Opts;
 use Conia\Puma\Connection;
 use Conia\Puma\Database;
 use PDO;
+use RuntimeException;
 use Throwable;
 
 class Environment
@@ -28,9 +29,10 @@ class Environment
         $opts = new Opts();
 
         try {
-            $this->conn = $connections[$opts->get('--conn', 'default')];
-        } catch (Throwable $e) {
-            throw $e;
+            $key = $opts->get('--conn', 'default');
+            $this->conn = $connections[$key];
+        } catch (Throwable) {
+            throw new RuntimeException("Connection '$key' does not exist");
         }
 
         $this->showStacktrace = $opts->has('--stacktrace');

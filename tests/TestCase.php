@@ -39,19 +39,25 @@ class TestCase extends BaseTestCase
         return $conn;
     }
 
-    public function connections(string $key = 'default'): array
+    protected function connections(string $firstKey): array
     {
         return [
-            $key => $this->connection(),
-            '' => $this->connection($this->getDsn(self::DB_FILE_2)),
+            $firstKey => $this->connection(),
+            'second' => $this->connection($this->getDsn(self::DB_FILE_2)),
         ];
     }
 
     protected function commands(
         string $dsn = null,
         array|string $migrations = null,
+        bool $multipleConnections = false,
+        string $firstMultipleConnectionsKey = 'default'
     ): Commands {
-        $conn = $this->connection(dsn: $dsn, migrations: $migrations);
+        if ($multipleConnections) {
+            $conn = $this->connections($firstMultipleConnectionsKey);
+        } else {
+            $conn = $this->connection(dsn: $dsn, migrations: $migrations);
+        }
 
         return new Commands([
             new Add($conn),

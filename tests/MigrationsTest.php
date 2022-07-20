@@ -78,6 +78,69 @@ test('Create migrations table :: already exists', function (string $dsn) {
 })->with('connections');
 
 
+test('Create migrations table :: already exists connection as arg', function () {
+    $_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'first'];
+
+    ob_start();
+    $result = (new Runner($this->commands(
+        multipleConnections: true,
+        firstMultipleConnectionsKey: 'first'
+    )))->run();
+    $content = ob_get_contents();
+    ob_end_clean();
+
+    expect($result)->toBe(1);
+    expect($content)->toContain("Table 'migrations' already exists");
+});
+
+
+test('Create migrations table :: already exists multiconnection with default', function () {
+    $_SERVER['argv'] = ['run', 'create-migrations-table'];
+
+    ob_start();
+    $result = (new Runner($this->commands(
+        multipleConnections: true,
+        firstMultipleConnectionsKey: 'default'
+    )))->run();
+    $content = ob_get_contents();
+    ob_end_clean();
+
+    expect($result)->toBe(1);
+    expect($content)->toContain("Table 'migrations' already exists");
+});
+
+
+test('Create migrations table :: alternate connection', function () {
+    $_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'second'];
+
+    ob_start();
+    $result = (new Runner($this->commands(multipleConnections: true)))->run();
+    ob_end_clean();
+
+    expect($result)->toBe(0);
+});
+
+
+test('Create migrations table :: already exists alternate connection', function () {
+    $_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'second'];
+
+    ob_start();
+    $result = (new Runner($this->commands(multipleConnections: true)))->run();
+    $content = ob_get_contents();
+    ob_end_clean();
+
+    expect($result)->toBe(1);
+    expect($content)->toContain("Table 'migrations' already exists");
+});
+
+
+test('Wrong connection', function () {
+    $_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'doesnotexist'];
+
+    (new Runner($this->commands(multipleConnections: true)))->run();
+})->throws(RuntimeException::class, 'doesnotexist');
+
+
 test('Run migrations :: no migrations directories defined', function () {
     $_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
