@@ -50,11 +50,6 @@ class Add extends Command
             return 1;
         }
 
-        if (!$migrationsDir || !is_dir($migrationsDir)) {
-            echo "The migrations directory does not exist: $migrationsDir\n  -> Aborting.\n";
-            return 1;
-        }
-
         if (!is_writable($migrationsDir)) {
             echo "Migrations directory is not writable\n  -> $migrationsDir\nAborting. \n";
             return 1;

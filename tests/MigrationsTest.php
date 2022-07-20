@@ -360,18 +360,6 @@ test('Failing TPQL/PHP migration (PHP error)', function ($dsn, $ext) {
 })->with('connections')->with(['.php', '.tpql']);
 
 
-test('Failing due to missing migrations directory', function () {
-    $_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration.sql"];
-
-    ob_start();
-    (new Runner($this->commands(migrations: '/wrong/dir')))->run();
-    $content = ob_get_contents();
-    ob_end_clean();
-
-    expect($content)->toContain('directory does not exist');
-});
-
-
 test('Failing due to readonly migrations directory', function () {
     $tmpdir = sys_get_temp_dir() . '/chuck' . (string)mt_rand();
     mkdir($tmpdir, 0400);

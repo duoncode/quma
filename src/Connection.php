@@ -39,11 +39,7 @@ class Connection
 
     protected function preparePath(string $path): string
     {
-        $result = Path::realpath($path);
-
-        if (!Path::isAbsolute($result)) {
-            $result = realpath($result);
-        }
+        $result = realpath($path);
 
         if ($result) {
             return $result;
