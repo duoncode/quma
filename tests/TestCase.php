@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Conia\Puma\Tests;
 
 use Conia\Cli\Commands;
-use Conia\Puma\Migrations\Add;
-use Conia\Puma\Migrations\CreateMigrationsTable;
-use Conia\Puma\Migrations\Migrations;
 use Conia\Puma\Connection;
 use Conia\Puma\Database;
+use Conia\Puma\MigrationCommands;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use PDO;
 use Throwable;
@@ -59,11 +57,7 @@ class TestCase extends BaseTestCase
             $conn = $this->connection(dsn: $dsn, migrations: $migrations);
         }
 
-        return new Commands([
-            new Add($conn),
-            new CreateMigrationsTable($conn),
-            new Migrations($conn),
-        ]);
+        return MigrationCommands::get($conn);
     }
 
     public function getSqlDirs(bool $additionalDirs = false): array|string
