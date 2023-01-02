@@ -15,8 +15,8 @@ use Throwable;
 class TestCase extends BaseTestCase
 {
     protected const DS = DIRECTORY_SEPARATOR;
-    protected const DB_FILE_1 = 'chuck_test_db1.sqlite3';
-    protected const DB_FILE_2 = 'chuck_test_db2.sqlite3';
+    protected const DB_FILE_1 = 'puma_test_db1.sqlite3';
+    protected const DB_FILE_2 = 'puma_test_db2.sqlite3';
 
     public static function root(): string
     {
@@ -177,9 +177,9 @@ class TestCase extends BaseTestCase
         // MySQL tries to use a local socket when host=localhost
         // is specified which does not work with WSL2/Windows.
         $dbMysqlHost = getenv("DB_MYSQL_HOST") ?: "127.0.0.1";
-        $dbName = getenv("DB_NAME") ?: "chuck_test_db";
-        $dbUser = getenv("DB_USER") ?: "chuck_test_user";
-        $dbPassword = getenv("DB_PASSWORD") ?: "chuck_test_password";
+        $dbName = getenv("DB_NAME") ?: "puma_test_db";
+        $dbUser = getenv("DB_USER") ?: "puma_test_user";
+        $dbPassword = getenv("DB_PASSWORD") ?: "puma_test_password";
 
         return [
             [
