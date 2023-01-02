@@ -9,18 +9,32 @@ use RuntimeException;
 use ValueError;
 use Conia\Puma\Util;
 
+/**
+ * @psalm-type MigrationDirs = list<non-empty-string>
+ * @psalm-type SqlDirs = list<non-empty-string>
+ * @psalm-type SqlAssoc = array<non-empty-string, non-empty-string>
+ * @psalm-type SqlMixed = list<non-empty-string|SqlAssoc>
+ * @psalm-type SqlConfig = non-empty-string|SqlAssoc|SqlMixed
+ */
 class Connection
 {
     use GetsSetsPrint;
 
+    /** @var non-empty-string */
     public readonly string $driver;
+    /** @var SqlDirs */
     protected array $sql;
+    /** @var MigrationDirs */
     protected array $migrations;
 
     protected string $migrationsTable = 'migrations';
     protected string $migrationsColumnMigration = 'migration';
     protected string $migrationsColumnApplied = 'applied';
 
+    /**
+     * @psalm-param SqlConfig $sql
+     * @psalm-param MigrationDirs $migrations
+     * */
     public function __construct(
         public readonly string $dsn,
         string|array $sql,
@@ -37,6 +51,7 @@ class Connection
         $this->print = $print;
     }
 
+    /** @return non-empty-string */
     protected function preparePath(string $path): string
     {
         $result = realpath($path);
@@ -48,19 +63,26 @@ class Connection
         throw new ValueError("Path does not exist: $path");
     }
 
+    /** @return non-empty-string */
     protected function readDriver(string $dsn): string
     {
         $driver = explode(':', $dsn)[0];
 
         if (in_array($driver, PDO::getAvailableDrivers())) {
+            assert(!empty($driver));
             return $driver;
         }
 
         throw new RuntimeException('PDO driver not supported: ' . $driver);
     }
 
+    /**
+     * @psalm-param SqlAssoc $entry
+     * @psalm-return MigrationDirs
+     */
     protected function prepareDirs(array $entry): array
     {
+        /** @var MigrationDirs */
         $dirs = [];
 
         // Add sql scripts for the current pdo driver.
@@ -84,17 +106,23 @@ class Connection
      * Script paths are ordered last in first out (LIFO).
      * Which means the last path added is the first one searched
      * for a SQL script.
+     *
+     * @psalm-param SqlConfig $sql
+     * @return MigrationDirs
      */
     protected function readDirs(string|array $sql): array
     {
         if (is_string($sql)) {
+            /** @var MigrationDirs */
             return [$this->preparePath($sql)];
         }
 
         if (Util::isAssoc($sql)) {
+            /** @var SqlAssoc $sql */
             return $this->prepareDirs($sql);
         }
 
+        /** @var MigrationDirs */
         $dirs = [];
 
         foreach ($sql as $entry) {
@@ -166,17 +194,20 @@ class Connection
         return $this->getColumnName($this->migrationsColumnApplied);
     }
 
+    /** @psalm-param non-empty-string $migrations */
     public function addMigrationDir(string $migrations): void
     {
         $migrations = $this->readDirs($migrations);
         $this->migrations = array_merge($migrations, $this->migrations);
     }
 
+    /** @psalm-return MigrationDirs */
     public function migrations(): array
     {
         return $this->migrations;
     }
 
+    /** @psalm-param SqlConfig $sql */
     public function addSqlDirs(array|string $sql): void
     {
         $sql = $this->readDirs($sql);

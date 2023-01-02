@@ -6,10 +6,14 @@ namespace Conia\Puma;
 
 use Conia\Puma\Util;
 
+/**
+ * @psalm-type ArgsArray = list<mixed>|array<non-empty-string, mixed>
+ */
 class Args
 {
     protected ArgType $type;
     protected int $count;
+    /** @psalm-var ArgsArray */
     protected readonly array $args;
 
     public function __construct(array $args)
@@ -37,6 +41,7 @@ class Args
         return $args;
     }
 
+    /** @psalm-return ArgsArray */
     public function get(): array
     {
         return $this->args;

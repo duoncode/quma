@@ -8,8 +8,8 @@ use RuntimeException;
 
 class Folder
 {
-    protected $db;
-    protected $folder;
+    protected Database $db;
+    protected string $folder;
 
     public function __construct(Database $db, string $folder)
     {
@@ -22,6 +22,7 @@ class Folder
         $ext = $isTemplate ? '.tpql' : '.sql';
 
         foreach ($this->db->getSqlDirs() as $path) {
+            assert(is_string($path));
             $result = $path . DIRECTORY_SEPARATOR .
                 $this->folder . DIRECTORY_SEPARATOR .
                 $key . $ext;
@@ -69,7 +70,7 @@ class Folder
         return $this->getScript($key);
     }
 
-    public function __call(string $key, mixed $args): Query
+    public function __call(string $key, array $args): Query
     {
         $script = $this->getScript($key);
 

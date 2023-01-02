@@ -11,6 +11,9 @@ use PDO;
 use RuntimeException;
 use Throwable;
 
+/**
+ * @psalm-import-type MigrationDirs from \Conia\Puma\Connection
+ */
 class Environment
 {
     public readonly Connection $conn;
@@ -22,6 +25,7 @@ class Environment
     public readonly string $columnApplied;
     public readonly Database $db;
 
+    /** @psalm-param array<non-empty-string, Connection> $connections */
     public function __construct(
         array $connections,
         public readonly array $options,
@@ -30,6 +34,7 @@ class Environment
 
         try {
             $key = $opts->get('--conn', 'default');
+            assert(isset($connections[$key]));
             $this->conn = $connections[$key];
         } catch (Throwable) {
             $key = $key ?? '<undefied>';
@@ -47,6 +52,7 @@ class Environment
 
     public function getMigrations(): array|false
     {
+        /** @var MigrationDirs */
         $migrations = [];
         $migrationDirs = $this->conn->migrations();
 
@@ -67,6 +73,8 @@ class Environment
 
         // Sort by file name instead of full path
         uasort($migrations, function ($a, $b) {
+            $a = is_string($a) ? $a : '';
+            $b = is_string($b) ? $b : '';
             return (basename($a) < basename($b)) ? -1 : 1;
         });
 

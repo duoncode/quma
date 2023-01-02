@@ -6,9 +6,10 @@ namespace Conia\Puma;
 
 class PreparedQuery
 {
+    /** @psalm-param array<non-empty-string, non-empty-string> $swaps */
     public function __construct(
-        public string $query,
-        public array $swaps,
+        public readonly string $query,
+        public readonly array $swaps,
     ) {
     }
 }

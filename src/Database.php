@@ -95,6 +95,7 @@ class Database
         $exists = false;
 
         foreach ($this->conn->sql() as $path) {
+            assert(is_string($path));
             $exists = is_dir($path . DIRECTORY_SEPARATOR . $key);
 
             if ($exists) {

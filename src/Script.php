@@ -44,20 +44,20 @@ class Script
      */
     protected function prepareTemplateVars(string $script, Args $args): array
     {
-        // remove PostgreSQL blocks
+        // Remove PostgreSQL blocks
         $script = preg_replace(Query::PATTERN_BLOCK, ' ', $script);
-        // remove strings
+        // Remove strings
         $script = preg_replace(Query::PATTERN_STRING, ' ', $script);
-        // remove /* */ comments
+        // Remove /* */ comments
         $script = preg_replace(Query::PATTERN_COMMENT_MULTI, ' ', $script);
-        // remove single line comments
+        // Remove single line comments
         $script = preg_replace(Query::PATTERN_COMMENT_SINGLE, ' ', $script);
 
         $newArgs = [];
 
-        // match everything starting with : and a letter
-        // exclude multiple colons, like type casts (::text)
-        // (would not find a var if it is at the very beginning of script)
+        // Match everything starting with : and a letter.
+        // Exclude multiple colons, like type casts (::text).
+        // Would not find a var if it is at the very beginning of script.
         if (
             preg_match_all(
                 '/[^:]:[a-zA-Z][a-zA-Z0-9_]*/',
@@ -71,6 +71,8 @@ class Script
 
             foreach (array_unique($result[0]) as $arg) {
                 $a = substr($arg, 2);
+                assert(!empty($a));
+                /** @psalm-var array<non-empty-string, mixed> */
                 $newArgs[$a] = $argsArray[$a];
             }
         }

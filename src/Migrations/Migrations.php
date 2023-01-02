@@ -66,11 +66,13 @@ class Migrations extends Command
 
         $migrations = $this->env->getMigrations();
 
-        if (!$migrations) {
+        if ($migrations === false) {
             return 1;
         }
 
         foreach ($migrations as $migration) {
+            assert(!empty($migration) && is_string($migration));
+
             if (in_array(basename($migration), $appliedMigrations)) {
                 continue;
             }
@@ -189,7 +191,7 @@ class Migrations extends Command
         $table = $this->env->table;
         $column = $this->env->columnMigration;
         $migrations = $db->execute("SELECT $column FROM $table;")->all();
-        return array_map(fn (array $mig): string => $mig['migration'], $migrations);
+        return array_map(fn (array $mig): string => (string)$mig['migration'], $migrations);
     }
 
     /**
@@ -283,13 +285,13 @@ class Migrations extends Command
         }
     }
 
+    /** @psalm-suppress UnresolvableInclude, MixedAssignment, MixedMethodCall */
     protected function migratePHP(
         Database $db,
         string $migration,
         bool $showStacktrace
     ): string {
         try {
-            /** @psalm-suppress UnresolvableInclude */
             $migObj = require $migration;
             $migObj->run($this->env);
             $this->logMigration($db, $migration);
@@ -321,7 +323,7 @@ class Migrations extends Command
 
     protected function showMessage(
         string $migration,
-        ?object $e = null,
+        Throwable|null $e = null,
         bool $showStacktrace = false
     ): void {
         if ($e) {

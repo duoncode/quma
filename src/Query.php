@@ -49,6 +49,7 @@ class Query
 
     protected function bindArgs(array $args, ArgType $argType): void
     {
+        /** @psalm-suppress MixedAssignment -- $value is thouroughly typechecked in the loop */
         foreach ($args as $a => $value) {
             if ($argType === ArgType::Named) {
                 $arg = ':' . $a;
@@ -80,13 +81,13 @@ class Query
         }
     }
 
-    protected function nullIfNot(mixed $value): mixed
+    protected function nullIfNot(mixed $value): ?array
     {
         if (is_array($value)) {
             return $value;
         }
 
-        return $value ?: null;
+        return null;
     }
 
     public function one(?int $fetchMode = null): ?array
@@ -156,6 +157,7 @@ class Query
             self::PATTERN_COMMENT_MULTI,
             self::PATTERN_COMMENT_SINGLE,
         ];
+        /** @psalm-var array<non-empty-string, non-empty-string> */
         $swaps = [];
 
         $i = 0;
@@ -168,7 +170,8 @@ class Query
 
                 if (preg_match($pattern, $query, $matches)) {
                     $match = $matches[0];
-                    $replacement = "___CHUCK_REPLACE_${i}___";
+                    $replacement = "___CHUCK_REPLACE_{$i}___";
+                    assert(!empty($match));
                     $swaps[$replacement] = $match;
 
                     $query = preg_replace($pattern, $replacement, $query, limit: 1);
@@ -193,10 +196,12 @@ class Query
     }
 
 
+    /** @psalm-param array<non-empty-string, mixed> $args */
     protected function interpolateNamed(string $query, array $args): string
     {
         $map = [];
 
+        /** @psalm-suppress MixedAssignment -- $value is checked in convertValue */
         foreach ($args as $key => $value) {
             $key = ':' . $key;
             $map[$key] = $this->convertValue($value);
@@ -208,6 +213,7 @@ class Query
 
     protected function interpolatePositional(string $query, array $args): string
     {
+        /** @psalm-suppress MixedAssignment -- $value is checked in convertValue */
         foreach ($args as $value) {
             $query = preg_replace('/\\?/', $this->convertValue($value), $query, 1);
         }
@@ -229,6 +235,7 @@ class Query
         $argsArray = $this->args->get();
 
         if ($this->args->type() === ArgType::Named) {
+            /** @psalm-suppress InvalidArgument */
             $interpolated = $this->interpolateNamed($prep->query, $argsArray);
         } else {
             $interpolated = $this->interpolatePositional($prep->query, $argsArray);
