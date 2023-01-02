@@ -34,7 +34,7 @@
     },
     "require-dev": {
         "pestphp/pest": "^1",
-        "vimeo/psalm": "^4",
+        "vimeo/psalm": "^5",
         "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
         "staabm/annotate-pull-request-from-checkstyle": "^1"
     },
