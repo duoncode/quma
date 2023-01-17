@@ -1,12 +1,12 @@
-site_name: Conia Puma
+site_name: Conia Quma
 copyright: © 2022 ebene fünf GmbH
 nav:
   - index.md
 theme:
     name: conia
-repo_url: https://github.com/coniadev/puma
+repo_url: https://github.com/coniadev/quma
 extra:
-    project: Conia Puma
+    project: Conia Quma
 plugins:
     - search
     - macros:

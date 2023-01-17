@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Conia\Puma\Migrations;
+namespace Conia\Quma\Migrations;
 
-use Conia\Puma\Migrations\Environment;
+use Conia\Quma\Migrations\Environment;
 
 interface MigrationInterface
 {

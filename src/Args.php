@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Conia\Puma;
+namespace Conia\Quma;
 
-use Conia\Puma\Util;
+use Conia\Quma\Util;
 
 /**
  * @psalm-type ArgsArray = list<mixed>|array<non-empty-string, mixed>
@@ -23,7 +23,6 @@ class Args
 
     protected function prepare(array $args): array
     {
-
         $this->count = count($args);
 
         if ($this->count === 1 && is_array($args[0])) {

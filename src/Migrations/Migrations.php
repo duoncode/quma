@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Conia\Puma\Migrations;
+namespace Conia\Quma\Migrations;
 
 use Conia\Cli\Opts;
-use Conia\Puma\Connection;
-use Conia\Puma\Database;
+use Conia\Quma\Connection;
+use Conia\Quma\Database;
 use PDOException;
 use RuntimeException;
 use Throwable;
@@ -38,9 +38,9 @@ class Migrations extends Command
                 echo "\n\nIf you want to create the table above, simply run\n\n";
                 echo "    php run create-migrations-table\n\n";
                 echo "If you need to change the table or column names set them via \n\n";
-                echo "    \$\\Conia\\Puma\\Connection::setMigrationsTable(...)\n";
-                echo "    \$\\Conia\\Puma\\Connection::setMigrationsColumnMigration(...)\n";
-                echo "    \$\\Conia\\Puma\\Connection::setMigrationsColumnApplied(...)\n";
+                echo "    \$\\Conia\\Quma\\Connection::setMigrationsTable(...)\n";
+                echo "    \$\\Conia\\Quma\\Connection::setMigrationsColumnMigration(...)\n";
+                echo "    \$\\Conia\\Quma\\Connection::setMigrationsColumnApplied(...)\n";
             } else {
                 // An unsupported driver would have to be installed
                 // to be able to test meaningfully

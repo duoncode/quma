@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Conia\Puma\Migrations;
+namespace Conia\Quma\Migrations;
 
 use Conia\Cli\Opts;
 
@@ -91,9 +91,9 @@ class Add extends Command
 declare(strict_types=1);
 
 use \PDO;
-use Conia\Puma\Connection;
-use Conia\Puma\Database;
-use Conia\Puma\MigrationInterface;
+use Conia\Quma\Connection;
+use Conia\Quma\Database;
+use Conia\Quma\MigrationInterface;
 
 
 class $className implements MigrationInterface

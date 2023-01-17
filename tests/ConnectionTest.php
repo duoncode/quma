@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Conia\Puma\Connection;
-use Conia\Puma\Tests\TestCase;
+use Conia\Quma\Connection;
+use Conia\Quma\Tests\TestCase;
 
 uses(TestCase::class);
 

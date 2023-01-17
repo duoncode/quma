@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Conia\Puma;
+namespace Conia\Quma;
 
 use PDO;
 use RuntimeException;
-use Conia\Puma\Connection;
+use Conia\Quma\Connection;
 
 class Database
 {

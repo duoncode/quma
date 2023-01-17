@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Conia\Puma\Migrations;
+namespace Conia\Quma\Migrations;
 
 use Conia\Cli\Opts;
-use Conia\Puma\Connection;
-use Conia\Puma\Database;
+use Conia\Quma\Connection;
+use Conia\Quma\Database;
 use PDO;
 use RuntimeException;
 use Throwable;
 
 /**
- * @psalm-import-type MigrationDirs from \Conia\Puma\Connection
+ * @psalm-import-type MigrationDirs from \Conia\Quma\Connection
  */
 class Environment
 {

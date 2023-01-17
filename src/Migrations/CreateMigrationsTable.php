@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Conia\Puma\Migrations;
+namespace Conia\Quma\Migrations;
 
 use Throwable;
 

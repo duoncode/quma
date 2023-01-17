@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Conia\Puma\Migrations;
+namespace Conia\Quma\Migrations;
 
 use Conia\Cli\Command as BaseCommand;
-use Conia\Puma\Connection;
+use Conia\Quma\Connection;
 
 abstract class Command extends BaseCommand
 {

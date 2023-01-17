@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Conia\Puma;
+namespace Conia\Quma;
 
 use InvalidArgumentException;
 use PDO;
@@ -40,7 +40,7 @@ class Query
             if ($_SERVER['SERVER_SOFTWARE'] ?? false) {
                 // @codeCoverageIgnoreStart
                 error_log($msg);
-                // @codeCoverageIgnoreEnd
+            // @codeCoverageIgnoreEnd
             } else {
                 print($msg);
             };

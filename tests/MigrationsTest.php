@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-use Conia\Puma\Tests\TestCase;
+use Conia\Quma\Tests\TestCase;
 use Conia\Cli\Runner;
 
 uses(TestCase::class);

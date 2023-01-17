@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Conia\Puma;
+namespace Conia\Quma;
 
 use PDO;
 use RuntimeException;
 use ValueError;
-use Conia\Puma\Util;
+use Conia\Quma\Util;
 
 /**
  * @psalm-type MigrationDirs = list<non-empty-string>

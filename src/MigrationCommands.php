@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Conia\Puma;
+namespace Conia\Quma;
 
 use Conia\Cli\Commands;
-use Conia\Puma\Migrations\Add;
-use Conia\Puma\Migrations\CreateMigrationsTable;
-use Conia\Puma\Migrations\Migrations;
+use Conia\Quma\Migrations\Add;
+use Conia\Quma\Migrations\CreateMigrationsTable;
+use Conia\Quma\Migrations\Migrations;
 
 class MigrationCommands
 {

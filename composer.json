@@ -1,5 +1,5 @@
 {
-    "name": "conia/puma",
+    "name": "conia/quma",
     "description": "A 'no ORM' database library which uses plain SQL files",
     "type": "library",
     "license": "MIT",
@@ -10,7 +10,7 @@
             "role": "Developer"
         }
     ],
-    "homepage": "https://conia.dev/puma",
+    "homepage": "https://conia.dev/quma",
     "keywords": [
         "conia",
         "database",
@@ -18,12 +18,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "Conia\\Puma\\": "src/"
+            "Conia\\Quma\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Conia\\Puma\\Tests\\": "tests"
+            "Conia\\Quma\\Tests\\": "tests"
         }
     },
     "minimum-stability": "dev",
