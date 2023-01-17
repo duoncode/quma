@@ -1,6 +1,12 @@
 Quma
 ====
 
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
+[![Coverage Status](https://img.shields.io/scrutinizer/coverage/g/coniadev/quma.svg)](https://scrutinizer-ci.com/g/coniadev/quma/code-structure)
+[![Psalm coverage](https://shepherd.dev/github/coniadev/quma/coverage.svg?)](https://shepherd.dev/github/coniadev/quma)
+[![Psalm level](https://shepherd.dev/github/coniadev/quma/level.svg?)](https://conia.dev/quma)
+[![Quality Score](https://img.shields.io/scrutinizer/g/coniadev/quma.svg)](https://scrutinizer-ci.com/g/coniadev/quma)
+
 Quma is a PHP port of the similary named Python library [quma](https://quma.readthedocs.io).
 
 ## Test Databases
