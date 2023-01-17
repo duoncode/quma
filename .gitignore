@@ -1,9 +1,7 @@
 *.log
 .cache
 .env
-.php_cs.cache
-.php-cs-fixer.cache
-.phpunit.result.cache
+.php*.cache
 __pycache__
 composer.lock
 tests/migratons/2*

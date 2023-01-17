@@ -7,5 +7,6 @@ namespace Conia\Quma;
 enum ArgType
 {
     case Named;
+
     case Positional;
 }

@@ -8,10 +8,15 @@ use Conia\Cli\Commands;
 use Conia\Quma\Connection;
 use Conia\Quma\Database;
 use Conia\Quma\MigrationCommands;
-use PHPUnit\Framework\TestCase as BaseTestCase;
 use PDO;
+use PHPUnit\Framework\TestCase as BaseTestCase;
 use Throwable;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 class TestCase extends BaseTestCase
 {
     protected const DS = DIRECTORY_SEPARATOR;
@@ -20,7 +25,7 @@ class TestCase extends BaseTestCase
 
     public static function root(): string
     {
-        return  __DIR__ . '/';
+        return __DIR__ . '/';
     }
 
     public function connection(
@@ -30,47 +35,24 @@ class TestCase extends BaseTestCase
     ): Connection {
         $dsn = $dsn ?: $this->getDsn();
         $sql = $this->getSqlDirs($additionalDirs);
-        $migrations = $migrations ??  self::root() . 'migrations';
+        $migrations = $migrations ?? self::root() . 'migrations';
         $conn = new Connection($dsn, $sql, migrations: $migrations);
         $conn->setMigrationsTable(str_starts_with($dsn, 'pgsql') ? 'public.migrations' : 'migrations');
 
         return $conn;
     }
 
-    protected function connections(string $firstKey): array
-    {
-        return [
-            $firstKey => $this->connection(),
-            'second' => $this->connection($this->getDsn(self::DB_FILE_2)),
-        ];
-    }
-
-    protected function commands(
-        string $dsn = null,
-        array|string $migrations = null,
-        bool $multipleConnections = false,
-        string $firstMultipleConnectionsKey = 'default'
-    ): Commands {
-        if ($multipleConnections) {
-            $conn = $this->connections($firstMultipleConnectionsKey);
-        } else {
-            $conn = $this->connection(dsn: $dsn, migrations: $migrations);
-        }
-
-        return MigrationCommands::get($conn);
-    }
-
     public function getSqlDirs(bool $additionalDirs = false): array|string
     {
-        $prefix = self::root() .  '/sql/';
+        $prefix = self::root() . '/sql/';
 
         return $additionalDirs ?
             [
                 $prefix . 'default',
                 [
-                    'sqlite' =>  $prefix . 'additional',
+                    'sqlite' => $prefix . 'additional',
                     'all' => $prefix . 'default',
-                ]
+                ],
             ] : $prefix . 'default';
     }
 
@@ -91,14 +73,14 @@ class TestCase extends BaseTestCase
         $db = new PDO(self::getDsn());
 
         $commands = [
-            "
+            '
                 CREATE TABLE members (
                     member INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
                     joined INTEGER NOT NULL,
                     left INTEGER
                 )
-            ", "
+            ', "
                 INSERT INTO members
                     (name, joined, left)
                 VALUES
@@ -119,13 +101,13 @@ class TestCase extends BaseTestCase
                     ('Shannon Hamm', 1997, 2001),
                     ('Scott Clendenin', 1997, 2001),
                     ('Richard Christy', 1997, 2001)
-            ", "
+            ", '
                 CREATE TABLE albums (
                     album INTEGER PRIMARY KEY,
                     year  INTEGER NOT NULL,
                     title  VARCHAR (255) NOT NULL
                 )
-            ", "
+            ', "
                 INSERT INTO albums
                     (year, title)
                 VALUES
@@ -136,13 +118,13 @@ class TestCase extends BaseTestCase
                     (1993,  'Individual Thought Patterns'),
                     (1995,  'Symbolic'),
                     (1998,  'The Sound of Perseverance')
-            ", "
+            ", '
                 CREATE TABLE contributions (
                     album INTEGER NOT NULL,
                     member  INTEGER NOT NULL,
                     PRIMARY KEY(album, member)
                 )
-            ", "
+            ', '
                 INSERT INTO contributions
                     (album, member)
                 VALUES
@@ -163,33 +145,12 @@ class TestCase extends BaseTestCase
                     (15, 7),
                     (16, 7),
                     (17, 7)
-            ", "CREATE TABLE typetest (id INTEGER PRIMARY KEY, val)"
+            ', 'CREATE TABLE typetest (id INTEGER PRIMARY KEY, val)',
         ];
         // execute the sql commands to create new tables
         foreach ($commands as $command) {
             $db->exec($command);
         }
-    }
-
-    protected static function getServerDsns(): array
-    {
-        $dbPgsqlHost = getenv("DB_PGSQL_HOST") ?: "localhost";
-        // MySQL tries to use a local socket when host=localhost
-        // is specified which does not work with WSL2/Windows.
-        $dbMysqlHost = getenv("DB_MYSQL_HOST") ?: "127.0.0.1";
-        $dbName = getenv("DB_NAME") ?: "quma_db";
-        $dbUser = getenv("DB_USER") ?: "quma_user";
-        $dbPassword = getenv("DB_PASSWORD") ?: "quma_password";
-
-        return [
-            [
-                'transactions' => true,
-                'dsn' => "pgsql:host=$dbPgsqlHost;dbname=$dbName;user=$dbUser;password=$dbPassword",
-            ], [
-                'transactions' => false,
-                'dsn' => "mysql:host=$dbMysqlHost;dbname=$dbName;user=$dbUser;password=$dbPassword",
-            ],
-        ];
     }
 
     public static function getAvailableDsns(bool $transactionsOnly = false): array
@@ -231,6 +192,50 @@ class TestCase extends BaseTestCase
                 continue;
             }
         }
+    }
+
+    protected function connections(string $firstKey): array
+    {
+        return [
+            $firstKey => $this->connection(),
+            'second' => $this->connection($this->getDsn(self::DB_FILE_2)),
+        ];
+    }
+
+    protected function commands(
+        string $dsn = null,
+        array|string $migrations = null,
+        bool $multipleConnections = false,
+        string $firstMultipleConnectionsKey = 'default'
+    ): Commands {
+        if ($multipleConnections) {
+            $conn = $this->connections($firstMultipleConnectionsKey);
+        } else {
+            $conn = $this->connection(dsn: $dsn, migrations: $migrations);
+        }
+
+        return MigrationCommands::get($conn);
+    }
+
+    protected static function getServerDsns(): array
+    {
+        $dbPgsqlHost = getenv('DB_PGSQL_HOST') ?: 'localhost';
+        // MySQL tries to use a local socket when host=localhost
+        // is specified which does not work with WSL2/Windows.
+        $dbMysqlHost = getenv('DB_MYSQL_HOST') ?: '127.0.0.1';
+        $dbName = getenv('DB_NAME') ?: 'quma_db';
+        $dbUser = getenv('DB_USER') ?: 'quma_user';
+        $dbPassword = getenv('DB_PASSWORD') ?: 'quma_password';
+
+        return [
+            [
+                'transactions' => true,
+                'dsn' => "pgsql:host={$dbPgsqlHost};dbname={$dbName};user={$dbUser};password={$dbPassword}",
+            ], [
+                'transactions' => false,
+                'dsn' => "mysql:host={$dbMysqlHost};dbname={$dbName};user={$dbUser};password={$dbPassword}",
+            ],
+        ];
     }
 
     protected static function getDbFile(string $file = self::DB_FILE_1): string

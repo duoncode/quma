@@ -13,12 +13,29 @@ class Args
 {
     protected ArgType $type;
     protected int $count;
+
     /** @psalm-var ArgsArray */
     protected readonly array $args;
 
     public function __construct(array $args)
     {
         $this->args = $this->prepare($args);
+    }
+
+    /** @psalm-return ArgsArray */
+    public function get(): array
+    {
+        return $this->args;
+    }
+
+    public function count(): int
+    {
+        return $this->count;
+    }
+
+    public function type(): ArgType
+    {
+        return $this->type;
     }
 
     protected function prepare(array $args): array
@@ -38,21 +55,5 @@ class Args
         $this->type = ArgType::Positional;
 
         return $args;
-    }
-
-    /** @psalm-return ArgsArray */
-    public function get(): array
-    {
-        return $this->args;
-    }
-
-    public function count(): int
-    {
-        return $this->count;
-    }
-
-    public function type(): ArgType
-    {
-        return $this->type;
     }
 }

@@ -19,6 +19,34 @@ class Script
         $this->isTemplate = $isTemplate;
     }
 
+    public function __invoke(mixed ...$args): Query
+    {
+        return $this->invoke(...$args);
+    }
+
+    public function invoke(mixed ...$argsArray): Query
+    {
+        $args = new Args($argsArray);
+
+        if ($this->isTemplate) {
+            if ($args->type() === ArgType::Positional) {
+                throw new InvalidArgumentException(
+                    'Template queries `*.sql.php` allow named parameters only'
+                );
+            }
+
+            $script = $this->evaluateTemplate($this->script, $args);
+
+            // We need to wrap the result of the prepare call in an array
+            // to get back to the format of ...$argsArray.
+            $args = new Args([$this->prepareTemplateVars($script, $args)]);
+        } else {
+            $script = $this->script;
+        }
+
+        return new Query($this->db, $script, $args);
+    }
+
     protected function evaluateTemplate(string $path, Args $args): string
     {
         extract(array_merge(
@@ -72,39 +100,12 @@ class Script
             foreach (array_unique($result[0]) as $arg) {
                 $a = substr($arg, 2);
                 assert(!empty($a));
+
                 /** @psalm-var array<non-empty-string, mixed> */
                 $newArgs[$a] = $argsArray[$a];
             }
         }
 
         return $newArgs;
-    }
-
-    public function invoke(mixed ...$argsArray): Query
-    {
-        $args = new Args($argsArray);
-
-        if ($this->isTemplate) {
-            if ($args->type() === ArgType::Positional) {
-                throw new InvalidArgumentException(
-                    'Template queries `*.sql.php` allow named parameters only'
-                );
-            }
-
-            $script = $this->evaluateTemplate($this->script, $args);
-
-            // We need to wrap the result of the prepare call in an array
-            // to get back to the format of ...$argsArray.
-            $args = new Args([$this->prepareTemplateVars($script, $args)]);
-        } else {
-            $script = $this->script;
-        }
-
-        return new Query($this->db, $script, $args);
-    }
-
-    public function __invoke(mixed ...$args): Query
-    {
-        return $this->invoke(...$args);
     }
 }

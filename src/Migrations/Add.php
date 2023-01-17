@@ -34,7 +34,8 @@ class Add extends Command
             $fileName .= '.sql';
         } else {
             if (!in_array($ext, ['sql', 'php', 'tpql'])) {
-                echo "Wrong file extension '$ext'. Use 'sql', 'php' or 'tpql' instead.\nAborting.\n";
+                echo "Wrong file extension '{$ext}'. Use 'sql', 'php' or 'tpql' instead.\nAborting.\n";
+
                 return 1;
             }
         }
@@ -46,12 +47,14 @@ class Add extends Command
         $migrationsDir = $migrations[0];
 
         if ($migrationsDir && strpos($migrationsDir, '/vendor') !== false) {
-            echo "The migrations directory is inside './vendor'.\n  -> $migrationsDir\nAborting.\n";
+            echo "The migrations directory is inside './vendor'.\n  -> {$migrationsDir}\nAborting.\n";
+
             return 1;
         }
 
         if (!is_writable($migrationsDir)) {
-            echo "Migrations directory is not writable\n  -> $migrationsDir\nAborting. \n";
+            echo "Migrations directory is not writable\n  -> {$migrationsDir}\nAborting. \n";
+
             return 1;
         }
 
@@ -67,7 +70,7 @@ class Add extends Command
         }
 
         fclose($f);
-        echo "Migration created:\n$migration\n";
+        echo "Migration created:\n{$migration}\n";
 
         return $migration;
     }
@@ -90,13 +93,13 @@ class Add extends Command
 
 declare(strict_types=1);
 
-use \PDO;
-use Conia\Quma\Connection;
-use Conia\Quma\Database;
-use Conia\Quma\MigrationInterface;
+use \\PDO;
+use Conia\\Quma\\Connection;
+use Conia\\Quma\\Database;
+use Conia\\Quma\\MigrationInterface;
 
 
-class $className implements MigrationInterface
+class {$className} implements MigrationInterface
 {
     public function run(Database \$db): bool
     {
@@ -107,7 +110,7 @@ class $className implements MigrationInterface
     }
 }
 
-return new $className();";
+return new {$className}();";
     }
 
     protected function getTpqlContent(): string

@@ -38,7 +38,8 @@ class Environment
             $this->conn = $connections[$key];
         } catch (Throwable) {
             $key = $key ?? '<undefied>';
-            throw new RuntimeException("Connection '$key' does not exist");
+
+            throw new RuntimeException("Connection '{$key}' does not exist");
         }
 
         $this->showStacktrace = $opts->has('--stacktrace');
@@ -65,9 +66,9 @@ class Environment
         foreach ($migrationDirs as $path) {
             $migrations = array_merge(
                 $migrations,
-                array_filter(glob("$path/*.php"), 'is_file'),
-                array_filter(glob("$path/*.sql"), 'is_file'),
-                array_filter(glob("$path/*.tpql"), 'is_file'),
+                array_filter(glob("{$path}/*.php"), 'is_file'),
+                array_filter(glob("{$path}/*.sql"), 'is_file'),
+                array_filter(glob("{$path}/*.tpql"), 'is_file'),
             );
         }
 
@@ -75,6 +76,7 @@ class Environment
         uasort($migrations, function ($a, $b) {
             $a = is_string($a) ? $a : '';
             $b = is_string($b) ? $b : '';
+
             return (basename($a) < basename($b)) ? -1 : 1;
         });
 
@@ -97,18 +99,18 @@ class Environment
                 SELECT count(*) AS available
                 FROM sqlite_master
                 WHERE type='table'
-                AND name='$table';",
+                AND name='{$table}';",
 
             'mysql' => "
                 SELECT count(*) AS available
                 FROM information_schema.tables
-                WHERE table_name='$table';",
+                WHERE table_name='{$table}';",
 
             'pgsql' => "
                 SELECT count(*) AS available
                 FROM pg_tables
-                WHERE schemaname = '$schema'
-                AND tablename = '$table';",
+                WHERE schemaname = '{$schema}'
+                AND tablename = '{$table}';",
         };
 
         if ($query && ($db->execute($query)->one(PDO::FETCH_ASSOC)['available'] ?? 0) === 1) {
@@ -131,25 +133,28 @@ class Environment
 
         switch ($this->driver) {
             case 'sqlite':
-                return "CREATE TABLE $table (
-    $columnMigration text NOT NULL,
-    $columnApplied text DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY ($columnMigration),
-    CHECK(typeof(\"$columnMigration\") = \"text\" AND length(\"$columnMigration\") <= 256),
-    CHECK(typeof(\"$columnApplied\") = \"text\" AND length(\"$columnApplied\") = 19)
+                return "CREATE TABLE {$table} (
+    {$columnMigration} text NOT NULL,
+    {$columnApplied} text DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY ({$columnMigration}),
+    CHECK(typeof(\"{$columnMigration}\") = \"text\" AND length(\"{$columnMigration}\") <= 256),
+    CHECK(typeof(\"{$columnApplied}\") = \"text\" AND length(\"{$columnApplied}\") = 19)
 );";
+
             case 'pgsql':
-                return "CREATE TABLE $schema.$table (
-    $columnMigration text NOT NULL CHECK (char_length($columnMigration) <= 256),
-    $columnApplied timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT pk_$table PRIMARY KEY ($columnMigration)
+                return "CREATE TABLE {$schema}.{$table} (
+    {$columnMigration} text NOT NULL CHECK (char_length({$columnMigration}) <= 256),
+    {$columnApplied} timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT pk_{$table} PRIMARY KEY ({$columnMigration})
 );";
+
             case 'mysql':
-                return "CREATE TABLE $table (
-    $columnMigration varchar(256) NOT NULL,
-    $columnApplied timestamp DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY ($columnMigration)
+                return "CREATE TABLE {$table} (
+    {$columnMigration} varchar(256) NOT NULL,
+    {$columnApplied} timestamp DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY ({$columnMigration})
 );";
+
             default:
                 // Cannot be reliably tested.
                 // Would require an unsupported driver to be installed.

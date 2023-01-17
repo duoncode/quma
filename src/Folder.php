@@ -17,6 +17,18 @@ class Folder
         $this->folder = $folder;
     }
 
+    public function __get(string $key): Script
+    {
+        return $this->getScript($key);
+    }
+
+    public function __call(string $key, array $args): Query
+    {
+        $script = $this->getScript($key);
+
+        return $script->invoke(...$args);
+    }
+
     protected function scriptPath(string $key, bool $isTemplate): bool|string
     {
         $ext = $isTemplate ? '.tpql' : '.sql';
@@ -63,17 +75,5 @@ class Folder
         }
 
         throw new RuntimeException('SQL script does not exist');
-    }
-
-    public function __get(string $key): Script
-    {
-        return $this->getScript($key);
-    }
-
-    public function __call(string $key, array $args): Query
-    {
-        $script = $this->getScript($key);
-
-        return $script->invoke(...$args);
     }
 }

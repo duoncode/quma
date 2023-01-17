@@ -11,8 +11,8 @@
 
 declare(strict_types=1);
 
-use Conia\Quma\Tests\TestCase;
 use Conia\Cli\Runner;
+use Conia\Quma\Tests\TestCase;
 
 uses(TestCase::class);
 
@@ -20,7 +20,7 @@ uses(TestCase::class);
 beforeAll(function () {
     // Remove remnants of previous runs
     $migrationsDir = TestCase::root() . '/migrations/';
-    array_map('unlink', glob("$migrationsDir*test-migration*"));
+    array_map('unlink', glob("{$migrationsDir}*test-migration*"));
 
     TestCase::cleanupTestDbs();
 });
@@ -268,8 +268,8 @@ test('Add migration PHP', function () {
 
     @unlink($migration);
     expect(is_file($migration))->toBe(false);
-    expect($content)->toContain("TestMigration_");
-    expect($content)->toContain("implements MigrationInterface");
+    expect($content)->toContain('TestMigration_');
+    expect($content)->toContain('implements MigrationInterface');
 });
 
 
@@ -281,7 +281,7 @@ test('Add migration with wrong file extension', function () {
     $output = ob_get_contents();
     ob_end_clean();
 
-    expect($output)->toContain("Wrong file extension");
+    expect($output)->toContain('Wrong file extension');
 });
 
 
@@ -303,7 +303,7 @@ test('Add migration to vendor', function () {
 
 
 test('Failing SQL migration', function ($dsn, $ext) {
-    $_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-failing$ext"];
+    $_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-failing{$ext}"];
 
     ob_start();
     $migration = (new Runner($this->commands(dsn: $dsn)))->run();
@@ -323,19 +323,19 @@ test('Failing SQL migration', function ($dsn, $ext) {
 
     if (str_starts_with($dsn, 'mysql')) {
         expect($content)->toContain('0 migration applied until the error occured');
-        expect($content)->toContain("SQLSTATE[42000]");
+        expect($content)->toContain('SQLSTATE[42000]');
     } elseif (str_starts_with($dsn, 'pgsql')) {
         expect($content)->toContain('Due to errors no migrations applied');
-        expect($content)->toContain("SQLSTATE[42601]");
+        expect($content)->toContain('SQLSTATE[42601]');
     } else {
         expect($content)->toContain('Due to errors no migrations applied');
-        expect($content)->toContain("SQLSTATE[HY000]");
+        expect($content)->toContain('SQLSTATE[HY000]');
     }
 })->with('connections')->with(['.sql', '.tpql']);
 
 
 test('Failing TPQL/PHP migration (PHP error)', function ($dsn, $ext) {
-    $_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-php-failing.$ext"];
+    $_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-php-failing.{$ext}"];
 
     ob_start();
     $migration = (new Runner($this->commands(dsn: $dsn)))->run();
@@ -364,7 +364,7 @@ test('Failing due to readonly migrations directory', function () {
     $tmpdir = sys_get_temp_dir() . '/chuck' . (string)mt_rand();
     mkdir($tmpdir, 0400);
 
-    $_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration.sql"];
+    $_SERVER['argv'] = ['run', 'add-migration', '--file', 'test-migration.sql'];
 
     ob_start();
     (new Runner($this->commands(migrations: $tmpdir)))->run();

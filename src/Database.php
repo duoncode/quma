@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Conia\Quma;
 
+use Conia\Quma\Connection;
 use PDO;
 use RuntimeException;
-use Conia\Quma\Connection;
 
 class Database
 {
@@ -18,6 +18,26 @@ class Database
     public function __construct(protected readonly Connection $conn)
     {
         $this->print = $conn->print();
+    }
+
+    public function __get(string $key): Folder
+    {
+        $exists = false;
+
+        foreach ($this->conn->sql() as $path) {
+            assert(is_string($path));
+            $exists = is_dir($path . DIRECTORY_SEPARATOR . $key);
+
+            if ($exists) {
+                break;
+            }
+        }
+
+        if (!$exists) {
+            throw new RuntimeException('The SQL folder does not exist: ' . $key);
+        }
+
+        return new Folder($this, $key);
     }
 
     public function getFetchMode(): int
@@ -43,6 +63,7 @@ class Database
         }
 
         $conn = $this->conn;
+
         /** @psalm-suppress InaccessibleProperty */
         $this->pdo = new PDO(
             $conn->dsn,
@@ -66,6 +87,7 @@ class Database
     public function begin(): bool
     {
         $this->connect();
+
         return $this->pdo->beginTransaction();
     }
 
@@ -82,31 +104,12 @@ class Database
     public function getConn(): PDO
     {
         $this->connect();
+
         return $this->pdo;
     }
 
     public function execute(string $query, mixed ...$args): Query
     {
         return new Query($this, $query, new Args($args));
-    }
-
-    public function __get(string $key): Folder
-    {
-        $exists = false;
-
-        foreach ($this->conn->sql() as $path) {
-            assert(is_string($path));
-            $exists = is_dir($path . DIRECTORY_SEPARATOR . $key);
-
-            if ($exists) {
-                break;
-            }
-        }
-
-        if (!$exists) {
-            throw new RuntimeException('The SQL folder does not exist: ' . $key);
-        }
-
-        return new Folder($this, $key);
     }
 }

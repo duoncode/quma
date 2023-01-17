@@ -6,12 +6,10 @@ namespace Conia\Quma;
 
 use InvalidArgumentException;
 use PDO;
+use PDOStatement;
 
 class Query
 {
-    protected \PDOStatement $stmt;
-    protected bool $executed = false;
-
     // Matches multi line single and double quotes and handles \' \" escapes
     public const PATTERN_STRING = '/([\'"])(?:\\\1|[\s\S])*?\1/';
     // PostgreSQL blocks delimited with $$
@@ -20,6 +18,8 @@ class Query
     public const PATTERN_COMMENT_MULTI = '/\/\*([\s\S]*?)\*\//';
     // Single line comments --
     public const PATTERN_COMMENT_SINGLE = '/--.*$/m';
+    protected PDOStatement $stmt;
+    protected bool $executed = false;
 
     public function __construct(
         protected Database $db,
@@ -42,52 +42,14 @@ class Query
                 error_log($msg);
             // @codeCoverageIgnoreEnd
             } else {
-                print($msg);
-            };
-        }
-    }
-
-    protected function bindArgs(array $args, ArgType $argType): void
-    {
-        /** @psalm-suppress MixedAssignment -- $value is thouroughly typechecked in the loop */
-        foreach ($args as $a => $value) {
-            if ($argType === ArgType::Named) {
-                $arg = ':' . $a;
-            } else {
-                $arg = (int)$a + 1; // question mark placeholders ar 1-indexed
-            }
-
-            switch (gettype($value)) {
-                case 'boolean':
-                    $this->stmt->bindValue($arg, $value, PDO::PARAM_BOOL);
-                    break;
-                case 'integer':
-                    $this->stmt->bindValue($arg, $value, PDO::PARAM_INT);
-                    break;
-                case 'string':
-                    $this->stmt->bindValue($arg, $value, PDO::PARAM_STR);
-                    break;
-                case 'NULL':
-                    $this->stmt->bindValue($arg, $value, PDO::PARAM_NULL);
-                    break;
-                case 'array':
-                    $this->stmt->bindValue($arg, json_encode($value), PDO::PARAM_STR);
-                    break;
-                default:
-                    throw new InvalidArgumentException(
-                        'Only the types bool, int, string, null and array are supported'
-                    );
+                echo $msg;
             }
         }
     }
 
-    protected function nullIfNot(mixed $value): ?array
+    public function __toString(): string
     {
-        if (is_array($value)) {
-            return $value;
-        }
-
-        return null;
+        return $this->interpolate();
     }
 
     public function one(?int $fetchMode = null): ?array
@@ -99,18 +61,15 @@ class Query
             $this->executed = true;
         }
 
-        $result = $this->nullIfNot($this->stmt->fetch($fetchMode ?? $this->db->getFetchMode()));
-
-        return $result;
+        return $this->nullIfNot($this->stmt->fetch($fetchMode ?? $this->db->getFetchMode()));
     }
 
     public function all(?int $fetchMode = null): array
     {
         $this->db->connect();
         $this->stmt->execute();
-        $result = $this->stmt->fetchAll($fetchMode ?? $this->db->getFetchMode());
 
-        return $result;
+        return $this->stmt->fetchAll($fetchMode ?? $this->db->getFetchMode());
     }
 
     public function run(): bool
@@ -126,6 +85,82 @@ class Query
         $this->stmt->execute();
 
         return $this->stmt->rowCount();
+    }
+
+    /**
+     * For debugging purposes only.
+     *
+     * Replaces any parameter placeholders in a query with the
+     * value of that parameter and returns the query as string.
+     *
+     * Covers most of the cases but is not perfect.
+     */
+    public function interpolate(): string
+    {
+        $prep = $this->prepareQuery($this->query);
+        $argsArray = $this->args->get();
+
+        if ($this->args->type() === ArgType::Named) {
+            /** @psalm-suppress InvalidArgument */
+            $interpolated = $this->interpolateNamed($prep->query, $argsArray);
+        } else {
+            $interpolated = $this->interpolatePositional($prep->query, $argsArray);
+        }
+
+        return $this->restoreQuery($interpolated, $prep);
+    }
+
+    protected function bindArgs(array $args, ArgType $argType): void
+    {
+        /** @psalm-suppress MixedAssignment -- $value is thouroughly typechecked in the loop */
+        foreach ($args as $a => $value) {
+            if ($argType === ArgType::Named) {
+                $arg = ':' . $a;
+            } else {
+                $arg = (int)$a + 1; // question mark placeholders ar 1-indexed
+            }
+
+            switch (gettype($value)) {
+                case 'boolean':
+                    $this->stmt->bindValue($arg, $value, PDO::PARAM_BOOL);
+
+                    break;
+
+                case 'integer':
+                    $this->stmt->bindValue($arg, $value, PDO::PARAM_INT);
+
+                    break;
+
+                case 'string':
+                    $this->stmt->bindValue($arg, $value, PDO::PARAM_STR);
+
+                    break;
+
+                case 'NULL':
+                    $this->stmt->bindValue($arg, $value, PDO::PARAM_NULL);
+
+                    break;
+
+                case 'array':
+                    $this->stmt->bindValue($arg, json_encode($value), PDO::PARAM_STR);
+
+                    break;
+
+                default:
+                    throw new InvalidArgumentException(
+                        'Only the types bool, int, string, null and array are supported'
+                    );
+            }
+        }
+    }
+
+    protected function nullIfNot(mixed $value): ?array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        return null;
     }
 
     protected function convertValue(mixed $value): string
@@ -157,6 +192,7 @@ class Query
             self::PATTERN_COMMENT_MULTI,
             self::PATTERN_COMMENT_SINGLE,
         ];
+
         /** @psalm-var array<non-empty-string, non-empty-string> */
         $swaps = [];
 
@@ -195,7 +231,6 @@ class Query
         return $query;
     }
 
-
     /** @psalm-param array<non-empty-string, mixed> $args */
     protected function interpolateNamed(string $query, array $args): string
     {
@@ -210,7 +245,6 @@ class Query
         return strtr($query, $map);
     }
 
-
     protected function interpolatePositional(string $query, array $args): string
     {
         /** @psalm-suppress MixedAssignment -- $value is checked in convertValue */
@@ -219,33 +253,5 @@ class Query
         }
 
         return $query;
-    }
-
-    /**
-     * For debugging purposes only.
-     *
-     * Replaces any parameter placeholders in a query with the
-     * value of that parameter and returns the query as string.
-     *
-     * Covers most of the cases but is not perfect.
-     */
-    public function interpolate(): string
-    {
-        $prep = $this->prepareQuery($this->query);
-        $argsArray = $this->args->get();
-
-        if ($this->args->type() === ArgType::Named) {
-            /** @psalm-suppress InvalidArgument */
-            $interpolated = $this->interpolateNamed($prep->query, $argsArray);
-        } else {
-            $interpolated = $this->interpolatePositional($prep->query, $argsArray);
-        }
-
-        return $this->restoreQuery($interpolated, $prep);
-    }
-
-    public function __toString(): string
-    {
-        return $this->interpolate();
     }
 }

@@ -13,14 +13,13 @@ use Throwable;
 
 class Migrations extends Command
 {
-    protected string $name = 'migrations';
-    protected string $group = 'Migrations';
-    protected string $description = 'Apply missing database migrations';
-
     protected const STARTED = 'start';
     protected const ERROR = 'error';
     protected const WARNING = 'warning';
     protected const SUCCESS = 'success';
+    protected string $name = 'migrations';
+    protected string $group = 'Migrations';
+    protected string $description = 'Apply missing database migrations';
 
     public function run(): string|int
     {
@@ -29,28 +28,27 @@ class Migrations extends Command
 
         if (!$env->convenience || $env->checkIfMigrationsTableExists($env->db)) {
             return $this->migrate($env->db, $env->conn, $opts->has('--stacktrace'), $opts->has('--apply'));
-        } else {
-            $ddl = $env->getMigrationsTableDDL();
-
-            if ($ddl) {
-                echo "Migrations table does not exist. For '$env->driver' it should look like:\n\n";
-                echo $ddl;
-                echo "\n\nIf you want to create the table above, simply run\n\n";
-                echo "    php run create-migrations-table\n\n";
-                echo "If you need to change the table or column names set them via \n\n";
-                echo "    \$\\Conia\\Quma\\Connection::setMigrationsTable(...)\n";
-                echo "    \$\\Conia\\Quma\\Connection::setMigrationsColumnMigration(...)\n";
-                echo "    \$\\Conia\\Quma\\Connection::setMigrationsColumnApplied(...)\n";
-            } else {
-                // An unsupported driver would have to be installed
-                // to be able to test meaningfully
-                // @codeCoverageIgnoreStart
-                echo "Driver '$env->driver' is not supported.\n";
-                // @codeCoverageIgnoreEnd
-            }
-
-            return 1;
         }
+        $ddl = $env->getMigrationsTableDDL();
+
+        if ($ddl) {
+            echo "Migrations table does not exist. For '{$env->driver}' it should look like:\n\n";
+            echo $ddl;
+            echo "\n\nIf you want to create the table above, simply run\n\n";
+            echo "    php run create-migrations-table\n\n";
+            echo "If you need to change the table or column names set them via \n\n";
+            echo "    \$\\Conia\\Quma\\Connection::setMigrationsTable(...)\n";
+            echo "    \$\\Conia\\Quma\\Connection::setMigrationsColumnMigration(...)\n";
+            echo "    \$\\Conia\\Quma\\Connection::setMigrationsColumnApplied(...)\n";
+        } else {
+            // An unsupported driver would have to be installed
+            // to be able to test meaningfully
+            // @codeCoverageIgnoreStart
+            echo "Driver '{$env->driver}' is not supported.\n";
+            // @codeCoverageIgnoreEnd
+        }
+
+        return 1;
     }
 
     protected function migrate(
@@ -86,18 +84,24 @@ class Migrations extends Command
             if (empty(trim($script))) {
                 $this->showEmptyMessage($migration);
                 $result = self::WARNING;
+
                 continue;
             }
 
             switch (pathinfo($migration, PATHINFO_EXTENSION)) {
                 case 'sql':
                     $result = $this->migrateSQL($db, $migration, $script, $showStacktrace);
+
                     break;
+
                 case 'tpql':
                     $result = $this->migrateTPQL($db, $conn, $migration, $showStacktrace);
+
                     break;
+
                 case 'php':
                     $result = $this->migratePHP($db, $migration, $showStacktrace);
+
                     break;
             }
 
@@ -132,40 +136,45 @@ class Migrations extends Command
             if ($result === self::ERROR) {
                 $db->rollback();
                 echo "\nDue to errors no migrations applied\n";
+
                 return 1;
             }
 
             if ($numApplied === 0) {
                 $db->rollback();
                 echo "\nNo migrations applied\n";
+
                 return 0;
             }
 
             if ($apply) {
                 $db->commit();
-                echo "\n$numApplied migration$plural successfully applied\n";
-                return 0;
-            } else {
-                echo "\n\033[1;31mNotice\033[0m: Test run only\033[0m";
-                echo "\nWould apply $numApplied migration$plural. ";
-                echo "Use the switch --apply to make it happen\n";
-                $db->rollback();
-                return 0;
-            }
-        } else {
-            if ($result === self::ERROR) {
-                echo "\n$numApplied migration$plural applied until the error occured\n";
-                return 1;
-            }
+                echo "\n{$numApplied} migration{$plural} successfully applied\n";
 
-            if ($numApplied > 0) {
-                echo "\n$numApplied migration$plural successfully applied\n";
                 return 0;
             }
+            echo "\n\033[1;31mNotice\033[0m: Test run only\033[0m";
+            echo "\nWould apply {$numApplied} migration{$plural}. ";
+            echo "Use the switch --apply to make it happen\n";
+            $db->rollback();
 
-            echo "\nNo migrations applied\n";
             return 0;
         }
+        if ($result === self::ERROR) {
+            echo "\n{$numApplied} migration{$plural} applied until the error occured\n";
+
+            return 1;
+        }
+
+        if ($numApplied > 0) {
+            echo "\n{$numApplied} migration{$plural} successfully applied\n";
+
+            return 0;
+        }
+
+        echo "\nNo migrations applied\n";
+
+        return 0;
     }
 
     protected function supportsTransactions(): bool
@@ -173,8 +182,10 @@ class Migrations extends Command
         switch ($this->env->driver) {
             case 'sqlite':
                 return true;
+
             case 'pgsql':
                 return true;
+
             case 'mysql':
                 return false;
         }
@@ -190,12 +201,13 @@ class Migrations extends Command
     {
         $table = $this->env->table;
         $column = $this->env->columnMigration;
-        $migrations = $db->execute("SELECT $column FROM $table;")->all();
+        $migrations = $db->execute("SELECT {$column} FROM {$table};")->all();
+
         return array_map(fn (array $mig): string => (string)$mig['migration'], $migrations);
     }
 
     /**
-     * Returns if the given migration is driver specific
+     * Returns if the given migration is driver specific.
      */
     protected function supportedByDriver(string $migration): bool
     {
@@ -274,6 +286,7 @@ class Migrations extends Command
 
             if (empty(trim($script))) {
                 $this->showEmptyMessage($migration);
+
                 return self::WARNING;
             }
 

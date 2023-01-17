@@ -81,7 +81,7 @@ test('Wrong sql format', function () {
         [
             TestCase::root() . 'sql/additional',
             TestCase::root() . 'sql/ignored',
-        ]
+        ],
     ]);
 })->throws(ValueError::class, 'string or an associative array');
 
