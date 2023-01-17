@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     env:
       DB_MYSQL_HOST: localhost
       DB_PGSQL_HOST: localhost
@@ -39,7 +39,7 @@ jobs:
           sudo -u postgres psql -c "CREATE USER ${{ env.DB_USER }} WITH SUPERUSER PASSWORD '${{ env.DB_PASSWORD }}';"
 
       - name: Run tests
-        run: vendor/bin/pest --ci
+        run: vendor/bin/pest --ci --coverage --coverage-clover=coverage.clover --min=100
 
       - name: Run Psalm
         run: vendor/bin/psalm --output-format=github --shepherd
@@ -52,7 +52,7 @@ jobs:
         run: |
           vendor/bin/pest --ci --coverage --coverage-clover=coverage.clover --min=100
           wget https://scrutinizer-ci.com/ocular.phar
-          php ocular.phar code-coverage:upload --format=php-clover coverage.clover
+          php7.4 ocular.phar code-coverage:upload --format=php-clover coverage.clover
 
   docs:
     needs: test
