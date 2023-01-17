@@ -11,7 +11,7 @@ jobs:
     env:
       DB_MYSQL_HOST: localhost
       DB_PGSQL_HOST: localhost
-      DB_NAME: chuck_test
+      DB_NAME: quma_db
       DB_USER: root
       DB_PASSWORD: root
     steps:
@@ -39,13 +39,19 @@ jobs:
           sudo -u postgres psql -c "CREATE USER ${{ env.DB_USER }} WITH SUPERUSER PASSWORD '${{ env.DB_PASSWORD }}';"
 
       - name: Run tests
-        run: ./vendor/bin/pest --ci --coverage --min=100
+        run: ./vendor/bin/pest --ci --coverage --coverage-clover=coverage.clover --min=100
 
       - name: Run Psalm
         run: ./vendor/bin/psalm --output-format=github --shepherd
 
       - name: Run PHP Code Sniffer
         run: ./vendor/bin/phpcs -q --report=checkstyle src tests | ./vendor/bin/cs2pr
+
+      - name: Upload code coverage
+        if: ${{ github.ref == 'refs/heads/main' && github.repository == 'coniadev/quma' }}
+        run: |
+          wget https://scrutinizer-ci.com/ocular.phar
+          php ocular.phar code-coverage:upload --format=php-clover coverage.clover
 
   docs:
     needs: test
