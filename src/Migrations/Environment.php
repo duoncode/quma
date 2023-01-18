@@ -53,7 +53,7 @@ class Environment
 
     public function getMigrations(): array|false
     {
-        /** @var MigrationDirs */
+        /** @psalm-var MigrationDirs */
         $migrations = [];
         $migrationDirs = $this->conn->migrations();
 

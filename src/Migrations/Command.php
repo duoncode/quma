@@ -11,7 +11,7 @@ abstract class Command extends BaseCommand
 {
     protected readonly Environment $env;
 
-    /** @param array<non-empty-string, Connection>|Connection $conn */
+    /** @psalm-param array<non-empty-string, Connection>|Connection $conn */
     public function __construct(array|Connection $conn, array $options = [])
     {
         if (is_array($conn)) {

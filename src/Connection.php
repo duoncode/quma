@@ -20,13 +20,13 @@ class Connection
 {
     use GetsSetsPrint;
 
-    /** @var non-empty-string */
+    /** @psalm-var non-empty-string */
     public readonly string $driver;
 
-    /** @var SqlDirs */
+    /** @psalm-var SqlDirs */
     protected array $sql;
 
-    /** @var MigrationDirs */
+    /** @psalm-var MigrationDirs */
     protected array $migrations;
 
     protected string $migrationsTable = 'migrations';
@@ -119,7 +119,7 @@ class Connection
         return $this->sql;
     }
 
-    /** @return non-empty-string */
+    /** @psalm-return non-empty-string */
     protected function preparePath(string $path): string
     {
         $result = realpath($path);
@@ -131,7 +131,7 @@ class Connection
         throw new ValueError("Path does not exist: {$path}");
     }
 
-    /** @return non-empty-string */
+    /** @psalm-return non-empty-string */
     protected function readDriver(string $dsn): string
     {
         $driver = explode(':', $dsn)[0];
@@ -152,7 +152,7 @@ class Connection
      */
     protected function prepareDirs(array $entry): array
     {
-        /** @var MigrationDirs */
+        /** @psalm-var MigrationDirs */
         $dirs = [];
 
         // Add sql scripts for the current pdo driver.
@@ -179,21 +179,21 @@ class Connection
      *
      * @psalm-param SqlConfig $sql
      *
-     * @return MigrationDirs
+     * @psalm-return MigrationDirs
      */
     protected function readDirs(string|array $sql): array
     {
         if (is_string($sql)) {
-            /** @var MigrationDirs */
+            /** @psalm-var MigrationDirs */
             return [$this->preparePath($sql)];
         }
 
         if (Util::isAssoc($sql)) {
-            /** @var SqlAssoc $sql */
+            /** @psalm-var SqlAssoc $sql */
             return $this->prepareDirs($sql);
         }
 
-        /** @var MigrationDirs */
+        /** @psalm-var MigrationDirs */
         $dirs = [];
 
         foreach ($sql as $entry) {

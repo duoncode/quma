@@ -11,7 +11,7 @@ use Conia\Quma\Migrations\Migrations;
 
 class MigrationCommands
 {
-    /** @param array<non-empty-string, Connection>|Connection $conn */
+    /** @psalm-param array<non-empty-string, Connection>|Connection $conn */
     public static function get(
         array|Connection $conn,
         array $options = []
