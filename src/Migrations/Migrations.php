@@ -88,22 +88,11 @@ class Migrations extends Command
                 continue;
             }
 
-            switch (pathinfo($migration, PATHINFO_EXTENSION)) {
-                case 'sql':
-                    $result = $this->migrateSQL($db, $migration, $script, $showStacktrace);
-
-                    break;
-
-                case 'tpql':
-                    $result = $this->migrateTPQL($db, $conn, $migration, $showStacktrace);
-
-                    break;
-
-                case 'php':
-                    $result = $this->migratePHP($db, $migration, $showStacktrace);
-
-                    break;
-            }
+            $result = match (pathinfo($migration, PATHINFO_EXTENSION)) {
+                'sql' => $this->migrateSQL($db, $migration, $script, $showStacktrace),
+                'tpql' => $this->migrateTPQL($db, $conn, $migration, $showStacktrace),
+                'php' => $this->migratePHP($db, $migration, $showStacktrace),
+            };
 
             if ($result === self::ERROR) {
                 break;
