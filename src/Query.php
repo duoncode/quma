@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use PDO;
 use PDOStatement;
 
+/** @psalm-api */
 class Query
 {
     // Matches multi line single and double quotes and handles \' \" escapes

@@ -6,6 +6,7 @@ namespace Conia\Quma;
 
 use RuntimeException;
 
+/** @psalm-api */
 class Folder
 {
     protected Database $db;

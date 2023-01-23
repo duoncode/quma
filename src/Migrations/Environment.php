@@ -12,6 +12,8 @@ use RuntimeException;
 use Throwable;
 
 /**
+ * @psalm-api
+ *
  * @psalm-import-type MigrationDirs from \Conia\Quma\Connection
  */
 class Environment

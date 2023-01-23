@@ -10,6 +10,8 @@ use RuntimeException;
 use ValueError;
 
 /**
+ * @psalm-api
+ *
  * @psalm-type MigrationDirs = list<non-empty-string>
  * @psalm-type SqlDirs = list<non-empty-string>
  * @psalm-type SqlAssoc = array<non-empty-string, non-empty-string>

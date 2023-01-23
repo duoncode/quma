@@ -8,6 +8,7 @@ use Conia\Quma\Connection;
 use PDO;
 use RuntimeException;
 
+/** @psalm-api */
 class Database
 {
     use GetsSetsPrint;

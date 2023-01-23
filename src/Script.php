@@ -6,6 +6,7 @@ namespace Conia\Quma;
 
 use InvalidArgumentException;
 
+/** @psalm-api */
 class Script
 {
     protected $db;
@@ -47,6 +48,7 @@ class Script
         return new Query($this->db, $script, $args);
     }
 
+    /** @psalm-suppress PossiblyUnusedParam - $path and $args are used but psalm complains anyway */
     protected function evaluateTemplate(string $path, Args $args): string
     {
         extract(array_merge(

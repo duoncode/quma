@@ -9,6 +9,7 @@ use Conia\Quma\Migrations\Add;
 use Conia\Quma\Migrations\CreateMigrationsTable;
 use Conia\Quma\Migrations\Migrations;
 
+/** @psalm-api */
 class MigrationCommands
 {
     /** @psalm-param array<non-empty-string, Connection>|Connection $conn */
