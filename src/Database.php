@@ -85,6 +85,13 @@ class Database
         return $this;
     }
 
+    public function quote(string $value): string
+    {
+        $this->connect();
+
+        return $this->pdo->quote($value);
+    }
+
     public function begin(): bool
     {
         $this->connect();

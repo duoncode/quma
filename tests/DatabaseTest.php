@@ -32,6 +32,14 @@ test('Set whether it should print sql to stdout', function () {
 });
 
 
+test('PDO::quote()', function () {
+    $db = $this->getDb();
+
+    expect($db->quote("Co'mpl''ex \"st'\"ring"))
+        ->toBe('\'Co\'\'mpl\'\'\'\'ex "st\'\'"ring\'');
+});
+
+
 test('Fetch all :: Query::all()', function () {
     $db = $this->getDb();
     $result = $db->members->list()->all();
@@ -49,6 +57,7 @@ test('Get row count :: Query::len()', function () {
 
     expect($result)->toBe(0);
 });
+
 
 test('Fetch one :: Query::one()', function () {
     $db = $this->getDb();
