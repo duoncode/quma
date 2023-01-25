@@ -48,6 +48,14 @@ test('Fetch all :: Query::all()', function () {
 });
 
 
+test('Fetch lazy :: Query::lazy()', function () {
+    $db = $this->getDb();
+    $result = $db->members->list()->lazy();
+
+    expect(count(iterator_to_array($result)))->toBe(NUMBER_OF_MEMBERS);
+});
+
+
 test('Get row count :: Query::len()', function () {
     // SQLite unlike MySQL/Postgres always returns 0.
     // So this tests does not check for correct result

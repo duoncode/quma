@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Conia\Quma;
 
+use Generator;
 use InvalidArgumentException;
 use PDO;
 use PDOStatement;
@@ -71,6 +72,23 @@ class Query
         $this->stmt->execute();
 
         return $this->stmt->fetchAll($fetchMode ?? $this->db->getFetchMode());
+    }
+
+    public function lazy(?int $fetchMode = null): Generator
+    {
+        $this->db->connect();
+        $this->stmt->execute();
+        $fetchMode = $fetchMode ?? $this->db->getFetchMode();
+
+        /**
+         * @psalm-suppress MixedAssignment
+         *
+         * As the fetch mode can be changed it is not clear
+         * which type will be returned from `fetch`
+         */
+        while ($record = $this->stmt->fetch($fetchMode)) {
+            yield $record;
+        }
     }
 
     public function run(): bool
