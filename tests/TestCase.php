@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Conia\Quma\Tests;
 
 use Conia\Cli\Commands;
+use Conia\Quma\Commands as QumaCommands;
 use Conia\Quma\Connection;
 use Conia\Quma\Database;
-use Conia\Quma\MigrationCommands;
 use PDO;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Throwable;
@@ -173,7 +173,6 @@ class TestCase extends BaseTestCase
             );
         }
 
-
         return array_map(fn ($dsn) => $dsn['dsn'], $dsns);
     }
 
@@ -214,7 +213,7 @@ class TestCase extends BaseTestCase
             $conn = $this->connection(dsn: $dsn, migrations: $migrations);
         }
 
-        return MigrationCommands::get($conn);
+        return QumaCommands::get($conn);
     }
 
     protected static function getServerDsns(): array

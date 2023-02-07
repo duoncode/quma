@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma\Migrations;
+namespace Conia\Quma\Commands;
 
 use Conia\Cli\Opts;
 use Conia\Quma\Connection;
@@ -17,6 +17,7 @@ class Migrations extends Command
     protected const ERROR = 'error';
     protected const WARNING = 'warning';
     protected const SUCCESS = 'success';
+
     protected string $name = 'migrations';
     protected string $group = 'Migrations';
     protected string $description = 'Apply missing database migrations';
@@ -171,10 +172,8 @@ class Migrations extends Command
         switch ($this->env->driver) {
             case 'sqlite':
                 return true;
-
             case 'pgsql':
                 return true;
-
             case 'mysql':
                 return false;
         }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma\Migrations;
+namespace Conia\Quma\Commands;
 
 use Conia\Cli\Command as BaseCommand;
 use Conia\Quma\Connection;
