@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Conia\Quma\Commands\Environment;
-use Conia\Quma\Commands\MigrationInterface;
+use Conia\Quma\Environment;
+use Conia\Quma\MigrationInterface;
 
 if (class_exists('TestMigration_1')) {
     return new TestMigration_1();

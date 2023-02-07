@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma\Commands;
+namespace Conia\Quma;
 
 use Conia\Cli\Opts;
 use Conia\Quma\Connection;

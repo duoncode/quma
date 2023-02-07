@@ -6,6 +6,7 @@ namespace Conia\Quma\Commands;
 
 use Conia\Cli\Command as BaseCommand;
 use Conia\Quma\Connection;
+use Conia\Quma\Environment;
 
 abstract class Command extends BaseCommand
 {

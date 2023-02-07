@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma\Commands;
-
-use Conia\Quma\Commands\Environment;
+namespace Conia\Quma;
 
 /** @psalm-api */
 interface MigrationInterface
