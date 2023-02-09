@@ -51,6 +51,9 @@ class Script
     /** @psalm-suppress PossiblyUnusedParam - $path and $args are used but psalm complains anyway */
     protected function evaluateTemplate(string $path, Args $args): string
     {
+        // Hide $path. Could be overwritten if 'path' exists in $args.
+        $____template_path____ = $path;
+
         extract(array_merge(
             // Add the pdo driver to args to allow dynamic
             // queries based on the platform.
@@ -61,7 +64,7 @@ class Script
         ob_start();
 
         /** @psalm-suppress UnresolvableInclude */
-        include $path;
+        include $____template_path____;
 
         return ob_get_clean();
     }
