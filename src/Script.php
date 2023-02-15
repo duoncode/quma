@@ -53,6 +53,7 @@ class Script
     {
         // Hide $path. Could be overwritten if 'path' exists in $args.
         $____template_path____ = $path;
+        unset($path);
 
         extract(array_merge(
             // Add the pdo driver to args to allow dynamic
