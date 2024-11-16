@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma\Tests;
+namespace FiveOrbs\Quma\Tests;
 
-use Conia\Cli\Commands;
-use Conia\Quma\Commands as QumaCommands;
-use Conia\Quma\Connection;
-use Conia\Quma\Database;
+use FiveOrbs\Cli\Commands;
+use FiveOrbs\Quma\Commands as QumaCommands;
+use FiveOrbs\Quma\Connection;
+use FiveOrbs\Quma\Database;
 use PDO;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Throwable;

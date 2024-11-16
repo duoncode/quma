@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma;
+namespace FiveOrbs\Quma;
 
-use Conia\Quma\Util;
+use FiveOrbs\Quma\Util;
 use PDO;
 use RuntimeException;
 use ValueError;

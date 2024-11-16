@@ -11,8 +11,8 @@
 
 declare(strict_types=1);
 
-use Conia\Cli\Runner;
-use Conia\Quma\Tests\TestCase;
+use FiveOrbs\Cli\Runner;
+use FiveOrbs\Quma\Tests\TestCase;
 
 uses(TestCase::class);
 

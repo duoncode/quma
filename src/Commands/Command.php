@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma\Commands;
+namespace FiveOrbs\Quma\Commands;
 
-use Conia\Cli\Command as BaseCommand;
-use Conia\Quma\Connection;
-use Conia\Quma\Environment;
+use FiveOrbs\Cli\Command as BaseCommand;
+use FiveOrbs\Quma\Connection;
+use FiveOrbs\Quma\Environment;
 
 abstract class Command extends BaseCommand
 {

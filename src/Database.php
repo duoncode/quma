@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma;
+namespace FiveOrbs\Quma;
 
-use Conia\Quma\Connection;
+use FiveOrbs\Quma\Connection;
 use PDO;
 use RuntimeException;
 

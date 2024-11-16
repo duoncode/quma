@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma;
+namespace FiveOrbs\Quma;
 
-use Conia\Cli\Commands as BaseCommands;
-use Conia\Quma\Commands\Add;
-use Conia\Quma\Commands\CreateMigrationsTable;
-use Conia\Quma\Commands\Migrations;
+use FiveOrbs\Cli\Commands as BaseCommands;
+use FiveOrbs\Quma\Commands\Add;
+use FiveOrbs\Quma\Commands\CreateMigrationsTable;
+use FiveOrbs\Quma\Commands\Migrations;
 
 /** @psalm-api */
 class Commands

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma;
+namespace FiveOrbs\Quma;
 
-use Conia\Quma\Util;
+use FiveOrbs\Quma\Util;
 
 /**
  * @psalm-type ArgsArray = list<mixed>|array<non-empty-string, mixed>

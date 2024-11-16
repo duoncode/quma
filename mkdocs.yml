@@ -1,12 +1,12 @@
-site_name: Conia Quma
+site_name: FiveOrbs Quma
 copyright: © 2022 ebene fünf GmbH
 nav:
   - index.md
 theme:
-    name: conia
-repo_url: https://github.com/coniadev/quma
+    name: fiveorbs
+repo_url: https://github.com/fiveorbs/quma
 extra:
-    project: Conia Quma
+    project: FiveOrbs Quma
 plugins:
     - search
     - macros:

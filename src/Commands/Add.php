@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma\Commands;
+namespace FiveOrbs\Quma\Commands;
 
-use Conia\Cli\Opts;
+use FiveOrbs\Cli\Opts;
 
 class Add extends Command
 {
@@ -94,9 +94,9 @@ class Add extends Command
 declare(strict_types=1);
 
 use \\PDO;
-use Conia\\Quma\\Connection;
-use Conia\\Quma\\Database;
-use Conia\\Quma\\MigrationInterface;
+use FiveOrbs\\Quma\\Connection;
+use FiveOrbs\\Quma\\Database;
+use FiveOrbs\\Quma\\MigrationInterface;
 
 
 class {$className} implements MigrationInterface

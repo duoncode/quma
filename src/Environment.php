@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma;
+namespace FiveOrbs\Quma;
 
-use Conia\Cli\Opts;
-use Conia\Quma\Connection;
-use Conia\Quma\Database;
+use FiveOrbs\Cli\Opts;
+use FiveOrbs\Quma\Connection;
+use FiveOrbs\Quma\Database;
 use PDO;
 use RuntimeException;
 use Throwable;
@@ -14,7 +14,7 @@ use Throwable;
 /**
  * @psalm-api
  *
- * @psalm-import-type MigrationDirs from \Conia\Quma\Connection
+ * @psalm-import-type MigrationDirs from \FiveOrbs\Quma\Connection
  */
 class Environment
 {

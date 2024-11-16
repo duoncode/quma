@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma\Commands;
+namespace FiveOrbs\Quma\Commands;
 
 use Throwable;
 

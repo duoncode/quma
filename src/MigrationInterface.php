@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Conia\Quma;
+namespace FiveOrbs\Quma;
 
 /** @psalm-api */
 interface MigrationInterface
