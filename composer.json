@@ -1,47 +1,48 @@
 {
-    "name": "fiveorbs/quma",
-    "description": "A 'no ORM' database library which uses plain SQL files",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "ebene fünf GmbH",
-            "email": "fiveorbs@ebenefuenf.de",
-            "role": "Developer"
-        }
-    ],
-    "homepage": "https://fiveorbs.dev/quma",
-    "keywords": [
-        "fiveorbs",
-        "database",
-        "sql"
-    ],
-    "autoload": {
-        "psr-4": {
-            "FiveOrbs\\Quma\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "FiveOrbs\\Quma\\Tests\\": "tests"
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "require": {
-        "php": ">=8.1",
-        "fiveorbs/cli": "dev-main"
-    },
-    "require-dev": {
-        "pestphp/pest": "^1",
-        "vimeo/psalm": "^5.5",
-        "dealerdirect/phpcodesniffer-composer-installer": "^1",
-        "staabm/annotate-pull-request-from-checkstyle": "^1"
-    },
-    "config": {
-        "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true
-        }
-    }
+	"name": "fiveorbs/quma",
+	"description": "A 'no ORM' database library which uses plain SQL files",
+	"type": "library",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "ebene fünf GmbH",
+			"email": "fiveorbs@ebenefuenf.de",
+			"role": "Developer"
+		}
+	],
+	"homepage": "https://fiveorbs.dev/quma",
+	"keywords": [
+		"fiveorbs",
+		"database",
+		"sql"
+	],
+	"autoload": {
+		"psr-4": {
+			"FiveOrbs\\Quma\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"FiveOrbs\\Quma\\Tests\\": "tests"
+		}
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"require": {
+		"php": ">=8.1",
+		"fiveorbs/cli": "dev-main"
+	},
+	"require-dev": {
+		"fiveorbs/dev": "^1.1",
+		"pestphp/pest": "^1",
+		"vimeo/psalm": "^5.5",
+		"dealerdirect/phpcodesniffer-composer-installer": "^1",
+		"staabm/annotate-pull-request-from-checkstyle": "^1"
+	},
+	"config": {
+		"allow-plugins": {
+			"pestphp/pest-plugin": true,
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	}
 }
