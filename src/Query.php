@@ -12,265 +12,269 @@ use PDOStatement;
 /** @psalm-api */
 class Query
 {
-    // Matches multi line single and double quotes and handles \' \" escapes
-    public const PATTERN_STRING = '/([\'"])(?:\\\1|[\s\S])*?\1/';
-    // PostgreSQL blocks delimited with $$
-    public const PATTERN_BLOCK = '/(\$\$)[\s\S]*?\1/';
-    // Multi line comments /* */
-    public const PATTERN_COMMENT_MULTI = '/\/\*([\s\S]*?)\*\//';
-    // Single line comments --
-    public const PATTERN_COMMENT_SINGLE = '/--.*$/m';
-    protected PDOStatement $stmt;
-    protected bool $executed = false;
+	// Matches multi line single and double quotes and handles \' \" escapes
+	public const PATTERN_STRING = '/([\'"])(?:\\\1|[\s\S])*?\1/';
 
-    public function __construct(
-        protected Database $db,
-        protected string $query,
-        protected Args $args
-    ) {
-        $this->stmt = $this->db->getConn()->prepare($query);
+	// PostgreSQL blocks delimited with $$
+	public const PATTERN_BLOCK = '/(\$\$)[\s\S]*?\1/';
 
-        if ($args->count() > 0) {
-            $this->bindArgs($args->get(), $args->type());
-        }
+	// Multi line comments /* */
+	public const PATTERN_COMMENT_MULTI = '/\/\*([\s\S]*?)\*\//';
 
-        if ($db->print()) {
-            $msg = "\n\n-----------------------------------------------\n\n" .
-                $this->interpolate() .
-                "\n------------------------------------------------\n";
+	// Single line comments --
+	public const PATTERN_COMMENT_SINGLE = '/--.*$/m';
 
-            if ($_SERVER['SERVER_SOFTWARE'] ?? false) {
-                // @codeCoverageIgnoreStart
-                error_log($msg);
-            // @codeCoverageIgnoreEnd
-            } else {
-                echo $msg;
-            }
-        }
-    }
+	protected PDOStatement $stmt;
+	protected bool $executed = false;
 
-    public function __toString(): string
-    {
-        return $this->interpolate();
-    }
+	public function __construct(
+		protected Database $db,
+		protected string $query,
+		protected Args $args,
+	) {
+		$this->stmt = $this->db->getConn()->prepare($query);
 
-    public function one(?int $fetchMode = null): ?array
-    {
-        $this->db->connect();
+		if ($args->count() > 0) {
+			$this->bindArgs($args->get(), $args->type());
+		}
 
-        if (!$this->executed) {
-            $this->stmt->execute();
-            $this->executed = true;
-        }
+		if ($db->print()) {
+			$msg = "\n\n-----------------------------------------------\n\n" .
+				$this->interpolate() .
+				"\n------------------------------------------------\n";
 
-        return $this->nullIfNot($this->stmt->fetch($fetchMode ?? $this->db->getFetchMode()));
-    }
+			if ($_SERVER['SERVER_SOFTWARE'] ?? false) {
+				// @codeCoverageIgnoreStart
+				error_log($msg);
+				// @codeCoverageIgnoreEnd
+			} else {
+				echo $msg;
+			}
+		}
+	}
 
-    public function all(?int $fetchMode = null): array
-    {
-        $this->db->connect();
-        $this->stmt->execute();
+	public function __toString(): string
+	{
+		return $this->interpolate();
+	}
 
-        return $this->stmt->fetchAll($fetchMode ?? $this->db->getFetchMode());
-    }
+	public function one(?int $fetchMode = null): ?array
+	{
+		$this->db->connect();
 
-    public function lazy(?int $fetchMode = null): Generator
-    {
-        $this->db->connect();
-        $this->stmt->execute();
-        $fetchMode = $fetchMode ?? $this->db->getFetchMode();
+		if (!$this->executed) {
+			$this->stmt->execute();
+			$this->executed = true;
+		}
 
-        /**
-         * @psalm-suppress MixedAssignment
-         *
-         * As the fetch mode can be changed it is not clear
-         * which type will be returned from `fetch`
-         */
-        while ($record = $this->stmt->fetch($fetchMode)) {
-            yield $record;
-        }
-    }
+		return $this->nullIfNot($this->stmt->fetch($fetchMode ?? $this->db->getFetchMode()));
+	}
 
-    public function run(): bool
-    {
-        $this->db->connect();
+	public function all(?int $fetchMode = null): array
+	{
+		$this->db->connect();
+		$this->stmt->execute();
 
-        return $this->stmt->execute();
-    }
+		return $this->stmt->fetchAll($fetchMode ?? $this->db->getFetchMode());
+	}
 
-    public function len(): int
-    {
-        $this->db->connect();
-        $this->stmt->execute();
+	public function lazy(?int $fetchMode = null): Generator
+	{
+		$this->db->connect();
+		$this->stmt->execute();
+		$fetchMode = $fetchMode ?? $this->db->getFetchMode();
 
-        return $this->stmt->rowCount();
-    }
+		/**
+		 * @psalm-suppress MixedAssignment
+		 *
+		 * As the fetch mode can be changed it is not clear
+		 * which type will be returned from `fetch`
+		 */
+		while ($record = $this->stmt->fetch($fetchMode)) {
+			yield $record;
+		}
+	}
 
-    /**
-     * For debugging purposes only.
-     *
-     * Replaces any parameter placeholders in a query with the
-     * value of that parameter and returns the query as string.
-     *
-     * Covers most of the cases but is not perfect.
-     */
-    public function interpolate(): string
-    {
-        $prep = $this->prepareQuery($this->query);
-        $argsArray = $this->args->get();
+	public function run(): bool
+	{
+		$this->db->connect();
 
-        if ($this->args->type() === ArgType::Named) {
-            /** @psalm-suppress InvalidArgument */
-            $interpolated = $this->interpolateNamed($prep->query, $argsArray);
-        } else {
-            $interpolated = $this->interpolatePositional($prep->query, $argsArray);
-        }
+		return $this->stmt->execute();
+	}
 
-        return $this->restoreQuery($interpolated, $prep);
-    }
+	public function len(): int
+	{
+		$this->db->connect();
+		$this->stmt->execute();
 
-    protected function bindArgs(array $args, ArgType $argType): void
-    {
-        /** @psalm-suppress MixedAssignment -- $value is thouroughly typechecked in the loop */
-        foreach ($args as $a => $value) {
-            if ($argType === ArgType::Named) {
-                $arg = ':' . $a;
-            } else {
-                $arg = (int)$a + 1; // question mark placeholders ar 1-indexed
-            }
+		return $this->stmt->rowCount();
+	}
 
-            switch (gettype($value)) {
-                case 'boolean':
-                    $this->stmt->bindValue($arg, $value, PDO::PARAM_BOOL);
+	/**
+	 * For debugging purposes only.
+	 *
+	 * Replaces any parameter placeholders in a query with the
+	 * value of that parameter and returns the query as string.
+	 *
+	 * Covers most of the cases but is not perfect.
+	 */
+	public function interpolate(): string
+	{
+		$prep = $this->prepareQuery($this->query);
+		$argsArray = $this->args->get();
 
-                    break;
+		if ($this->args->type() === ArgType::Named) {
+			/** @psalm-suppress InvalidArgument */
+			$interpolated = $this->interpolateNamed($prep->query, $argsArray);
+		} else {
+			$interpolated = $this->interpolatePositional($prep->query, $argsArray);
+		}
 
-                case 'integer':
-                    $this->stmt->bindValue($arg, $value, PDO::PARAM_INT);
+		return $this->restoreQuery($interpolated, $prep);
+	}
 
-                    break;
+	protected function bindArgs(array $args, ArgType $argType): void
+	{
+		/** @psalm-suppress MixedAssignment -- $value is thouroughly typechecked in the loop */
+		foreach ($args as $a => $value) {
+			if ($argType === ArgType::Named) {
+				$arg = ':' . $a;
+			} else {
+				$arg = (int) $a + 1; // question mark placeholders ar 1-indexed
+			}
 
-                case 'string':
-                    $this->stmt->bindValue($arg, $value, PDO::PARAM_STR);
+			switch (gettype($value)) {
+				case 'boolean':
+					$this->stmt->bindValue($arg, $value, PDO::PARAM_BOOL);
 
-                    break;
+					break;
 
-                case 'NULL':
-                    $this->stmt->bindValue($arg, $value, PDO::PARAM_NULL);
+				case 'integer':
+					$this->stmt->bindValue($arg, $value, PDO::PARAM_INT);
 
-                    break;
+					break;
 
-                case 'array':
-                    $this->stmt->bindValue($arg, json_encode($value), PDO::PARAM_STR);
+				case 'string':
+					$this->stmt->bindValue($arg, $value, PDO::PARAM_STR);
 
-                    break;
+					break;
 
-                default:
-                    throw new InvalidArgumentException(
-                        'Only the types bool, int, string, null and array are supported'
-                    );
-            }
-        }
-    }
+				case 'NULL':
+					$this->stmt->bindValue($arg, $value, PDO::PARAM_NULL);
 
-    protected function nullIfNot(mixed $value): ?array
-    {
-        if (is_array($value)) {
-            return $value;
-        }
+					break;
 
-        return null;
-    }
+				case 'array':
+					$this->stmt->bindValue($arg, json_encode($value), PDO::PARAM_STR);
 
-    protected function convertValue(mixed $value): string
-    {
-        if (is_string($value)) {
-            return "'" . $value . "'";
-        }
+					break;
 
-        if (is_array($value)) {
-            return "'" . json_encode($value) . "'";
-        }
+				default:
+					throw new InvalidArgumentException(
+						'Only the types bool, int, string, null and array are supported',
+					);
+			}
+		}
+	}
 
-        if (is_null($value)) {
-            return 'NULL';
-        }
+	protected function nullIfNot(mixed $value): ?array
+	{
+		if (is_array($value)) {
+			return $value;
+		}
 
-        if (is_bool($value)) {
-            return $value ? 'true' : 'false';
-        }
+		return null;
+	}
 
-        return (string)$value;
-    }
+	protected function convertValue(mixed $value): string
+	{
+		if (is_string($value)) {
+			return "'" . $value . "'";
+		}
 
-    protected function prepareQuery(string $query): PreparedQuery
-    {
-        $patterns = [
-            self::PATTERN_BLOCK,
-            self::PATTERN_STRING,
-            self::PATTERN_COMMENT_MULTI,
-            self::PATTERN_COMMENT_SINGLE,
-        ];
+		if (is_array($value)) {
+			return "'" . json_encode($value) . "'";
+		}
 
-        /** @psalm-var array<non-empty-string, non-empty-string> */
-        $swaps = [];
+		if (is_null($value)) {
+			return 'NULL';
+		}
 
-        $i = 0;
+		if (is_bool($value)) {
+			return $value ? 'true' : 'false';
+		}
 
-        do {
-            $found = false;
+		return (string) $value;
+	}
 
-            foreach ($patterns as $pattern) {
-                $matches = [];
+	protected function prepareQuery(string $query): PreparedQuery
+	{
+		$patterns = [
+			self::PATTERN_BLOCK,
+			self::PATTERN_STRING,
+			self::PATTERN_COMMENT_MULTI,
+			self::PATTERN_COMMENT_SINGLE,
+		];
 
-                if (preg_match($pattern, $query, $matches)) {
-                    $match = $matches[0];
-                    $replacement = "___CHUCK_REPLACE_{$i}___";
-                    assert(!empty($match));
-                    $swaps[$replacement] = $match;
+		/** @psalm-var array<non-empty-string, non-empty-string> */
+		$swaps = [];
 
-                    $query = preg_replace($pattern, $replacement, $query, limit: 1);
-                    $found = true;
-                    $i++;
+		$i = 0;
 
-                    break;
-                }
-            }
-        } while ($found);
+		do {
+			$found = false;
 
-        return new PreparedQuery($query, $swaps);
-    }
+			foreach ($patterns as $pattern) {
+				$matches = [];
 
-    protected function restoreQuery(string $query, PreparedQuery $prep): string
-    {
-        foreach ($prep->swaps as $swap => $replacement) {
-            $query = str_replace($swap, $replacement, $query);
-        }
+				if (preg_match($pattern, $query, $matches)) {
+					$match = $matches[0];
+					$replacement = "___CHUCK_REPLACE_{$i}___";
+					assert(!empty($match));
+					$swaps[$replacement] = $match;
 
-        return $query;
-    }
+					$query = preg_replace($pattern, $replacement, $query, limit: 1);
+					$found = true;
+					$i++;
 
-    /** @psalm-param array<non-empty-string, mixed> $args */
-    protected function interpolateNamed(string $query, array $args): string
-    {
-        $map = [];
+					break;
+				}
+			}
+		} while ($found);
 
-        /** @psalm-suppress MixedAssignment -- $value is checked in convertValue */
-        foreach ($args as $key => $value) {
-            $key = ':' . $key;
-            $map[$key] = $this->convertValue($value);
-        }
+		return new PreparedQuery($query, $swaps);
+	}
 
-        return strtr($query, $map);
-    }
+	protected function restoreQuery(string $query, PreparedQuery $prep): string
+	{
+		foreach ($prep->swaps as $swap => $replacement) {
+			$query = str_replace($swap, $replacement, $query);
+		}
 
-    protected function interpolatePositional(string $query, array $args): string
-    {
-        /** @psalm-suppress MixedAssignment -- $value is checked in convertValue */
-        foreach ($args as $value) {
-            $query = preg_replace('/\\?/', $this->convertValue($value), $query, 1);
-        }
+		return $query;
+	}
 
-        return $query;
-    }
+	/** @psalm-param array<non-empty-string, mixed> $args */
+	protected function interpolateNamed(string $query, array $args): string
+	{
+		$map = [];
+
+		/** @psalm-suppress MixedAssignment -- $value is checked in convertValue */
+		foreach ($args as $key => $value) {
+			$key = ':' . $key;
+			$map[$key] = $this->convertValue($value);
+		}
+
+		return strtr($query, $map);
+	}
+
+	protected function interpolatePositional(string $query, array $args): string
+	{
+		/** @psalm-suppress MixedAssignment -- $value is checked in convertValue */
+		foreach ($args as $value) {
+			$query = preg_replace('/\\?/', $this->convertValue($value), $query, 1);
+		}
+
+		return $query;
+	}
 }

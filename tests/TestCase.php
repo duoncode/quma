@@ -19,61 +19,61 @@ use Throwable;
  */
 class TestCase extends BaseTestCase
 {
-    protected const DS = DIRECTORY_SEPARATOR;
-    protected const DB_FILE_1 = 'quma_db1.sqlite3';
-    protected const DB_FILE_2 = 'quma_db2.sqlite3';
+	protected const DS = DIRECTORY_SEPARATOR;
+	protected const DB_FILE_1 = 'quma_db1.sqlite3';
+	protected const DB_FILE_2 = 'quma_db2.sqlite3';
 
-    public static function root(): string
-    {
-        return __DIR__ . '/';
-    }
+	public static function root(): string
+	{
+		return __DIR__ . '/';
+	}
 
-    public function connection(
-        string $dsn = null,
-        bool $additionalDirs = false,
-        array|string $migrations = null,
-    ): Connection {
-        $dsn = $dsn ?: $this->getDsn();
-        $sql = $this->getSqlDirs($additionalDirs);
-        $migrations = $migrations ?? self::root() . 'migrations';
-        $conn = new Connection($dsn, $sql, migrations: $migrations);
-        $conn->setMigrationsTable(str_starts_with($dsn, 'pgsql') ? 'public.migrations' : 'migrations');
+	public function connection(
+		string $dsn = null,
+		bool $additionalDirs = false,
+		array|string $migrations = null,
+	): Connection {
+		$dsn = $dsn ?: $this->getDsn();
+		$sql = $this->getSqlDirs($additionalDirs);
+		$migrations = $migrations ?? self::root() . 'migrations';
+		$conn = new Connection($dsn, $sql, migrations: $migrations);
+		$conn->setMigrationsTable(str_starts_with($dsn, 'pgsql') ? 'public.migrations' : 'migrations');
 
-        return $conn;
-    }
+		return $conn;
+	}
 
-    public function getSqlDirs(bool $additionalDirs = false): array|string
-    {
-        $prefix = self::root() . '/sql/';
+	public function getSqlDirs(bool $additionalDirs = false): array|string
+	{
+		$prefix = self::root() . '/sql/';
 
-        return $additionalDirs ?
-            [
-                $prefix . 'default',
-                [
-                    'sqlite' => $prefix . 'additional',
-                    'all' => $prefix . 'default',
-                ],
-            ] : $prefix . 'default';
-    }
+		return $additionalDirs ?
+			[
+				$prefix . 'default',
+				[
+					'sqlite' => $prefix . 'additional',
+					'all' => $prefix . 'default',
+				],
+			] : $prefix . 'default';
+	}
 
-    public function getDb(
-        bool $additionalDirs = false,
-    ): Database {
-        return new Database($this->connection(additionalDirs: $additionalDirs));
-    }
+	public function getDb(
+		bool $additionalDirs = false,
+	): Database {
+		return new Database($this->connection(additionalDirs: $additionalDirs));
+	}
 
-    public static function createTestDb(): void
-    {
-        $dbfile = self::getDbFile();
+	public static function createTestDb(): void
+	{
+		$dbfile = self::getDbFile();
 
-        if (is_file($dbfile)) {
-            unlink($dbfile);
-        }
+		if (is_file($dbfile)) {
+			unlink($dbfile);
+		}
 
-        $db = new PDO(self::getDsn());
+		$db = new PDO(self::getDsn());
 
-        $commands = [
-            '
+		$commands = [
+			'
                 CREATE TABLE members (
                     member INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -146,104 +146,105 @@ class TestCase extends BaseTestCase
                     (16, 7),
                     (17, 7)
             ', 'CREATE TABLE typetest (id INTEGER PRIMARY KEY, val)',
-        ];
-        // execute the sql commands to create new tables
-        foreach ($commands as $command) {
-            $db->exec($command);
-        }
-    }
+		];
 
-    public static function getAvailableDsns(bool $transactionsOnly = false): array
-    {
-        $dsns = [['transactions' => true, 'dsn' => 'sqlite:' . self::getDbFile()]];
+		// execute the sql commands to create new tables
+		foreach ($commands as $command) {
+			$db->exec($command);
+		}
+	}
 
-        foreach (self::getServerDsns() as $dsn) {
-            try {
-                new PDO($dsn['dsn']);
-                $dsns[] = $dsn;
-            } catch (Throwable) {
-                continue;
-            }
-        }
+	public static function getAvailableDsns(bool $transactionsOnly = false): array
+	{
+		$dsns = [['transactions' => true, 'dsn' => 'sqlite:' . self::getDbFile()]];
 
-        if ($transactionsOnly) {
-            return array_map(
-                fn ($dsn) => $dsn['dsn'],
-                array_filter($dsns, fn ($dsn) => $dsn['transactions'] === true),
-            );
-        }
+		foreach (self::getServerDsns() as $dsn) {
+			try {
+				new PDO($dsn['dsn']);
+				$dsns[] = $dsn;
+			} catch (Throwable) {
+				continue;
+			}
+		}
 
-        return array_map(fn ($dsn) => $dsn['dsn'], $dsns);
-    }
+		if ($transactionsOnly) {
+			return array_map(
+				fn($dsn) => $dsn['dsn'],
+				array_filter($dsns, fn($dsn) => $dsn['transactions'] === true),
+			);
+		}
 
-    public static function cleanUpTestDbs(): void
-    {
-        @unlink(self::getDbFile(self::DB_FILE_1));
-        @unlink(self::getDbFile(self::DB_FILE_2));
+		return array_map(fn($dsn) => $dsn['dsn'], $dsns);
+	}
 
-        foreach (self::getServerDsns() as $dsn) {
-            try {
-                $conn = new PDO($dsn['dsn']);
-                $conn->prepare('DROP TABLE IF EXISTS migrations')->execute();
-                $conn->prepare('DROP TABLE IF EXISTS genres')->execute();
-                $conn = null;
-            } catch (Throwable) {
-                continue;
-            }
-        }
-    }
+	public static function cleanUpTestDbs(): void
+	{
+		@unlink(self::getDbFile(self::DB_FILE_1));
+		@unlink(self::getDbFile(self::DB_FILE_2));
 
-    protected function connections(string $firstKey): array
-    {
-        return [
-            $firstKey => $this->connection(),
-            'second' => $this->connection($this->getDsn(self::DB_FILE_2)),
-        ];
-    }
+		foreach (self::getServerDsns() as $dsn) {
+			try {
+				$conn = new PDO($dsn['dsn']);
+				$conn->prepare('DROP TABLE IF EXISTS migrations')->execute();
+				$conn->prepare('DROP TABLE IF EXISTS genres')->execute();
+				$conn = null;
+			} catch (Throwable) {
+				continue;
+			}
+		}
+	}
 
-    protected function commands(
-        string $dsn = null,
-        array|string $migrations = null,
-        bool $multipleConnections = false,
-        string $firstMultipleConnectionsKey = 'default'
-    ): Commands {
-        if ($multipleConnections) {
-            $conn = $this->connections($firstMultipleConnectionsKey);
-        } else {
-            $conn = $this->connection(dsn: $dsn, migrations: $migrations);
-        }
+	protected function connections(string $firstKey): array
+	{
+		return [
+			$firstKey => $this->connection(),
+			'second' => $this->connection($this->getDsn(self::DB_FILE_2)),
+		];
+	}
 
-        return QumaCommands::get($conn);
-    }
+	protected function commands(
+		string $dsn = null,
+		array|string $migrations = null,
+		bool $multipleConnections = false,
+		string $firstMultipleConnectionsKey = 'default',
+	): Commands {
+		if ($multipleConnections) {
+			$conn = $this->connections($firstMultipleConnectionsKey);
+		} else {
+			$conn = $this->connection(dsn: $dsn, migrations: $migrations);
+		}
 
-    protected static function getServerDsns(): array
-    {
-        $dbPgsqlHost = getenv('DB_PGSQL_HOST') ?: 'localhost';
-        // MySQL tries to use a local socket when host=localhost
-        // is specified which does not work with WSL2/Windows.
-        $dbMysqlHost = getenv('DB_MYSQL_HOST') ?: '127.0.0.1';
-        $dbName = getenv('DB_NAME') ?: 'quma_db';
-        $dbUser = getenv('DB_USER') ?: 'quma_user';
-        $dbPassword = getenv('DB_PASSWORD') ?: 'quma_password';
+		return QumaCommands::get($conn);
+	}
 
-        return [
-            [
-                'transactions' => true,
-                'dsn' => "pgsql:host={$dbPgsqlHost};dbname={$dbName};user={$dbUser};password={$dbPassword}",
-            ], [
-                'transactions' => false,
-                'dsn' => "mysql:host={$dbMysqlHost};dbname={$dbName};user={$dbUser};password={$dbPassword}",
-            ],
-        ];
-    }
+	protected static function getServerDsns(): array
+	{
+		$dbPgsqlHost = getenv('DB_PGSQL_HOST') ?: 'localhost';
+		// MySQL tries to use a local socket when host=localhost
+		// is specified which does not work with WSL2/Windows.
+		$dbMysqlHost = getenv('DB_MYSQL_HOST') ?: '127.0.0.1';
+		$dbName = getenv('DB_NAME') ?: 'quma_db';
+		$dbUser = getenv('DB_USER') ?: 'quma_user';
+		$dbPassword = getenv('DB_PASSWORD') ?: 'quma_password';
 
-    protected static function getDbFile(string $file = self::DB_FILE_1): string
-    {
-        return sys_get_temp_dir() . DIRECTORY_SEPARATOR . $file;
-    }
+		return [
+			[
+				'transactions' => true,
+				'dsn' => "pgsql:host={$dbPgsqlHost};dbname={$dbName};user={$dbUser};password={$dbPassword}",
+			], [
+				'transactions' => false,
+				'dsn' => "mysql:host={$dbMysqlHost};dbname={$dbName};user={$dbUser};password={$dbPassword}",
+			],
+		];
+	}
 
-    protected static function getDsn(string $file = self::DB_FILE_1): string
-    {
-        return 'sqlite:' . self::getDbFile($file);
-    }
+	protected static function getDbFile(string $file = self::DB_FILE_1): string
+	{
+		return sys_get_temp_dir() . DIRECTORY_SEPARATOR . $file;
+	}
+
+	protected static function getDsn(string $file = self::DB_FILE_1): string
+	{
+		return 'sqlite:' . self::getDbFile($file);
+	}
 }

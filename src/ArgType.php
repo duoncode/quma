@@ -6,7 +6,6 @@ namespace FiveOrbs\Quma;
 
 enum ArgType
 {
-    case Named;
-
-    case Positional;
+	case Named;
+	case Positional;
 }
