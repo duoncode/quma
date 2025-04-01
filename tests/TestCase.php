@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FiveOrbs\Quma\Tests;
+namespace Duon\Quma\Tests;
 
-use FiveOrbs\Cli\Commands;
-use FiveOrbs\Quma\Commands as QumaCommands;
-use FiveOrbs\Quma\Connection;
-use FiveOrbs\Quma\Database;
+use Duon\Cli\Commands;
+use Duon\Quma\Commands as QumaCommands;
+use Duon\Quma\Connection;
+use Duon\Quma\Database;
 use PDO;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Throwable;

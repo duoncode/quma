@@ -11,8 +11,8 @@
 
 declare(strict_types=1);
 
-use FiveOrbs\Cli\Runner;
-use FiveOrbs\Quma\Tests\TestCase;
+use Duon\Cli\Runner;
+use Duon\Quma\Tests\TestCase;
 
 uses(TestCase::class);
 

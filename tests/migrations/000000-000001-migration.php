@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use FiveOrbs\Quma\Environment;
-use FiveOrbs\Quma\MigrationInterface;
+use Duon\Quma\Environment;
+use Duon\Quma\MigrationInterface;
 
 if (class_exists('TestMigration_1')) {
 	return new TestMigration_1();

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FiveOrbs\Quma;
+namespace Duon\Quma;
 
-use FiveOrbs\Cli\Opts;
-use FiveOrbs\Quma\Connection;
-use FiveOrbs\Quma\Database;
+use Duon\Cli\Opts;
+use Duon\Quma\Connection;
+use Duon\Quma\Database;
 use PDO;
 use RuntimeException;
 use Throwable;
@@ -14,7 +14,7 @@ use Throwable;
 /**
  * @psalm-api
  *
- * @psalm-import-type MigrationDirs from \FiveOrbs\Quma\Connection
+ * @psalm-import-type MigrationDirs from \Duon\Quma\Connection
  */
 class Environment
 {

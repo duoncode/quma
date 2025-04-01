@@ -1,12 +1,12 @@
-site_name: FiveOrbs Quma
+site_name: Duon Quma
 copyright: © 2022 ebene fünf GmbH
 nav:
   - index.md
 theme:
-    name: fiveorbs
-repo_url: https://github.com/fiveorbs/quma
+    name: duon
+repo_url: https://github.com/duon/quma
 extra:
-    project: FiveOrbs Quma
+    project: Duon Quma
 plugins:
     - search
     - macros:

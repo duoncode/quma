@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FiveOrbs\Quma\Commands;
+namespace Duon\Quma\Commands;
 
-use FiveOrbs\Cli\Opts;
+use Duon\Cli\Opts;
 
 class Add extends Command
 {
@@ -94,9 +94,9 @@ class Add extends Command
 declare(strict_types=1);
 
 use \\PDO;
-use FiveOrbs\\Quma\\Connection;
-use FiveOrbs\\Quma\\Database;
-use FiveOrbs\\Quma\\MigrationInterface;
+use Duon\\Quma\\Connection;
+use Duon\\Quma\\Database;
+use Duon\\Quma\\MigrationInterface;
 
 
 class {$className} implements MigrationInterface

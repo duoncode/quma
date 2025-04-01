@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FiveOrbs\Quma\Commands;
+namespace Duon\Quma\Commands;
 
-use FiveOrbs\Cli\Command as BaseCommand;
-use FiveOrbs\Quma\Connection;
-use FiveOrbs\Quma\Environment;
+use Duon\Cli\Command as BaseCommand;
+use Duon\Quma\Connection;
+use Duon\Quma\Environment;
 
 abstract class Command extends BaseCommand
 {

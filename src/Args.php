@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FiveOrbs\Quma;
+namespace Duon\Quma;
 
-use FiveOrbs\Quma\Util;
+use Duon\Quma\Util;
 
 /**
  * @psalm-type ArgsArray = list<mixed>|array<non-empty-string, mixed>

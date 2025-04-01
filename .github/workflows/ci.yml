@@ -52,5 +52,5 @@ jobs:
         env:
           CODACY_API_TOKEN: ${{secrets.CODACY_ACCOUNT_TOKEN}}
           CODACY_ORGANIZATION_PROVIDER: gh
-          CODACY_USERNAME: fiveorbs
+          CODACY_USERNAME: duon
           CODACY_PROJECT_NAME: boiler

@@ -1,41 +1,41 @@
 {
-	"name": "fiveorbs/quma",
-	"description": "A 'no ORM' database library which uses plain SQL files",
+	"name": "duon/quma",
+	"description": "A no-ORM database library for executing raw SQL files",
 	"type": "library",
 	"license": "MIT",
 	"authors": [
 		{
 			"name": "ebene fünf GmbH",
-			"email": "fiveorbs@ebenefuenf.de",
+			"email": "duon@ebenefuenf.de",
 			"role": "Developer"
 		}
 	],
-	"homepage": "https://fiveorbs.dev/quma",
+	"homepage": "https://duon.dev/quma",
 	"keywords": [
-		"fiveorbs",
+		"duon",
 		"database",
 		"sql"
 	],
 	"autoload": {
 		"psr-4": {
-			"FiveOrbs\\Quma\\": "src/"
+			"Duon\\Quma\\": "src/"
 		}
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"FiveOrbs\\Quma\\Tests\\": "tests"
+			"Duon\\Quma\\Tests\\": "tests"
 		}
 	},
 	"minimum-stability": "dev",
 	"prefer-stable": true,
 	"require": {
 		"php": ">=8.1",
-		"fiveorbs/cli": "dev-main"
+		"duon/cli": "dev-main"
 	},
 	"require-dev": {
-		"fiveorbs/dev": "^1.1",
+		"duon/dev": "^1.1",
 		"pestphp/pest": "^1",
-		"vimeo/psalm": "^5.5",
+		"vimeo/psalm": "^6.10",
 		"dealerdirect/phpcodesniffer-composer-installer": "^1",
 		"staabm/annotate-pull-request-from-checkstyle": "^1"
 	},

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FiveOrbs\Quma;
+namespace Duon\Quma;
 
 use Generator;
 use InvalidArgumentException;

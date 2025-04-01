@@ -2,10 +2,10 @@ Quma
 ====
 
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
-[![Coverage Status](https://img.shields.io/scrutinizer/coverage/g/fiveorbs/quma.svg)](https://scrutinizer-ci.com/g/fiveorbs/quma/code-structure)
-[![Psalm coverage](https://shepherd.dev/github/fiveorbs/quma/coverage.svg?)](https://shepherd.dev/github/fiveorbs/quma)
-[![Psalm level](https://shepherd.dev/github/fiveorbs/quma/level.svg?)](https://fiveorbs.dev/quma)
-[![Quality Score](https://img.shields.io/scrutinizer/g/fiveorbs/quma.svg)](https://scrutinizer-ci.com/g/fiveorbs/quma)
+[![Coverage Status](https://img.shields.io/scrutinizer/coverage/g/duoncode/quma.svg)](https://scrutinizer-ci.com/g/duoncode/quma/code-structure)
+[![Psalm coverage](https://shepherd.dev/github/duoncode/quma/coverage.svg?)](https://shepherd.dev/github/duoncode/quma)
+[![Psalm level](https://shepherd.dev/github/duoncode/quma/level.svg?)](https://duoncode.dev/quma)
+[![Quality Score](https://img.shields.io/scrutinizer/g/duoncode/quma.svg)](https://scrutinizer-ci.com/g/duoncode/quma)
 
 Quma is a PHP port of the similary named Python library [quma](https://quma.readthedocs.io).
 

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FiveOrbs\Quma;
+namespace Duon\Quma;
 
-use FiveOrbs\Cli\Commands as BaseCommands;
-use FiveOrbs\Quma\Commands\Add;
-use FiveOrbs\Quma\Commands\CreateMigrationsTable;
-use FiveOrbs\Quma\Commands\Migrations;
+use Duon\Cli\Commands as BaseCommands;
+use Duon\Quma\Commands\Add;
+use Duon\Quma\Commands\CreateMigrationsTable;
+use Duon\Quma\Commands\Migrations;
 
 /** @psalm-api */
 class Commands

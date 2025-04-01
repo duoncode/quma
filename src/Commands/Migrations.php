@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FiveOrbs\Quma\Commands;
+namespace Duon\Quma\Commands;
 
-use FiveOrbs\Cli\Opts;
-use FiveOrbs\Quma\Connection;
-use FiveOrbs\Quma\Database;
+use Duon\Cli\Opts;
+use Duon\Quma\Connection;
+use Duon\Quma\Database;
 use PDOException;
 use RuntimeException;
 use Throwable;
@@ -38,9 +38,9 @@ class Migrations extends Command
 			echo "\n\nIf you want to create the table above, simply run\n\n";
 			echo "    php run create-migrations-table\n\n";
 			echo "If you need to change the table or column names set them via \n\n";
-			echo "    \$\\FiveOrbs\\Quma\\Connection::setMigrationsTable(...)\n";
-			echo "    \$\\FiveOrbs\\Quma\\Connection::setMigrationsColumnMigration(...)\n";
-			echo "    \$\\FiveOrbs\\Quma\\Connection::setMigrationsColumnApplied(...)\n";
+			echo "    \$\\Duon\\Quma\\Connection::setMigrationsTable(...)\n";
+			echo "    \$\\Duon\\Quma\\Connection::setMigrationsColumnMigration(...)\n";
+			echo "    \$\\Duon\\Quma\\Connection::setMigrationsColumnApplied(...)\n";
 		} else {
 			// An unsupported driver would have to be installed
 			// to be able to test meaningfully

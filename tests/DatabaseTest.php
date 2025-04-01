@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use FiveOrbs\Quma\Database;
-use FiveOrbs\Quma\Tests\TestCase;
+use Duon\Quma\Database;
+use Duon\Quma\Tests\TestCase;
 
 uses(TestCase::class);
 
