@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Duon\Quma\Commands;
 
+use Duon\Cli\Command;
 use Duon\Cli\Opts;
 use Duon\Quma\Connection;
 use Duon\Quma\Database;
+use Duon\Quma\Environment;
 use PDOException;
 use RuntimeException;
 use Throwable;
@@ -18,41 +20,88 @@ class Migrations extends Command
 	protected const WARNING = 'warning';
 	protected const SUCCESS = 'success';
 
+	protected readonly Environment $env;
 	protected string $name = 'migrations';
 	protected string $group = 'Migrations';
 	protected string $description = 'Apply missing database migrations';
+
+	/** @psalm-param array<non-empty-string, Connection>|Connection $conn */
+	public function __construct(array|Connection $conn, array $options = [])
+	{
+		if (is_array($conn)) {
+			$this->env = new Environment($conn, $options);
+		} else {
+			$this->env = new Environment(['default' => $conn], $options);
+		}
+	}
 
 	public function run(): string|int
 	{
 		$env = $this->env;
 		$opts = new Opts();
+		$driverSupported = in_array($env->driver, ['sqlite', 'mysql', 'pgsql']);
 
-		if (!$env->convenience || $env->checkIfMigrationsTableExists($env->db)) {
-			return $this->migrate($env->db, $env->conn, $opts->has('--stacktrace'), $opts->has('--apply'));
-		}
-		$ddl = $env->getMigrationsTableDDL();
+		if ($driverSupported && !$env->checkIfMigrationsTableExists($env->db)) {
+			$createMigrationTableCmd = new CreateMigrationsTable($env->conn, $env->options);
+			$result = $createMigrationTableCmd->run();
 
-		if ($ddl) {
-			echo "Migrations table does not exist. For '{$env->driver}' it should look like:\n\n";
-			echo $ddl;
-			echo "\n\nIf you want to create the table above, simply run\n\n";
-			echo "    php run create-migrations-table\n\n";
-			echo "If you need to change the table or column names set them via \n\n";
-			echo "    \$\\Duon\\Quma\\Connection::setMigrationsTable(...)\n";
-			echo "    \$\\Duon\\Quma\\Connection::setMigrationsColumnMigration(...)\n";
-			echo "    \$\\Duon\\Quma\\Connection::setMigrationsColumnApplied(...)\n";
-		} else {
-			// An unsupported driver would have to be installed
-			// to be able to test meaningfully
-			// @codeCoverageIgnoreStart
-			echo "Driver '{$env->driver}' is not supported.\n";
-			// @codeCoverageIgnoreEnd
+			if ($result !== 0) {
+				$this->error('Migration table could not be created.');
+
+				return $result;
+			}
 		}
 
-		return 1;
+		return $this->migrate(
+			$env->db,
+			$env->conn,
+			$opts->get('namespace', ''),
+			$opts->has('--stacktrace'),
+			$opts->has('--apply'),
+		);
 	}
 
 	protected function migrate(
+		Database $db,
+		Connection $conn,
+		string $namespace,
+		bool $showStacktrace,
+		bool $apply,
+	): int {
+		$migrationNamespaces = $this->env->getMigrations();
+
+		if ($migrationNamespaces === false) {
+			return 1;
+		}
+
+		if ($namespace) {
+			if (!array_key_exists($namespace, $migrationNamespaces)) {
+				$this->error("Migration namespace '{$namespace}' does not exist");
+
+				return 1;
+			}
+
+			$migrations = $migrationNamespaces[$namespace];
+		} else {
+			if (!array_key_exists('default', $migrationNamespaces)) {
+				$this->error("Migration namespace 'default' does not exist");
+				$this->info(
+					"If you have defined namespaced migrations, you must either provide a namespace using the " .
+					"`--namespace` flag when running this command, or define a namespace named 'default' which " .
+					"will be used when no namespace is provided.",
+				);
+
+				return 1;
+			}
+
+			$migrations = $migrationNamespaces['default'];
+		}
+
+		return $this->runMigrations($migrations, $db, $conn, $showStacktrace, $apply);
+	}
+
+	protected function runMigrations(
+		array $migrations,
 		Database $db,
 		Connection $conn,
 		bool $showStacktrace,
@@ -62,12 +111,6 @@ class Migrations extends Command
 		$appliedMigrations = $this->getAppliedMigrations($db);
 		$result = self::STARTED;
 		$numApplied = 0;
-
-		$migrations = $this->env->getMigrations();
-
-		if ($migrations === false) {
-			return 1;
-		}
 
 		foreach ($migrations as $migration) {
 			assert(!empty($migration) && is_string($migration));

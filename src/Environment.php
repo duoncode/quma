@@ -21,7 +21,6 @@ class Environment
 	public readonly Connection $conn;
 	public readonly string $driver;
 	public readonly bool $showStacktrace;
-	public readonly bool $convenience;
 	public readonly string $table;
 	public readonly string $columnMigration;
 	public readonly string $columnApplied;
@@ -47,7 +46,6 @@ class Environment
 		$this->showStacktrace = $opts->has('--stacktrace');
 		$this->db = new Database($this->conn);
 		$this->driver = $this->conn->driver;
-		$this->convenience = in_array($this->driver, ['sqlite', 'mysql', 'pgsql']);
 		$this->table = $this->conn->migrationsTable();
 		$this->columnMigration = $this->conn->migrationsColumnMigration();
 		$this->columnApplied = $this->conn->migrationsColumnApplied();
@@ -58,12 +56,30 @@ class Environment
 		/** @psalm-var MigrationDirs */
 		$migrations = [];
 		$migrationDirs = $this->conn->migrations();
+		error_log(print_r($migrationDirs, true));
 
 		if (count($migrationDirs) === 0) {
 			echo "\033[1;31mNotice\033[0m: No migration directories defined in configuration\033[0m\n";
 
 			return false;
 		}
+
+		if (array_is_list($migrationDirs)) {
+			$migrations['default'] = $this->collectMigrations($migrationDirs);
+
+			return $migrations;
+		}
+
+		foreach ($migrationDirs as $namespace => $namespaceDirs) {
+			$migrations[$namespace] = $this->collectMigrations($namespaceDirs);
+		}
+
+		return $migrations;
+	}
+
+	protected function collectMigrations(array $migrationDirs): array
+	{
+		$migrations = [];
 
 		foreach ($migrationDirs as $path) {
 			$migrations = array_merge(

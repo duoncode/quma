@@ -20,16 +20,20 @@ test('Initialization', function () {
 
 test('Driver specific dir', function () {
 	$conn = new Connection($this->getDsn(), [
-		'all' => TestCase::root() . 'sql/default',
+		'all' => [
+			TestCase::root() . 'sql/default',
+			TestCase::root() . 'sql/more',
+		],
 		'sqlite' => TestCase::root() . 'sql/additional',
 		'ignored' => TestCase::root() . 'sql/ignored',
 	]);
 
 	$sql = $conn->sql();
-	expect(count($sql))->toBe(2);
+	expect(count($sql))->toBe(3);
 	// Driver specific must come first
 	expect($sql[0])->toEndWith('/additional');
 	expect($sql[1])->toEndWith('/default');
+	expect($sql[2])->toEndWith('/more');
 });
 
 test('Add SQL dirs later', function () {
@@ -70,16 +74,6 @@ test('Mixed dirs format', function () {
 	expect($sql[2])->toEndWith('/default');
 });
 
-test('Wrong sql format', function () {
-	new Connection($this->getDsn(), [
-		TestCase::root() . 'sql/default',
-		[
-			TestCase::root() . 'sql/additional',
-			TestCase::root() . 'sql/ignored',
-		],
-	]);
-})->throws(ValueError::class, 'string or an associative array');
-
 test('Migration directories', function () {
 	$conn = new Connection(
 		$this->getDsn(),
@@ -91,6 +85,23 @@ test('Migration directories', function () {
 	expect(count($migrations))->toBe(2);
 	expect($migrations[0])->toEndWith('/additional');
 	expect($migrations[1])->toEndWith('/migrations');
+});
+
+test('Namespaced migration directories', function () {
+	$conn = new Connection(
+		$this->getDsn(),
+		TestCase::root() . 'sql/default',
+		[
+			'default' => [TestCase::root() . 'migrations', TestCase::root() . 'sql/default'],
+			'install' => TestCase::root() . 'sql/additional',
+		],
+	);
+	$migrations = $conn->migrations();
+
+	expect(count($migrations))->toBe(2);
+	expect($migrations['default'][0])->toEndWith('/migrations');
+	expect($migrations['default'][1])->toEndWith('/default');
+	expect($migrations['install'])->toEndWith('/additional');
 });
 
 test('Add migration directories later', function () {

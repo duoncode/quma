@@ -10,7 +10,7 @@ class Add extends Command
 {
 	protected string $name = 'add-migration';
 	protected string $group = 'Migrations';
-	protected string $description = 'Initialize a new migrations';
+	protected string $description = 'Initialize a new migration';
 
 	public function run(): string|int
 	{

@@ -12,7 +12,7 @@ use ValueError;
 /**
  * @psalm-api
  *
- * @psalm-type MigrationDirs = list<non-empty-string>
+ * @psalm-type MigrationDirs = list<array<non-empty-string, non-empty-string>>
  * @psalm-type SqlDirs = list<non-empty-string>
  * @psalm-type SqlAssoc = array<non-empty-string, non-empty-string>
  * @psalm-type SqlMixed = list<non-empty-string|SqlAssoc>
@@ -21,6 +21,9 @@ use ValueError;
 class Connection
 {
 	use GetsSetsPrint;
+
+	private const TYPE_SQL = 'sql';
+	private const TYPE_MIGRATION = 'migration';
 
 	/** @psalm-var non-empty-string */
 	public readonly string $driver;
@@ -42,7 +45,7 @@ class Connection
 	public function __construct(
 		public readonly string $dsn,
 		string|array $sql,
-		string|array $migrations = null,
+		string|array|null $migrations = null,
 		public readonly ?string $username = null,
 		public readonly ?string $password = null,
 		public readonly array $options = [],
@@ -50,8 +53,8 @@ class Connection
 		bool $print = false,
 	) {
 		$this->driver = $this->readDriver($this->dsn);
-		$this->sql = $this->readDirs($sql);
-		$this->migrations = $this->readDirs($migrations ?? []);
+		$this->sql = $this->readDirs($sql, self::TYPE_SQL);
+		$this->migrations = $this->readDirs($migrations ?? [], self::TYPE_MIGRATION);
 		$this->print = $print;
 	}
 
@@ -99,7 +102,7 @@ class Connection
 	/** @psalm-param non-empty-string $migrations */
 	public function addMigrationDir(string $migrations): void
 	{
-		$migrations = $this->readDirs($migrations);
+		$migrations = $this->readDirs($migrations, self::TYPE_MIGRATION);
 		$this->migrations = array_merge($migrations, $this->migrations);
 	}
 
@@ -112,7 +115,7 @@ class Connection
 	/** @psalm-param SqlConfig $sql */
 	public function addSqlDirs(array|string $sql): void
 	{
-		$sql = $this->readDirs($sql);
+		$sql = $this->readDirs($sql, self::TYPE_SQL);
 		$this->sql = array_merge($sql, $this->sql);
 	}
 
@@ -152,21 +155,51 @@ class Connection
 	 *
 	 * @psalm-return MigrationDirs
 	 */
-	protected function prepareDirs(array $entry): array
+	protected function prepareDirs(array $entry, string $type): array
 	{
+		$hasDriver = array_key_exists($this->driver, $entry);
+		$hasAll = array_key_exists('all', $entry);
 		/** @psalm-var MigrationDirs */
 		$dirs = [];
 
-		// Add sql scripts for the current pdo driver.
-		// Should be the first in the list as they
-		// may have platform specific queries.
-		if (array_key_exists($this->driver, $entry)) {
-			$dirs[] = $this->preparePath($entry[$this->driver]);
+		if ($type === self::TYPE_SQL || $hasDriver || $hasAll) {
+			// Add sql scripts for the current pdo driver.
+			// Should be the first in the list as they
+			// may have platform specific queries.
+			if ($hasDriver) {
+				$dirs = $this->collectDirs($dirs, $entry[$this->driver]);
+			}
+
+			// Add sql scripts for all platforms
+			if ($hasAll) {
+				$dirs = $this->collectDirs($dirs, $entry['all']);
+			}
+
+			return $dirs;
 		}
 
-		// Add sql scripts for all platforms
-		if (array_key_exists('all', $entry)) {
-			$dirs[] = $this->preparePath($entry['all']);
+		// If we get here it must be migrations
+		foreach ($entry as $namespace => $migrations) {
+			if (is_array($migrations)) {
+				if (array_is_list($migrations)) {
+					$dirs[$namespace] = $this->collectDirs([], $migrations);
+				} else {
+					$dirs[$namespace] = $this->prepareDirs($migrations, $type);
+				}
+			} else {
+				$dirs[$namespace] = $this->preparePath($migrations);
+			}
+		}
+
+		return $dirs;
+	}
+
+	protected function collectDirs(array $dirs, string|array $entry): array
+	{
+		if (is_string($entry)) {
+			$dirs[] = $this->preparePath($entry);
+		} else {
+			$dirs = array_merge($dirs, array_map(fn($e) => $this->preparePath($e), $entry));
 		}
 
 		return $dirs;
@@ -183,8 +216,13 @@ class Connection
 	 *
 	 * @psalm-return MigrationDirs
 	 */
-	protected function readDirs(string|array $sql): array
+	protected function readDirs(string|array $sql, string $type): array
 	{
+		error_log("~~~~~~~~~~~~ HANS ~~~~~~~~~~~~~~");
+		error_log($type);
+		error_log(print_r($sql, true));
+		error_log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
 		if (is_string($sql)) {
 			/** @psalm-var MigrationDirs */
 			return [$this->preparePath($sql)];
@@ -192,7 +230,7 @@ class Connection
 
 		if (Util::isAssoc($sql)) {
 			/** @psalm-var SqlAssoc $sql */
-			return $this->prepareDirs($sql);
+			return $this->prepareDirs($sql, $type);
 		}
 
 		/** @psalm-var MigrationDirs */
@@ -205,15 +243,13 @@ class Connection
 				continue;
 			}
 
-			if (Util::isAssoc($entry)) {
-				$dirs = array_merge($this->prepareDirs($entry), $dirs);
+			if (array_is_list($entry)) {
+				$dirs = array_merge(array_map(fn($e) => $this->preparePath($e), $entry), $dirs);
 
 				continue;
 			}
 
-			throw new ValueError(
-				"A single 'sql' item must be either a string or an associative array",
-			);
+			$dirs = array_merge($this->prepareDirs($entry, $type), $dirs);
 		}
 
 		return $dirs;
