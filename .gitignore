@@ -5,6 +5,7 @@
 __pycache__
 composer.lock
 tests/migratons/2*
+/coverage
 /site
 /tmp
 /vendor

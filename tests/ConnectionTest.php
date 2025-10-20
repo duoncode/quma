@@ -2,156 +2,189 @@
 
 declare(strict_types=1);
 
+namespace Duon\Quma\Tests;
+
 use Duon\Quma\Connection;
-use Duon\Quma\Tests\TestCase;
+use RuntimeException;
+use ValueError;
 
-uses(TestCase::class);
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
+class ConnectionTest extends TestCase
+{
+	public function testInitialization(): void
+	{
+		$dsn = $this->getDsn();
+		$sql = $this->getSqlDirs();
+		$conn = new Connection($dsn, $sql);
 
-test('Initialization', function () {
-	$dsn = $this->getDsn();
-	$sql = $this->getSqlDirs();
-	$conn = new Connection($dsn, $sql);
+		$this->assertSame($dsn, $conn->dsn);
+		$this->assertSame(realpath($sql), realpath($conn->sql()[0]));
+		$this->assertFalse($conn->print());
+		$this->assertTrue($conn->print(true));
+	}
 
-	expect($conn->dsn)->toBe($dsn);
-	expect(realpath($conn->sql()[0]))->toBe(realpath($sql));
-	expect($conn->print())->toBe(false);
-	expect($conn->print(true))->toBe(true);
-});
-
-test('Driver specific dir', function () {
-	$conn = new Connection($this->getDsn(), [
-		'all' => [
-			TestCase::root() . 'sql/default',
-			TestCase::root() . 'sql/more',
-		],
-		'sqlite' => TestCase::root() . 'sql/additional',
-		'ignored' => TestCase::root() . 'sql/ignored',
-	]);
-
-	$sql = $conn->sql();
-	expect(count($sql))->toBe(3);
-	// Driver specific must come first
-	expect($sql[0])->toEndWith('/additional');
-	expect($sql[1])->toEndWith('/default');
-	expect($sql[2])->toEndWith('/more');
-});
-
-test('Add SQL dirs later', function () {
-	$conn = new Connection(
-		$this->getDsn(),
-		TestCase::root() . 'sql/default',
-	);
-
-	$conn->addSqlDirs([
-		'sqlite' => TestCase::root() . 'sql/additional',
-		'ignored' => TestCase::root() . 'sql/ignored',
-	]);
-
-	$sql = $conn->sql();
-	expect(count($sql))->toBe(2);
-	// Driver specific must come first
-	expect($sql[0])->toEndWith('/additional');
-	expect($sql[1])->toEndWith('/default');
-});
-
-test('Mixed dirs format', function () {
-	$conn = new Connection(
-		$this->getDsn(),
-		[
-			[
-				'all' => TestCase::root() . 'sql/default',
-				'sqlite' => TestCase::root() . 'sql/additional',
-				'ignored' => TestCase::root() . 'sql/ignored',
+	public function testDriverSpecificDir(): void
+	{
+		$conn = new Connection($this->getDsn(), [
+			'all' => [
+				TestCase::root() . 'sql/default',
+				TestCase::root() . 'sql/more',
 			],
-			TestCase::root() . 'sql/additional/members',
-		],
-	);
+			'sqlite' => TestCase::root() . 'sql/additional',
+			'ignored' => TestCase::root() . 'sql/ignored',
+		]);
 
-	$sql = $conn->sql();
-	expect(count($sql))->toBe(3);
-	expect($sql[0])->toEndWith('/members');
-	expect($sql[1])->toEndWith('/additional');
-	expect($sql[2])->toEndWith('/default');
-});
+		$sql = $conn->sql();
+		$this->assertCount(3, $sql);
+		// Driver specific must come first
+		$this->assertStringEndsWith('/additional', $sql[0]);
+		$this->assertStringEndsWith('/default', $sql[1]);
+		$this->assertStringEndsWith('/more', $sql[2]);
+	}
 
-test('Migration directories', function () {
-	$conn = new Connection(
-		$this->getDsn(),
-		TestCase::root() . 'sql/default',
-		[TestCase::root() . 'migrations', TestCase::root() . 'sql/additional'],
-	);
-	$migrations = $conn->migrations();
+	public function testAddSqlDirsLater(): void
+	{
+		$conn = new Connection(
+			$this->getDsn(),
+			TestCase::root() . 'sql/default',
+		);
 
-	expect(count($migrations))->toBe(2);
-	expect($migrations[0])->toEndWith('/additional');
-	expect($migrations[1])->toEndWith('/migrations');
-});
+		$conn->addSqlDirs([
+			'sqlite' => TestCase::root() . 'sql/additional',
+			'ignored' => TestCase::root() . 'sql/ignored',
+		]);
 
-test('Namespaced migration directories', function () {
-	$conn = new Connection(
-		$this->getDsn(),
-		TestCase::root() . 'sql/default',
-		[
-			'default' => [TestCase::root() . 'migrations', TestCase::root() . 'sql/default'],
-			'install' => TestCase::root() . 'sql/additional',
-		],
-	);
-	$migrations = $conn->migrations();
+		$sql = $conn->sql();
+		$this->assertCount(2, $sql);
+		// Driver specific must come first
+		$this->assertStringEndsWith('/additional', $sql[0]);
+		$this->assertStringEndsWith('/default', $sql[1]);
+	}
 
-	expect(count($migrations))->toBe(2);
-	expect($migrations['default'][0])->toEndWith('/migrations');
-	expect($migrations['default'][1])->toEndWith('/default');
-	expect($migrations['install'])->toEndWith('/additional');
-});
+	public function testMixedDirsFormat(): void
+	{
+		$conn = new Connection(
+			$this->getDsn(),
+			[
+				[
+					'all' => TestCase::root() . 'sql/default',
+					'sqlite' => TestCase::root() . 'sql/additional',
+					'ignored' => TestCase::root() . 'sql/ignored',
+				],
+				TestCase::root() . 'sql/additional/members',
+			],
+		);
 
-test('Add migration directories later', function () {
-	$conn = new Connection(
-		$this->getDsn(),
-		TestCase::root() . 'sql/default',
-	);
-	$conn->addMigrationDir(TestCase::root() . 'migrations');
-	$conn->addMigrationDir(TestCase::root() . 'sql/additional');
-	$migrations = $conn->migrations();
+		$sql = $conn->sql();
+		$this->assertCount(3, $sql);
+		$this->assertStringEndsWith('/members', $sql[0]);
+		$this->assertStringEndsWith('/additional', $sql[1]);
+		$this->assertStringEndsWith('/default', $sql[2]);
+	}
 
-	expect(count($migrations))->toBe(2);
-	expect($migrations[0])->toEndWith('/additional');
-	expect($migrations[1])->toEndWith('/migrations');
-});
+	public function testMigrationDirectories(): void
+	{
+		$conn = new Connection(
+			$this->getDsn(),
+			TestCase::root() . 'sql/default',
+			[TestCase::root() . 'migrations', TestCase::root() . 'sql/additional'],
+		);
+		$migrations = $conn->migrations();
 
-test('Unsupported dsn', function () {
-	new Connection('notsupported:host=localhost;dbname=chuck', $this->getSqlDirs());
-})->throws(RuntimeException::class, 'driver not supported');
+		$this->assertCount(2, $migrations);
+		$this->assertStringEndsWith('/additional', $migrations[0]);
+		$this->assertStringEndsWith('/migrations', $migrations[1]);
+	}
 
-test('Migration table setting', function () {
-	$conn = new Connection($this->getDsn(), $this->getSqlDirs());
+	public function testNamespacedMigrationDirectories(): void
+	{
+		$conn = new Connection(
+			$this->getDsn(),
+			TestCase::root() . 'sql/default',
+			[
+				'default' => [TestCase::root() . 'migrations', TestCase::root() . 'sql/default'],
+				'install' => TestCase::root() . 'sql/additional',
+			],
+		);
+		$migrations = $conn->migrations();
 
-	expect($conn->migrationsTable())->toBe('migrations');
-	expect($conn->migrationsColumnMigration())->toBe('migration');
-	expect($conn->migrationsColumnApplied())->toBe('applied');
+		$this->assertCount(2, $migrations);
+		$this->assertStringEndsWith('/migrations', $migrations['default'][0]);
+		$this->assertStringEndsWith('/default', $migrations['default'][1]);
+		$this->assertStringEndsWith('/additional', $migrations['install']);
+	}
 
-	$conn->setMigrationsTable('newmigrations');
-	$conn->setMigrationsColumnMigration('newmigration');
-	$conn->setMigrationsColumnApplied('newapplied');
+	public function testAddMigrationDirectoriesLater(): void
+	{
+		$conn = new Connection(
+			$this->getDsn(),
+			TestCase::root() . 'sql/default',
+		);
+		$conn->addMigrationDir(TestCase::root() . 'migrations');
+		$conn->addMigrationDir(TestCase::root() . 'sql/additional');
+		$migrations = $conn->migrations();
 
-	expect($conn->migrationsTable())->toBe('newmigrations');
-	expect($conn->migrationsColumnMigration())->toBe('newmigration');
-	expect($conn->migrationsColumnApplied())->toBe('newapplied');
-});
+		$this->assertCount(2, $migrations);
+		$this->assertStringEndsWith('/additional', $migrations[0]);
+		$this->assertStringEndsWith('/migrations', $migrations[1]);
+	}
 
-test('Wrong migrations table name', function () {
-	$conn = new Connection($this->getDsn(), $this->getSqlDirs());
-	$conn->setMigrationsTable('new migrations');
-	$conn->migrationsTable();
-})->throws(ValueError::class, 'Invalid migrations table name');
+	public function testUnsupportedDsn(): void
+	{
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('driver not supported');
 
-test('Wrong migration column name', function () {
-	$conn = new Connection($this->getDsn(), $this->getSqlDirs());
-	$conn->setMigrationsColumnMigration('new migration');
-	$conn->migrationsColumnMigration();
-})->throws(ValueError::class, 'Invalid migrations table column name');
+		new Connection('notsupported:host=localhost;dbname=chuck', $this->getSqlDirs());
+	}
 
-test('Wrong applied column name', function () {
-	$conn = new Connection($this->getDsn(), $this->getSqlDirs());
-	$conn->setMigrationsColumnApplied('new migration');
-	$conn->migrationsColumnApplied();
-})->throws(ValueError::class, 'Invalid migrations table column name');
+	public function testMigrationTableSetting(): void
+	{
+		$conn = new Connection($this->getDsn(), $this->getSqlDirs());
+
+		$this->assertSame('migrations', $conn->migrationsTable());
+		$this->assertSame('migration', $conn->migrationsColumnMigration());
+		$this->assertSame('applied', $conn->migrationsColumnApplied());
+
+		$conn->setMigrationsTable('newmigrations');
+		$conn->setMigrationsColumnMigration('newmigration');
+		$conn->setMigrationsColumnApplied('newapplied');
+
+		$this->assertSame('newmigrations', $conn->migrationsTable());
+		$this->assertSame('newmigration', $conn->migrationsColumnMigration());
+		$this->assertSame('newapplied', $conn->migrationsColumnApplied());
+	}
+
+	public function testWrongMigrationsTableName(): void
+	{
+		$this->expectException(ValueError::class);
+		$this->expectExceptionMessage('Invalid migrations table name');
+
+		$conn = new Connection($this->getDsn(), $this->getSqlDirs());
+		$conn->setMigrationsTable('new migrations');
+		$conn->migrationsTable();
+	}
+
+	public function testWrongMigrationColumnName(): void
+	{
+		$this->expectException(ValueError::class);
+		$this->expectExceptionMessage('Invalid migrations table column name');
+
+		$conn = new Connection($this->getDsn(), $this->getSqlDirs());
+		$conn->setMigrationsColumnMigration('new migration');
+		$conn->migrationsColumnMigration();
+	}
+
+	public function testWrongAppliedColumnName(): void
+	{
+		$this->expectException(ValueError::class);
+		$this->expectExceptionMessage('Invalid migrations table column name');
+
+		$conn = new Connection($this->getDsn(), $this->getSqlDirs());
+		$conn->setMigrationsColumnApplied('new migration');
+		$conn->migrationsColumnApplied();
+	}
+}

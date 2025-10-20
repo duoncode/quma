@@ -11,100 +11,132 @@
 
 declare(strict_types=1);
 
+namespace Duon\Quma\Tests;
+
 use Duon\Cli\Runner;
-use Duon\Quma\Tests\TestCase;
 
-uses(TestCase::class);
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
+class CreateMigrationsTest extends TestCase
+{
+	public static function setUpBeforeClass(): void
+	{
+		parent::setUpBeforeClass();
+		// Remove remnants of previous runs
+		$migrationsDir = TestCase::root() . '/migrations/';
+		array_map('unlink', glob("{$migrationsDir}*test-migration*"));
 
-beforeAll(function () {
-	// Remove remnants of previous runs
-	$migrationsDir = TestCase::root() . '/migrations/';
-	array_map('unlink', glob("{$migrationsDir}*test-migration*"));
-
-	TestCase::cleanupTestDbs();
-});
-
-afterEach(function () {
-	// Each Runner::run call registers a error handler
-	restore_error_handler();
-	restore_exception_handler();
-});
-
-test('Create migrations table :: success', function (string $dsn) {
-	$_SERVER['argv'] = ['run', 'create-migrations-table'];
-
-	ob_start();
-	$result = (new Runner($this->commands(dsn: $dsn)))->run();
-	ob_end_clean();
-
-	expect($result)->toBe(0);
-})->with('connections');
-
-test('Create migrations table :: already exists', function (string $dsn) {
-	$_SERVER['argv'] = ['run', 'create-migrations-table'];
-
-	ob_start();
-	$result = (new Runner($this->commands(dsn: $dsn)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-
-	expect($result)->toBe(1);
-
-	if (str_starts_with($dsn, 'pgsql')) {
-		expect($content)->toContain("Table 'public.migrations' already exists");
-	} else {
-		expect($content)->toContain("Table 'migrations' already exists");
+		TestCase::cleanupTestDbs();
 	}
-})->with('connections');
 
-test('Create migrations table :: already exists connection as arg', function () {
-	$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'first'];
+	protected function tearDown(): void
+	{
+		parent::tearDown();
+		// Each Runner::run call registers a error handler
+		restore_error_handler();
+		restore_exception_handler();
+	}
 
-	ob_start();
-	$result = (new Runner($this->commands(
-		multipleConnections: true,
-		firstMultipleConnectionsKey: 'first',
-	)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
+	/**
+	 * @dataProvider connectionProvider
+	 */
+	public function testCreateMigrationsTableSuccess(string $dsn): void
+	{
+		$_SERVER['argv'] = ['run', 'create-migrations-table'];
 
-	expect($result)->toBe(1);
-	expect($content)->toContain("Table 'migrations' already exists");
-});
+		ob_start();
+		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		ob_end_clean();
 
-test('Create migrations table :: already exists multiconnection with default', function () {
-	$_SERVER['argv'] = ['run', 'create-migrations-table'];
+		$this->assertSame(0, $result);
+	}
 
-	ob_start();
-	$result = (new Runner($this->commands(
-		multipleConnections: true,
-		firstMultipleConnectionsKey: 'default',
-	)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
+	/**
+	 * @dataProvider connectionProvider
+	 * @depends testCreateMigrationsTableSuccess
+	 */
+	public function testCreateMigrationsTableAlreadyExists(string $dsn): void
+	{
+		$_SERVER['argv'] = ['run', 'create-migrations-table'];
 
-	expect($result)->toBe(1);
-	expect($content)->toContain("Table 'migrations' already exists");
-});
+		ob_start();
+		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
 
-test('Create migrations table :: alternate connection', function () {
-	$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'second'];
+		$this->assertSame(1, $result);
 
-	ob_start();
-	$result = (new Runner($this->commands(multipleConnections: true)))->run();
-	ob_end_clean();
+		if (str_starts_with($dsn, 'pgsql')) {
+			$this->assertStringContainsString("Table 'public.migrations' already exists", $content);
+		} else {
+			$this->assertStringContainsString("Table 'migrations' already exists", $content);
+		}
+	}
 
-	expect($result)->toBe(0);
-});
+	public function testCreateMigrationsTableAlreadyExistsConnectionAsArg(): void
+	{
+		$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'first'];
 
-test('Create migrations table :: already exists alternate connection', function () {
-	$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'second'];
+		ob_start();
+		$result = (new Runner($this->commands(
+			multipleConnections: true,
+			firstMultipleConnectionsKey: 'first',
+		)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
 
-	ob_start();
-	$result = (new Runner($this->commands(multipleConnections: true)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
+		$this->assertSame(1, $result);
+		$this->assertStringContainsString("Table 'migrations' already exists", $content);
+	}
 
-	expect($result)->toBe(1);
-	expect($content)->toContain("Table 'migrations' already exists");
-});
+	public function testCreateMigrationsTableAlreadyExistsMulticonnectionWithDefault(): void
+	{
+		$_SERVER['argv'] = ['run', 'create-migrations-table'];
+
+		ob_start();
+		$result = (new Runner($this->commands(
+			multipleConnections: true,
+			firstMultipleConnectionsKey: 'default',
+		)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertSame(1, $result);
+		$this->assertStringContainsString("Table 'migrations' already exists", $content);
+	}
+
+	public function testCreateMigrationsTableAlternateConnection(): void
+	{
+		$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'second'];
+
+		ob_start();
+		$result = (new Runner($this->commands(multipleConnections: true)))->run();
+		ob_end_clean();
+
+		$this->assertSame(0, $result);
+	}
+
+	/**
+	 * @depends testCreateMigrationsTableAlternateConnection
+	 */
+	public function testCreateMigrationsTableAlreadyExistsAlternateConnection(): void
+	{
+		$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'second'];
+
+		ob_start();
+		$result = (new Runner($this->commands(multipleConnections: true)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertSame(1, $result);
+		$this->assertStringContainsString("Table 'migrations' already exists", $content);
+	}
+
+	public static function connectionProvider(): array
+	{
+		return array_map(fn($dsn) => [$dsn], TestCase::getAvailableDsns());
+	}
+}

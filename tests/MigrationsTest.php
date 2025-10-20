@@ -11,276 +11,376 @@
 
 declare(strict_types=1);
 
+namespace Duon\Quma\Tests;
+
 use Duon\Cli\Runner;
-use Duon\Quma\Tests\TestCase;
+use RuntimeException;
+use ValueError;
 
-uses(TestCase::class);
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
+class MigrationsTest extends TestCase
+{
+	protected function setUp(): void
+	{
+		parent::setUp();
+		// Remove remnants of previous runs
+		$migrationsDir = TestCase::root() . '/migrations/';
+		array_map('unlink', glob("{$migrationsDir}*test-migration*"));
 
-beforeEach(function () {
-	// Remove remnants of previous runs
-	$migrationsDir = TestCase::root() . '/migrations/';
-	array_map('unlink', glob("{$migrationsDir}*test-migration*"));
-
-	TestCase::cleanupTestDbs();
-});
-
-afterEach(function () {
-	// Each Runner::run call registers a error handler
-	restore_error_handler();
-	restore_exception_handler();
-});
-
-dataset('connections', TestCase::getAvailableDsns());
-dataset('transaction-connections', TestCase::getAvailableDsns(transactionsOnly: true));
-
-test('Create migrations table :: success', function () {
-	$_SERVER['argv'] = ['run', 'migrations', '--apply'];
-
-	ob_start();
-	$result = (new Runner($this->commands()))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-
-	expect($result)->toBe(0);
-	expect($content)->toContain("Created table 'migrations'");
-});
-
-test('Wrong connection', function () {
-	$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'doesnotexist'];
-
-	(new Runner($this->commands(multipleConnections: true)))->run();
-})->throws(RuntimeException::class, 'doesnotexist');
-
-test('Run migrations :: no migrations directories defined', function () {
-	$_SERVER['argv'] = ['run', 'migrations', '--apply'];
-
-	ob_start();
-	$result = (new Runner($this->commands(migrations: [])))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-
-	expect($result)->toBe(1);
-	expect($content)->toContain('No migration directories defined');
-});
-
-test('Run migrations :: success without apply', function (string $dsn) {
-	$_SERVER['argv'] = ['run', 'migrations'];
-	$driver = strtok($dsn, ':');
-
-	ob_start();
-	$result = (new Runner($this->commands(dsn: $dsn)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-
-	expect($result)->toBe(0);
-	expect($content)->toMatch('/000000-000000-migration.sql[^\n]*?success/');
-	expect($content)->toMatch('/000000-000001-migration.php[^\n]*?success/');
-	expect($content)->toMatch('/000000-000002-migration.tpql[^\n]*?success/');
-	expect($content)->toMatch('/000000-000005-migration-\[' . $driver . '\].sql[^\n]*?success/');
-	expect($content)->toContain('Would apply 4 migrations');
-})->with('transaction-connections');
-
-test('Run migrations :: success', function (string $dsn) {
-	$_SERVER['argv'] = ['run', 'migrations', '--apply'];
-	$driver = strtok($dsn, ':');
-
-	ob_start();
-	$result = (new Runner($this->commands(dsn: $dsn)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-
-	expect($result)->toBe(0);
-	expect($content)->toMatch('/000000-000000-migration.sql[^\n]*?success/');
-	expect($content)->toMatch('/000000-000001-migration.php[^\n]*?success/');
-	expect($content)->toMatch('/000000-000002-migration.tpql[^\n]*?success/');
-	expect($content)->toMatch('/000000-000005-migration-\[' . $driver . '\].sql[^\n]*?success/');
-	expect($content)->toContain('4 migrations successfully applied');
-})->with('connections');
-
-test('Run migrations :: again', function (string $dsn) {
-	$_SERVER['argv'] = ['run', 'migrations', '--apply'];
-
-	ob_start();
-	(new Runner($this->commands(dsn: $dsn)))->run();
-	ob_end_clean();
-
-	ob_start();
-	$result = (new Runner($this->commands(dsn: $dsn)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-
-	expect($result)->toBe(0);
-	expect($content)->not->toMatch('/000000-000000-migration.sql[^\n]*?success/');
-	expect($content)->toContain('No migrations applied');
-})->with('connections');
-
-test('Add migration SQL', function () {
-	// Run existing migrations first
-	ob_start();
-	$_SERVER['argv'] = ['run', 'migrations', '--apply'];
-	(new Runner($this->commands()))->run();
-	ob_end_clean();
-
-	// add the migrations
-	ob_start();
-	$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration'];
-	$migration = (new Runner($this->commands()))->run();
-	ob_end_clean();
-
-	expect(is_file($migration))->toBe(true);
-	expect(str_starts_with($migration, TestCase::root()))->toBe(true);
-	expect(str_ends_with($migration, '.sql'))->toBe(true);
-
-	// Add content and run it
-	file_put_contents($migration, 'SELECT 1;');
-
-	// Re-run migrations
-	ob_start();
-	$_SERVER['argv'] = ['run', 'migrations', '--apply'];
-	$result = (new Runner($this->commands()))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-	@unlink($migration);
-
-	expect(is_file($migration))->toBe(false);
-	expect($result)->toBe(0);
-	expect($content)->toMatch('/' . basename($migration) . '[^\n]*?success/');
-	expect($content)->toContain('1 migration successfully applied');
-});
-
-test('Add migration TPQL', function () {
-	$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration.tpql'];
-
-	ob_start();
-	$migration = (new Runner($this->commands()))->run();
-	ob_end_clean();
-
-	expect(is_file($migration))->toBe(true);
-	expect(str_starts_with($migration, TestCase::root()))->toBe(true);
-	expect(str_ends_with($migration, '.tpql'))->toBe(true);
-	expect(strpos($migration, '.sql'))->toBe(false);
-
-	$content = file_get_contents($migration);
-
-	@unlink($migration);
-	expect(is_file($migration))->toBe(false);
-	expect($content)->toContain('<?php if');
-});
-
-test('Add migration PHP', function () {
-	$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration.php'];
-
-	ob_start();
-	$migration = (new Runner($this->commands()))->run();
-	ob_end_clean();
-
-	expect(is_file($migration))->toBe(true);
-	expect(str_starts_with($migration, TestCase::root()))->toBe(true);
-	expect(str_ends_with($migration, '.php'))->toBe(true);
-	expect(strpos($migration, '.sql'))->toBe(false);
-
-	$content = file_get_contents($migration);
-
-	@unlink($migration);
-	expect(is_file($migration))->toBe(false);
-	expect($content)->toContain('TestMigration_');
-	expect($content)->toContain('implements MigrationInterface');
-});
-
-test('Add migration with wrong file extension', function () {
-	$_SERVER['argv'] = ['run', 'add-migration', '-f', 'test.exe'];
-
-	ob_start();
-	(new Runner($this->commands()))->run();
-	$output = ob_get_contents();
-	ob_end_clean();
-
-	expect($output)->toContain('Wrong file extension');
-});
-
-test('Wrong migrations directory', function () {
-	$this->connection(migrations: 'not/available');
-})->throws(ValueError::class, 'Path does not exist: not/available');
-
-test('Add migration to vendor', function () {
-	$_SERVER['argv'] = ['run', 'add-migration', '-f', 'test'];
-
-	ob_start();
-	(new Runner($this->commands(migrations: TestCase::root() . '/../vendor')))->run();
-	$output = ob_get_contents();
-	ob_end_clean();
-
-	expect($output)->toContain("is inside './vendor'");
-});
-
-test('Failing SQL migration', function ($dsn, $ext) {
-	$_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-failing{$ext}"];
-
-	ob_start();
-	$migration = (new Runner($this->commands(dsn: $dsn)))->run();
-
-	// Add content and run it
-	file_put_contents($migration, 'RUBBISH;');
-	$_SERVER['argv'] = ['run', 'migrations', '--apply', '--stacktrace'];
-
-	$result = (new Runner($this->commands(dsn: $dsn)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-	@unlink($migration);
-
-	expect(is_file($migration))->toBe(false);
-	expect($result)->toBe(1);
-	expect($content)->toContain("\n#0");
-
-	if (str_starts_with($dsn, 'mysql')) {
-		expect($content)->toContain('0 migration applied until the error occured');
-		expect($content)->toContain('SQLSTATE[42000]');
-	} elseif (str_starts_with($dsn, 'pgsql')) {
-		expect($content)->toContain('Due to errors no migrations applied');
-		expect($content)->toContain('SQLSTATE[42601]');
-	} else {
-		expect($content)->toContain('Due to errors no migrations applied');
-		expect($content)->toContain('SQLSTATE[HY000]');
+		TestCase::cleanupTestDbs();
 	}
-})->with('connections')->with(['.sql', '.tpql']);
 
-test('Failing TPQL/PHP migration (PHP error)', function ($dsn, $ext) {
-	$_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-php-failing.{$ext}"];
-
-	ob_start();
-	$migration = (new Runner($this->commands(dsn: $dsn)))->run();
-
-	// Add content and run it
-	file_put_contents($migration, '<?php echo if)');
-	$_SERVER['argv'] = ['run', 'migrations', '--apply'];
-
-	$result = (new Runner($this->commands(dsn: $dsn)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-	@unlink($migration);
-
-	expect(is_file($migration))->toBe(false);
-	expect($result)->toBe(1);
-
-	if (str_starts_with($dsn, 'mysql')) {
-		expect($content)->toContain('0 migration applied until the error occured');
-	} else {
-		expect($content)->toContain('Due to errors no migrations applied');
+	protected function tearDown(): void
+	{
+		parent::tearDown();
+		// Each Runner::run call registers a error handler
+		restore_error_handler();
+		restore_exception_handler();
 	}
-})->with('connections')->with(['.php', '.tpql']);
 
-test('Failing due to readonly migrations directory', function () {
-	$tmpdir = sys_get_temp_dir() . '/chuck' . (string) mt_rand();
-	mkdir($tmpdir, 0400);
+	public function testCreateMigrationsTableSuccess(): void
+	{
+		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
-	$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test-migration.sql'];
+		ob_start();
+		$result = (new Runner($this->commands()))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
 
-	ob_start();
-	(new Runner($this->commands(migrations: $tmpdir)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
+		$this->assertSame(0, $result);
+		$this->assertStringContainsString("Created table 'migrations'", $content);
+	}
 
-	rmdir($tmpdir);
+	public function testWrongConnection(): void
+	{
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessageMatches('/doesnotexist/');
 
-	expect($content)->toContain('directory is not writable');
-});
+		$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'doesnotexist'];
+
+		(new Runner($this->commands(multipleConnections: true)))->run();
+	}
+
+	public function testRunMigrationsNoMigrationsDirectoriesDefined(): void
+	{
+		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+
+		ob_start();
+		$result = (new Runner($this->commands(migrations: [])))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertSame(1, $result);
+		$this->assertStringContainsString('No migration directories defined', $content);
+	}
+
+	/**
+	 * @dataProvider transactionConnectionProvider
+	 */
+	public function testRunMigrationsSuccessWithoutApply(string $dsn): void
+	{
+		$_SERVER['argv'] = ['run', 'migrations'];
+		$driver = strtok($dsn, ':');
+
+		ob_start();
+		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertSame(0, $result);
+		$this->assertMatchesRegularExpression('/000000-000000-migration.sql[^\n]*?success/', $content);
+		$this->assertMatchesRegularExpression('/000000-000001-migration.php[^\n]*?success/', $content);
+		$this->assertMatchesRegularExpression('/000000-000002-migration.tpql[^\n]*?success/', $content);
+		$this->assertMatchesRegularExpression('/000000-000005-migration-\[' . $driver . '\].sql[^\n]*?success/', $content);
+		$this->assertStringContainsString('Would apply 4 migrations', $content);
+	}
+
+	/**
+	 * @dataProvider connectionProvider
+	 */
+	public function testRunMigrationsSuccess(string $dsn): void
+	{
+		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+		$driver = strtok($dsn, ':');
+
+		ob_start();
+		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertSame(0, $result);
+		$this->assertMatchesRegularExpression('/000000-000000-migration.sql[^\n]*?success/', $content);
+		$this->assertMatchesRegularExpression('/000000-000001-migration.php[^\n]*?success/', $content);
+		$this->assertMatchesRegularExpression('/000000-000002-migration.tpql[^\n]*?success/', $content);
+		$this->assertMatchesRegularExpression('/000000-000005-migration-\[' . $driver . '\].sql[^\n]*?success/', $content);
+		$this->assertStringContainsString('4 migrations successfully applied', $content);
+	}
+
+	/**
+	 * @dataProvider connectionProvider
+	 * @depends testRunMigrationsSuccess
+	 */
+	public function testRunMigrationsAgain(string $dsn): void
+	{
+		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+
+		ob_start();
+		(new Runner($this->commands(dsn: $dsn)))->run();
+		ob_end_clean();
+
+		ob_start();
+		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertSame(0, $result);
+		$this->assertDoesNotMatchRegularExpression('/000000-000000-migration.sql[^\n]*?success/', $content);
+		$this->assertStringContainsString('No migrations applied', $content);
+	}
+
+	public function testAddMigrationSql(): void
+	{
+		// Run existing migrations first
+		ob_start();
+		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+		(new Runner($this->commands()))->run();
+		ob_end_clean();
+
+		// add the migrations
+		ob_start();
+		$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration'];
+		$migration = (new Runner($this->commands()))->run();
+		ob_end_clean();
+
+		$this->assertIsString($migration);
+		$this->assertFileExists($migration);
+		$this->assertStringStartsWith(TestCase::root(), $migration);
+		$this->assertStringEndsWith('.sql', $migration);
+
+		// Add content and run it
+		file_put_contents($migration, 'SELECT 1;');
+
+		// Re-run migrations
+		ob_start();
+		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+		$result = (new Runner($this->commands()))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+		@unlink($migration);
+
+		$this->assertFileDoesNotExist($migration);
+		$this->assertSame(0, $result);
+		$this->assertMatchesRegularExpression('/' . basename($migration) . '[^\n]*?success/', $content);
+		$this->assertStringContainsString('1 migration successfully applied', $content);
+	}
+
+	public function testAddMigrationTpql(): void
+	{
+		$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration.tpql'];
+
+		ob_start();
+		$migration = (new Runner($this->commands()))->run();
+		ob_end_clean();
+
+		$this->assertIsString($migration);
+		$this->assertFileExists($migration);
+		$this->assertStringStartsWith(TestCase::root(), $migration);
+		$this->assertStringEndsWith('.tpql', $migration);
+		$this->assertStringNotContainsString('.sql', $migration);
+
+		$content = file_get_contents($migration);
+
+		@unlink($migration);
+		$this->assertFileDoesNotExist($migration);
+		$this->assertStringContainsString('<?php if', $content);
+	}
+
+	public function testAddMigrationPhp(): void
+	{
+		$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration.php'];
+
+		ob_start();
+		$migration = (new Runner($this->commands()))->run();
+		ob_end_clean();
+
+		$this->assertIsString($migration);
+		$this->assertFileExists($migration);
+		$this->assertStringStartsWith(TestCase::root(), $migration);
+		$this->assertStringEndsWith('.php', $migration);
+		$this->assertStringNotContainsString('.sql', $migration);
+
+		$content = file_get_contents($migration);
+
+		@unlink($migration);
+		$this->assertFileDoesNotExist($migration);
+		$this->assertStringContainsString('TestMigration_', $content);
+		$this->assertStringContainsString('implements MigrationInterface', $content);
+	}
+
+	public function testAddMigrationWithWrongFileExtension(): void
+	{
+		$_SERVER['argv'] = ['run', 'add-migration', '-f', 'test.exe'];
+
+		ob_start();
+		(new Runner($this->commands()))->run();
+		$output = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertStringContainsString('Wrong file extension', $output);
+	}
+
+	public function testWrongMigrationsDirectory(): void
+	{
+		$this->expectException(ValueError::class);
+		$this->expectExceptionMessage('Path does not exist: not/available');
+
+		$this->connection(migrations: 'not/available');
+	}
+
+	public function testAddMigrationToVendor(): void
+	{
+		$_SERVER['argv'] = ['run', 'add-migration', '-f', 'test'];
+
+		ob_start();
+		(new Runner($this->commands(migrations: TestCase::root() . '/../vendor')))->run();
+		$output = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertStringContainsString("is inside './vendor'", $output);
+	}
+
+	/**
+	 * @dataProvider failingSqlMigrationProvider
+	 */
+	public function testFailingSqlMigration(string $dsn, string $ext): void
+	{
+		$_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-failing{$ext}"];
+
+		ob_start();
+		$migration = (new Runner($this->commands(dsn: $dsn)))->run();
+
+		// Add content and run it
+		file_put_contents($migration, 'RUBBISH;');
+		$_SERVER['argv'] = ['run', 'migrations', '--apply', '--stacktrace'];
+
+		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+		@unlink($migration);
+
+		$this->assertFileDoesNotExist($migration);
+		$this->assertSame(1, $result);
+		$this->assertStringContainsString("\n#0", $content);
+
+		if (str_starts_with($dsn, 'mysql')) {
+			$this->assertStringContainsString('0 migration applied until the error occured', $content);
+			$this->assertStringContainsString('SQLSTATE[42000]', $content);
+		} elseif (str_starts_with($dsn, 'pgsql')) {
+			$this->assertStringContainsString('Due to errors no migrations applied', $content);
+			$this->assertStringContainsString('SQLSTATE[42601]', $content);
+		} else {
+			$this->assertStringContainsString('Due to errors no migrations applied', $content);
+			$this->assertStringContainsString('SQLSTATE[HY000]', $content);
+		}
+	}
+
+	/**
+	 * @dataProvider failingPhpMigrationProvider
+	 */
+	public function testFailingTpqlPhpMigrationPhpError(string $dsn, string $ext): void
+	{
+		$_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-php-failing.{$ext}"];
+
+		ob_start();
+		$migration = (new Runner($this->commands(dsn: $dsn)))->run();
+
+		// Add content and run it
+		file_put_contents($migration, '<?php echo if)');
+		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+
+		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+		@unlink($migration);
+
+		$this->assertFileDoesNotExist($migration);
+		$this->assertSame(1, $result);
+
+		if (str_starts_with($dsn, 'mysql')) {
+			$this->assertStringContainsString('0 migration applied until the error occured', $content);
+		} else {
+			$this->assertStringContainsString('Due to errors no migrations applied', $content);
+		}
+	}
+
+	public function testFailingDueToReadonlyMigrationsDirectory(): void
+	{
+		$tmpdir = sys_get_temp_dir() . '/chuck' . (string) mt_rand();
+		mkdir($tmpdir, 0400);
+
+		$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test-migration.sql'];
+
+		ob_start();
+		(new Runner($this->commands(migrations: $tmpdir)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		rmdir($tmpdir);
+
+		$this->assertStringContainsString('directory is not writable', $content);
+	}
+
+	public static function connectionProvider(): array
+	{
+		return array_map(fn($dsn) => [$dsn], TestCase::getAvailableDsns());
+	}
+
+	public static function transactionConnectionProvider(): array
+	{
+		return array_map(fn($dsn) => [$dsn], TestCase::getAvailableDsns(transactionsOnly: true));
+	}
+
+	public static function migrationExtensionProvider(): array
+	{
+		return [['.sql'], ['.tpql']];
+	}
+
+	public static function phpMigrationExtensionProvider(): array
+	{
+		return [['php'], ['tpql']];
+	}
+
+	public static function failingSqlMigrationProvider(): array
+	{
+		$connections = TestCase::getAvailableDsns();
+		$extensions = ['.sql', '.tpql'];
+		$result = [];
+
+		foreach ($connections as $dsn) {
+			foreach ($extensions as $ext) {
+				$result[] = [$dsn, $ext];
+			}
+		}
+
+		return $result;
+	}
+
+	public static function failingPhpMigrationProvider(): array
+	{
+		$connections = TestCase::getAvailableDsns();
+		$extensions = ['php', 'tpql'];
+		$result = [];
+
+		foreach ($connections as $dsn) {
+			foreach ($extensions as $ext) {
+				$result[] = [$dsn, $ext];
+			}
+		}
+
+		return $result;
+	}
+}

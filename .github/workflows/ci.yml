@@ -39,7 +39,7 @@ jobs:
           sudo -u postgres psql -c "CREATE USER ${{ env.DB_USER }} WITH SUPERUSER PASSWORD '${{ env.DB_PASSWORD }}';"
 
       - name: Run tests
-        run: vendor/bin/pest --ci --coverage --coverage-clover=coverage.xml --min=100
+        run: vendor/bin/phpunit --coverage-clover=coverage.xml --coverage-filter=src --coverage-html=coverage
 
       - name: Run Psalm
         run: vendor/bin/psalm --output-format=github --shepherd

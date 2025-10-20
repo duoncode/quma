@@ -7,15 +7,12 @@
             <directory suffix="Test.php">tests</directory>
         </testsuite>
     </testsuites>
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">src</directory>
-        </whitelist>
-    </filter>
-    <coverage processUncoveredFiles="true" pathCoverage="true">
+    <source>
         <include>
-            <directory>src</directory>
+            <directory suffix=".php">src</directory>
         </include>
+    </source>
+    <coverage pathCoverage="true">
         <report>
             <html outputDirectory="coverage" lowUpperBound="20" highLowerBound="50"/>
         </report>
