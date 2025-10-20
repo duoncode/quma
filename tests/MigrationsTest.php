@@ -34,13 +34,6 @@ class MigrationsTest extends TestCase
 		TestCase::cleanupTestDbs();
 	}
 
-	protected function tearDown(): void
-	{
-		parent::tearDown();
-		// Each Runner::run call registers a error handler
-		restore_error_handler();
-		restore_exception_handler();
-	}
 
 	public function testCreateMigrationsTableSuccess(): void
 	{
