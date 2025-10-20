@@ -317,6 +317,76 @@ class MigrationsTest extends TestCase
 		$this->assertStringContainsString('directory is not writable', $content);
 	}
 
+	public function testRunMigrationsWithNamespace(): void
+	{
+		// Create namespaced migration structure - must use arrays not single strings
+		$conn = $this->connection(
+			migrations: [
+				'default' => [TestCase::root() . 'migrations'],
+				'feature' => [TestCase::root() . 'sql/additional'],
+			],
+		);
+
+		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+
+		ob_start();
+		$result = (new Runner($this->commands()))->run();
+		ob_end_clean();
+
+		// Run migration with specific namespace
+		$_SERVER['argv'] = ['run', 'migrations', '--namespace', 'feature', '--apply'];
+
+		ob_start();
+		$result = (new Runner(\Duon\Quma\Commands::get($conn)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertSame(0, $result);
+		$this->assertStringContainsString('No migrations applied', $content);
+	}
+
+	public function testRunMigrationsWithNonExistentNamespace(): void
+	{
+		// Create namespaced migration structure
+		$conn = $this->connection(
+			migrations: [
+				'default' => [TestCase::root() . 'migrations'],
+				'feature' => [TestCase::root() . 'sql/additional'],
+			],
+		);
+
+		$_SERVER['argv'] = ['run', 'migrations', '--namespace', 'nonexistent', '--apply'];
+
+		ob_start();
+		$result = (new Runner(\Duon\Quma\Commands::get($conn)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertSame(1, $result);
+		$this->assertStringContainsString("Migration namespace 'nonexistent' does not exist", $content);
+	}
+
+	public function testRunMigrationsWithoutDefaultNamespace(): void
+	{
+		// Create namespaced migration structure without 'default'
+		$conn = $this->connection(
+			migrations: [
+				'feature' => [TestCase::root() . 'migrations'],
+			],
+		);
+
+		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+
+		ob_start();
+		$result = (new Runner(\Duon\Quma\Commands::get($conn)))->run();
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertSame(1, $result);
+		$this->assertStringContainsString("Migration namespace 'default' does not exist", $content);
+		$this->assertStringContainsString('--namespace', $content);
+	}
+
 	public static function connectionProvider(): array
 	{
 		return array_map(fn($dsn) => [$dsn], TestCase::getAvailableDsns());
