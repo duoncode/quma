@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Duon\Quma\Tests;
 
 use Duon\Quma\Connection;
-use PHPUnit\Framework\Attributes\CoversNothing;
 use RuntimeException;
 use ValueError;
 
 /**
  * @internal
  */
-#[CoversNothing]
 class ConnectionTest extends TestCase
 {
 	public function testInitialization(): void

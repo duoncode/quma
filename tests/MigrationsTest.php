@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Duon\Quma\Tests;
 
 use Duon\Cli\Runner;
-use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Depends;
 use RuntimeException;
@@ -23,7 +22,6 @@ use ValueError;
 /**
  * @internal
  */
-#[CoversNothing]
 class MigrationsTest extends TestCase
 {
 	protected function setUp(): void
