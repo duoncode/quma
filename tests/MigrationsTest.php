@@ -14,14 +14,16 @@ declare(strict_types=1);
 namespace Duon\Quma\Tests;
 
 use Duon\Cli\Runner;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Depends;
 use RuntimeException;
 use ValueError;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 class MigrationsTest extends TestCase
 {
 	protected function setUp(): void
@@ -71,9 +73,7 @@ class MigrationsTest extends TestCase
 		$this->assertStringContainsString('No migration directories defined', $content);
 	}
 
-	/**
-	 * @dataProvider transactionConnectionProvider
-	 */
+	#[DataProvider('transactionConnectionProvider')]
 	public function testRunMigrationsSuccessWithoutApply(string $dsn): void
 	{
 		$_SERVER['argv'] = ['run', 'migrations'];
@@ -92,9 +92,7 @@ class MigrationsTest extends TestCase
 		$this->assertStringContainsString('Would apply 4 migrations', $content);
 	}
 
-	/**
-	 * @dataProvider connectionProvider
-	 */
+	#[DataProvider('connectionProvider')]
 	public function testRunMigrationsSuccess(string $dsn): void
 	{
 		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
@@ -113,10 +111,8 @@ class MigrationsTest extends TestCase
 		$this->assertStringContainsString('4 migrations successfully applied', $content);
 	}
 
-	/**
-	 * @dataProvider connectionProvider
-	 * @depends testRunMigrationsSuccess
-	 */
+	#[DataProvider('connectionProvider')]
+	#[Depends('testRunMigrationsSuccess')]
 	public function testRunMigrationsAgain(string $dsn): void
 	{
 		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
@@ -246,9 +242,7 @@ class MigrationsTest extends TestCase
 		$this->assertStringContainsString("is inside './vendor'", $output);
 	}
 
-	/**
-	 * @dataProvider failingSqlMigrationProvider
-	 */
+	#[DataProvider('failingSqlMigrationProvider')]
 	public function testFailingSqlMigration(string $dsn, string $ext): void
 	{
 		$_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-failing{$ext}"];
@@ -281,9 +275,7 @@ class MigrationsTest extends TestCase
 		}
 	}
 
-	/**
-	 * @dataProvider failingPhpMigrationProvider
-	 */
+	#[DataProvider('failingPhpMigrationProvider')]
 	public function testFailingTpqlPhpMigrationPhpError(string $dsn, string $ext): void
 	{
 		$_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-php-failing.{$ext}"];

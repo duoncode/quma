@@ -14,12 +14,14 @@ declare(strict_types=1);
 namespace Duon\Quma\Tests;
 
 use Duon\Cli\Runner;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Depends;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 class CreateMigrationsTest extends TestCase
 {
 	public static function setUpBeforeClass(): void
@@ -33,9 +35,7 @@ class CreateMigrationsTest extends TestCase
 	}
 
 
-	/**
-	 * @dataProvider connectionProvider
-	 */
+	#[DataProvider('connectionProvider')]
 	public function testCreateMigrationsTableSuccess(string $dsn): void
 	{
 		$_SERVER['argv'] = ['run', 'create-migrations-table'];
@@ -47,10 +47,8 @@ class CreateMigrationsTest extends TestCase
 		$this->assertSame(0, $result);
 	}
 
-	/**
-	 * @dataProvider connectionProvider
-	 * @depends testCreateMigrationsTableSuccess
-	 */
+	#[DataProvider('connectionProvider')]
+	#[Depends('testCreateMigrationsTableSuccess')]
 	public function testCreateMigrationsTableAlreadyExists(string $dsn): void
 	{
 		$_SERVER['argv'] = ['run', 'create-migrations-table'];
@@ -112,9 +110,7 @@ class CreateMigrationsTest extends TestCase
 		$this->assertSame(0, $result);
 	}
 
-	/**
-	 * @depends testCreateMigrationsTableAlternateConnection
-	 */
+	#[Depends('testCreateMigrationsTableAlternateConnection')]
 	public function testCreateMigrationsTableAlreadyExistsAlternateConnection(): void
 	{
 		$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'second'];

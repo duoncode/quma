@@ -7,14 +7,14 @@ namespace Duon\Quma\Tests;
 use Duon\Quma\Database;
 use InvalidArgumentException;
 use PDO;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use RuntimeException;
 use stdClass;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 class DatabaseTest extends TestCase
 {
 	public const NUMBER_OF_ALBUMS = 7;
