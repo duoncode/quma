@@ -55,7 +55,7 @@ class Migrations extends Command
 		return $this->migrate(
 			$env->db,
 			$env->conn,
-			$opts->get('namespace', ''),
+			$opts->get('--namespace', ''),
 			$opts->has('--stacktrace'),
 			$opts->has('--apply'),
 		);

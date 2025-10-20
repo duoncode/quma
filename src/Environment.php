@@ -56,7 +56,6 @@ class Environment
 		/** @psalm-var MigrationDirs */
 		$migrations = [];
 		$migrationDirs = $this->conn->migrations();
-		error_log(print_r($migrationDirs, true));
 
 		if (count($migrationDirs) === 0) {
 			echo "\033[1;31mNotice\033[0m: No migration directories defined in configuration\033[0m\n";

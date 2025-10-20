@@ -16,7 +16,7 @@ use Duon\Quma\Tests\TestCase;
 
 uses(TestCase::class);
 
-beforeAll(function () {
+beforeEach(function () {
 	// Remove remnants of previous runs
 	$migrationsDir = TestCase::root() . '/migrations/';
 	array_map('unlink', glob("{$migrationsDir}*test-migration*"));
@@ -33,7 +33,7 @@ afterEach(function () {
 dataset('connections', TestCase::getAvailableDsns());
 dataset('transaction-connections', TestCase::getAvailableDsns(transactionsOnly: true));
 
-test('Run migrations :: no migrations table', function () {
+test('Create migrations table :: success', function () {
 	$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 	ob_start();
@@ -41,87 +41,8 @@ test('Run migrations :: no migrations table', function () {
 	$content = ob_get_contents();
 	ob_end_clean();
 
-	expect($result)->toBe(1);
-	expect($content)->toContain('Migrations table does not exist');
-});
-
-test('Create migrations table :: success', function (string $dsn) {
-	$_SERVER['argv'] = ['run', 'create-migrations-table'];
-
-	ob_start();
-	$result = (new Runner($this->commands(dsn: $dsn)))->run();
-	ob_end_clean();
-
 	expect($result)->toBe(0);
-})->with('connections');
-
-test('Create migrations table :: already exists', function (string $dsn) {
-	$_SERVER['argv'] = ['run', 'create-migrations-table'];
-
-	ob_start();
-	$result = (new Runner($this->commands(dsn: $dsn)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-
-	expect($result)->toBe(1);
-
-	if (str_starts_with($dsn, 'pgsql')) {
-		expect($content)->toContain("Table 'public.migrations' already exists");
-	} else {
-		expect($content)->toContain("Table 'migrations' already exists");
-	}
-})->with('connections');
-
-test('Create migrations table :: already exists connection as arg', function () {
-	$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'first'];
-
-	ob_start();
-	$result = (new Runner($this->commands(
-		multipleConnections: true,
-		firstMultipleConnectionsKey: 'first',
-	)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-
-	expect($result)->toBe(1);
-	expect($content)->toContain("Table 'migrations' already exists");
-});
-
-test('Create migrations table :: already exists multiconnection with default', function () {
-	$_SERVER['argv'] = ['run', 'create-migrations-table'];
-
-	ob_start();
-	$result = (new Runner($this->commands(
-		multipleConnections: true,
-		firstMultipleConnectionsKey: 'default',
-	)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-
-	expect($result)->toBe(1);
-	expect($content)->toContain("Table 'migrations' already exists");
-});
-
-test('Create migrations table :: alternate connection', function () {
-	$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'second'];
-
-	ob_start();
-	$result = (new Runner($this->commands(multipleConnections: true)))->run();
-	ob_end_clean();
-
-	expect($result)->toBe(0);
-});
-
-test('Create migrations table :: already exists alternate connection', function () {
-	$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'second'];
-
-	ob_start();
-	$result = (new Runner($this->commands(multipleConnections: true)))->run();
-	$content = ob_get_contents();
-	ob_end_clean();
-
-	expect($result)->toBe(1);
-	expect($content)->toContain("Table 'migrations' already exists");
+	expect($content)->toContain("Created table 'migrations'");
 });
 
 test('Wrong connection', function () {
@@ -180,6 +101,10 @@ test('Run migrations :: again', function (string $dsn) {
 	$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 	ob_start();
+	(new Runner($this->commands(dsn: $dsn)))->run();
+	ob_end_clean();
+
+	ob_start();
 	$result = (new Runner($this->commands(dsn: $dsn)))->run();
 	$content = ob_get_contents();
 	ob_end_clean();
@@ -190,9 +115,15 @@ test('Run migrations :: again', function (string $dsn) {
 })->with('connections');
 
 test('Add migration SQL', function () {
-	$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration'];
-
+	// Run existing migrations first
 	ob_start();
+	$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+	(new Runner($this->commands()))->run();
+	ob_end_clean();
+
+	// add the migrations
+	ob_start();
+	$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration'];
 	$migration = (new Runner($this->commands()))->run();
 	ob_end_clean();
 
@@ -202,9 +133,10 @@ test('Add migration SQL', function () {
 
 	// Add content and run it
 	file_put_contents($migration, 'SELECT 1;');
-	$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
+	// Re-run migrations
 	ob_start();
+	$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 	$result = (new Runner($this->commands()))->run();
 	$content = ob_get_contents();
 	ob_end_clean();

@@ -218,11 +218,6 @@ class Connection
 	 */
 	protected function readDirs(string|array $sql, string $type): array
 	{
-		error_log("~~~~~~~~~~~~ HANS ~~~~~~~~~~~~~~");
-		error_log($type);
-		error_log(print_r($sql, true));
-		error_log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-
 		if (is_string($sql)) {
 			/** @psalm-var MigrationDirs */
 			return [$this->preparePath($sql)];
