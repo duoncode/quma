@@ -22,7 +22,8 @@ class Migrations extends Command
 
 	protected readonly Environment $env;
 	protected string $name = 'migrations';
-	protected string $group = 'Migrations';
+	protected string $group = 'Database';
+	protected string $prefix = 'db';
 	protected string $description = 'Apply missing database migrations';
 
 	/** @psalm-param array<non-empty-string, Connection>|Connection $conn */

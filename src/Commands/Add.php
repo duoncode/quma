@@ -9,7 +9,8 @@ use Duon\Cli\Opts;
 class Add extends Command
 {
 	protected string $name = 'add-migration';
-	protected string $group = 'Migrations';
+	protected string $group = 'Database';
+	protected string $prefix = 'db';
 	protected string $description = 'Initialize a new migration';
 
 	public function run(): string|int

@@ -9,7 +9,8 @@ use Throwable;
 class CreateMigrationsTable extends Command
 {
 	protected string $name = 'create-migrations-table';
-	protected string $group = 'Migrations';
+	protected string $group = 'Database';
+	protected string $prefix = 'db';
 	protected string $description = 'Creates a migrations table';
 
 	public function run(): string|int
