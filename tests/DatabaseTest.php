@@ -108,6 +108,28 @@ class DatabaseTest extends TestCase
 		$this->assertFalse($db->connected());
 	}
 
+	public function testDisconnectIgnoresRollbackProbeFailures(): void
+	{
+		$db = new class ($this->connection()) extends Database {
+			public function setPdoPublic(PDO $pdo): void
+			{
+				$this->pdo = $pdo;
+			}
+		};
+
+		$pdo = new class ('sqlite::memory:') extends PDO {
+			public function inTransaction(): bool
+			{
+				throw new RuntimeException('disconnect probe failed');
+			}
+		};
+
+		$db->setPdoPublic($pdo);
+		$db->disconnect();
+
+		$this->assertFalse($db->connected());
+	}
+
 	public function testGetConnThrowsWhenConnectionWasNotInitialized(): void
 	{
 		$this->expectException(RuntimeException::class);
