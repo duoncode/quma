@@ -7,6 +7,7 @@ namespace Duon\Quma\Tests;
 use Duon\Quma\Database;
 use InvalidArgumentException;
 use PDO;
+use PDOStatement;
 use RuntimeException;
 use stdClass;
 
@@ -83,6 +84,27 @@ class DatabaseTest extends TestCase
 		$this->assertTrue($db->ping());
 
 		$db->disconnect();
+		$this->assertFalse($db->ping());
+	}
+
+	public function testPingReturnsFalseWhenQueryReturnsFalse(): void
+	{
+		$db = new class ($this->connection()) extends Database {
+			public function setPdoPublic(PDO $pdo): void
+			{
+				$this->pdo = $pdo;
+			}
+		};
+
+		$pdo = new class ('sqlite::memory:') extends PDO {
+			public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
+			{
+				return false;
+			}
+		};
+
+		$db->setPdoPublic($pdo);
+
 		$this->assertFalse($db->ping());
 	}
 
