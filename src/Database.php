@@ -138,6 +138,19 @@ class Database
 		}
 	}
 
+	public function cleanupAfterRequest(): void
+	{
+		if ($this->pdo === null) {
+			return;
+		}
+
+		if ($this->pdo->inTransaction()) {
+			$this->pdo->rollBack();
+		}
+
+		$this->touchConnection();
+	}
+
 	public function quote(string $value): string
 	{
 		return $this->requirePdo()->quote($value);
