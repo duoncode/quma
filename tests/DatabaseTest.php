@@ -45,20 +45,20 @@ class DatabaseTest extends TestCase
 			}
 		};
 
-		$this->assertFalse($db->isConnected());
+		$this->assertFalse($db->connected());
 		$this->assertNull($db->connectedAtPublic());
 		$this->assertNull($db->lastUsedAtPublic());
 
 		$db->connect();
 
-		$this->assertTrue($db->isConnected());
+		$this->assertTrue($db->connected());
 		$this->assertIsInt($db->connectedAtPublic());
 		$this->assertIsInt($db->lastUsedAtPublic());
 		$this->assertGreaterThanOrEqual($db->connectedAtPublic(), $db->lastUsedAtPublic());
 
 		$db->disconnect();
 
-		$this->assertFalse($db->isConnected());
+		$this->assertFalse($db->connected());
 		$this->assertNull($db->connectedAtPublic());
 		$this->assertNull($db->lastUsedAtPublic());
 	}
@@ -86,7 +86,7 @@ class DatabaseTest extends TestCase
 		$this->assertFalse($db->ping());
 	}
 
-	public function testCleanupAfterRequestRollsBackOpenTransactions(): void
+	public function testResetRollsBackOpenTransactions(): void
 	{
 		$db = $this->getDb();
 
@@ -94,18 +94,18 @@ class DatabaseTest extends TestCase
 		$db->members->add('Tim Aymar', 1998, 2001)->run();
 		$this->assertTrue($db->getConn()->inTransaction());
 
-		$db->cleanupAfterRequest();
+		$db->reset();
 
 		$this->assertFalse($db->getConn()->inTransaction());
 		$this->assertCount(self::NUMBER_OF_MEMBERS, $db->members->list()->all());
 	}
 
-	public function testCleanupAfterRequestWithoutConnectionIsNoOp(): void
+	public function testResetWithoutConnectionIsNoOp(): void
 	{
 		$db = new Database($this->connection());
-		$db->cleanupAfterRequest();
+		$db->reset();
 
-		$this->assertFalse($db->isConnected());
+		$this->assertFalse($db->connected());
 	}
 
 	public function testGetConnThrowsWhenConnectionWasNotInitialized(): void
