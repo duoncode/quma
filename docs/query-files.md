@@ -1,0 +1,155 @@
+---
+title: Query files
+---
+
+# Query files
+
+Quma organizes queries in folders and resolves them at runtime. The folder name becomes a property on `Database`, and the file name becomes the query name.
+
+## Basic mapping
+
+Given this directory structure:
+
+```text
+sql/
+  users/
+    byId.sql
+    list.sql
+  reports/
+    activeUsers.sql
+```
+
+Quma resolves the files like this:
+
+- `sql/users/byId.sql` -> `$db->users->byId()`
+- `sql/users/list.sql` -> `$db->users->list()`
+- `sql/reports/activeUsers.sql` -> `$db->reports->activeUsers()`
+
+If the folder does not exist, Quma throws `RuntimeException` with `The SQL folder does not exist: ...`.
+
+If the script file does not exist, Quma throws `RuntimeException` with `SQL script does not exist`.
+
+## Supported query file types
+
+Quma looks for query files in this order:
+
+1. `<name>.sql`
+2. `<name>.tpql`
+
+Use `.sql` for static SQL. Use `.tpql` for PHP-rendered SQL templates.
+
+## Configure SQL directories
+
+The second `Connection` argument defines where Quma looks for SQL folders.
+
+### Single directory
+
+```php
+$conn = new Connection(
+    'sqlite:' . __DIR__ . '/app.sqlite',
+    __DIR__ . '/sql',
+);
+```
+
+### Flat list of directories
+
+```php
+$conn = new Connection(
+    'sqlite:' . __DIR__ . '/app.sqlite',
+    [
+        __DIR__ . '/sql/default',
+        __DIR__ . '/sql/feature-overrides',
+    ],
+);
+```
+
+Quma searches the resolved directory list from first to last. For flat lists, later entries are searched first, so in the example above `sql/feature-overrides` takes precedence over `sql/default`.
+
+## Driver-specific directories
+
+You can scope directories to a PDO driver with `sqlite`, `mysql`, `pgsql`, and `all` keys.
+
+```php
+$conn = new Connection(
+    'pgsql:host=localhost;dbname=app',
+    [
+        'pgsql' => __DIR__ . '/sql/pgsql',
+        'all' => [
+            __DIR__ . '/sql/common',
+            __DIR__ . '/sql/legacy',
+        ],
+    ],
+);
+```
+
+For associative driver maps, Quma resolves driver-specific entries before `all` entries.
+
+## Mixing directory configs
+
+You can also mix plain directories, nested lists, and driver maps.
+
+```php
+$conn = new Connection(
+    'sqlite:' . __DIR__ . '/app.sqlite',
+    [
+        [
+            'sqlite' => __DIR__ . '/sql/sqlite',
+            'all' => __DIR__ . '/sql/common',
+        ],
+        __DIR__ . '/sql/project',
+    ],
+);
+```
+
+This is useful when you want one shared base tree and a small set of overrides.
+
+## Shadowing and precedence
+
+Quma stops at the first matching file it finds.
+
+That means:
+
+- the first matching directory wins
+- driver-specific directories can override shared directories
+- in flat lists, later entries override earlier entries
+
+A common pattern is:
+
+```text
+sql/
+  common/
+    users/
+      byId.sql
+  sqlite/
+    users/
+      byId.sql
+```
+
+With a SQLite connection, the SQLite-specific `byId.sql` can override the common version.
+
+## Access scripts as objects
+
+`$db->users->byId` returns a `Script` object. You can store it and call it later.
+
+```php
+$byId = $db->users->byId;
+$user = $byId(42)->one();
+```
+
+This is equivalent to `$db->users->byId(42)->one()`.
+
+## Add directories later
+
+You can prepend more SQL directories after construction.
+
+```php
+$conn->addSqlDirs([
+    'sqlite' => __DIR__ . '/sql/sqlite-overrides',
+]);
+```
+
+Added directories are searched before the directories that were already configured.
+
+## Next step
+
+Continue with [Parameters and results](parameters-and-results.md) to see how Quma binds arguments and fetches records.
