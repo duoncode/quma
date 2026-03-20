@@ -34,17 +34,7 @@ class DatabaseTest extends TestCase
 
 	public function testDatabaseTracksConnectionState(): void
 	{
-		$db = new class ($this->connection()) extends Database {
-			public function connectedAtPublic(): ?int
-			{
-				return $this->connectedAt;
-			}
-
-			public function lastUsedAtPublic(): ?int
-			{
-				return $this->lastUsedAt;
-			}
-		};
+		$db = new InspectableDatabase($this->connection());
 
 		$this->assertFalse($db->connected());
 		$this->assertNull($db->connectedAtPublic());
@@ -89,12 +79,7 @@ class DatabaseTest extends TestCase
 
 	public function testPingReturnsFalseWhenQueryReturnsFalse(): void
 	{
-		$db = new class ($this->connection()) extends Database {
-			public function setPdoPublic(PDO $pdo): void
-			{
-				$this->pdo = $pdo;
-			}
-		};
+		$db = new InspectableDatabase($this->connection());
 
 		$pdo = new class ('sqlite::memory:') extends PDO {
 			public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
@@ -110,12 +95,7 @@ class DatabaseTest extends TestCase
 
 	public function testPingReturnsFalseWhenQueryThrows(): void
 	{
-		$db = new class ($this->connection()) extends Database {
-			public function setPdoPublic(PDO $pdo): void
-			{
-				$this->pdo = $pdo;
-			}
-		};
+		$db = new InspectableDatabase($this->connection());
 
 		$pdo = new class ('sqlite::memory:') extends PDO {
 			public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
@@ -153,12 +133,7 @@ class DatabaseTest extends TestCase
 
 	public function testDisconnectIgnoresRollbackProbeFailures(): void
 	{
-		$db = new class ($this->connection()) extends Database {
-			public function setPdoPublic(PDO $pdo): void
-			{
-				$this->pdo = $pdo;
-			}
-		};
+		$db = new InspectableDatabase($this->connection());
 
 		$pdo = new class ('sqlite::memory:') extends PDO {
 			public function inTransaction(): bool
@@ -178,12 +153,8 @@ class DatabaseTest extends TestCase
 		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessage('Database connection not initialized');
 
-		$db = new class ($this->connection()) extends Database {
-			public function connect(): static
-			{
-				return $this;
-			}
-		};
+		$db = new InspectableDatabase($this->connection());
+		$db->disableConnect();
 
 		$db->getConn();
 	}
@@ -544,5 +515,39 @@ class DatabaseTest extends TestCase
 
 		$db = $this->getDb();
 		$db->members->doesNotExist;
+	}
+}
+
+final class InspectableDatabase extends Database
+{
+	private bool $connectDisabled = false;
+
+	public function connectedAtPublic(): ?int
+	{
+		return $this->connectedAt;
+	}
+
+	public function lastUsedAtPublic(): ?int
+	{
+		return $this->lastUsedAt;
+	}
+
+	public function setPdoPublic(PDO $pdo): void
+	{
+		$this->pdo = $pdo;
+	}
+
+	public function disableConnect(): void
+	{
+		$this->connectDisabled = true;
+	}
+
+	public function connect(): static
+	{
+		if ($this->connectDisabled) {
+			return $this;
+		}
+
+		return parent::connect();
 	}
 }
