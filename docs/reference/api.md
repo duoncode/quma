@@ -19,6 +19,11 @@ new Database(Connection $conn)
 ### Key methods
 
 - `connect(): static` opens the PDO connection lazily
+- `isConnected(): bool` reports whether `Database` currently holds a live PDO instance
+- `disconnect(): void` drops the current PDO connection and clears tracked connection state
+- `reconnect(): static` closes the current PDO connection and opens a fresh one
+- `ping(): bool` runs a lightweight `SELECT 1` health check against the active PDO connection; it returns `false` when disconnected or when the check fails
+- `cleanupAfterRequest(): void` rolls back any open transaction and keeps the connection available for reuse
 - `getConn(): PDO` returns the PDO instance
 - `quote(string $value): string` proxies to `PDO::quote()`
 - `begin(): bool` starts a transaction
@@ -29,6 +34,8 @@ new Database(Connection $conn)
 - `getPdoDriver(): string` returns the active PDO driver name
 - `getSqlDirs(): array` returns the resolved SQL directory list
 - `print(bool $print = false): bool` gets or sets debug printing
+
+These lifecycle methods are especially useful when you keep one `Database` instance alive in a long-running PHP process and need explicit control over the underlying PDO handle.
 
 ### Dynamic access
 

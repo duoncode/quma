@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Added explicit `Database` lifecycle helpers: `isConnected()`, `disconnect()`, `reconnect()`, `ping()`, and `cleanupAfterRequest()`.
+- Added internal connection timestamp tracking in `Database` to support long-running PHP process integrations.
+
 ## [0.1.1](https://github.com/duonrun/quma/releases/tag/0.1.1) (2026-02-07)
 
 ### Changed
