@@ -29,7 +29,8 @@
 		"duon/cli": "^0.1"
 	},
 	"require-dev": {
-		"duon/dev": "^2.5"
+		"duon/dev": "^2.5",
+		"squizlabs/php_codesniffer": "^4.0"
 	},
 	"scripts": {
 		"test:base": "./vendor/bin/phpunit --testdox --no-coverage --colors=always",
@@ -44,8 +45,10 @@
 		],
 		"coverage:all": "QUMA_TEST_DRIVERS=sqlite,mysql,pgsql composer coverage",
 		"types": "./vendor/bin/psalm --no-cache",
+		"lint": "./vendor/bin/phpcs src/ tests/",
 		"mdlint": "markdownlint-cli2 README.md CHANGELOG.md LICENSE.md docs/",
 		"ci": [
+			"composer lint",
 			"composer coverage:all",
 			"composer types",
 			"composer mdlint"
