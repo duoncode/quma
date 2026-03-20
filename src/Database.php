@@ -48,7 +48,7 @@ class Database
 		return $this->conn->fetchMode;
 	}
 
-	public function isConnected(): bool
+	public function connected(): bool
 	{
 		return $this->pdo !== null;
 	}
@@ -138,7 +138,7 @@ class Database
 		}
 	}
 
-	public function cleanupAfterRequest(): void
+	public function reset(): void
 	{
 		if ($this->pdo === null) {
 			return;

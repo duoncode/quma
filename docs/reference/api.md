@@ -19,11 +19,11 @@ new Database(Connection $conn)
 ### Key methods
 
 - `connect(): static` opens the PDO connection lazily
-- `isConnected(): bool` reports whether `Database` currently holds a live PDO instance
+- `connected(): bool` reports whether `Database` currently holds a live PDO instance
 - `disconnect(): void` drops the current PDO connection and clears tracked connection state
 - `reconnect(): static` closes the current PDO connection and opens a fresh one
 - `ping(): bool` runs a lightweight `SELECT 1` health check against the active PDO connection; it returns `false` when disconnected or when the check fails
-- `cleanupAfterRequest(): void` rolls back any open transaction and keeps the connection available for reuse
+- `reset(): void` rolls back any open transaction and keeps the connection available for reuse
 - `getConn(): PDO` returns the PDO instance
 - `quote(string $value): string` proxies to `PDO::quote()`
 - `begin(): bool` starts a transaction
