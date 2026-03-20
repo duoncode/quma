@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Duon\Quma\Tests;
 
 use Duon\Quma\Database;
+use Duon\Quma\Tests\Util\InspectableDatabase;
 use InvalidArgumentException;
 use PDO;
 use PDOStatement;
@@ -515,39 +516,5 @@ class DatabaseTest extends TestCase
 
 		$db = $this->getDb();
 		$db->members->doesNotExist;
-	}
-}
-
-final class InspectableDatabase extends Database
-{
-	private bool $connectDisabled = false;
-
-	public function connectedAtPublic(): ?int
-	{
-		return $this->connectedAt;
-	}
-
-	public function lastUsedAtPublic(): ?int
-	{
-		return $this->lastUsedAt;
-	}
-
-	public function setPdoPublic(PDO $pdo): void
-	{
-		$this->pdo = $pdo;
-	}
-
-	public function disableConnect(): void
-	{
-		$this->connectDisabled = true;
-	}
-
-	public function connect(): static
-	{
-		if ($this->connectDisabled) {
-			return $this;
-		}
-
-		return parent::connect();
 	}
 }
