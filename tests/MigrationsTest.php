@@ -85,7 +85,10 @@ class MigrationsTest extends TestCase
 		$this->assertMatchesRegularExpression('/000000-000000-migration.sql[^\n]*?success/', $content);
 		$this->assertMatchesRegularExpression('/000000-000001-migration.php[^\n]*?success/', $content);
 		$this->assertMatchesRegularExpression('/000000-000002-migration.tpql[^\n]*?success/', $content);
-		$this->assertMatchesRegularExpression('/000000-000005-migration-\[' . $driver . '\].sql[^\n]*?success/', $content);
+		$this->assertMatchesRegularExpression(
+			'/000000-000005-migration-\[' . $driver . '\].sql[^\n]*?success/',
+			$content,
+		);
 		$this->assertStringContainsString('Would apply 4 migrations', $content);
 	}
 
@@ -104,7 +107,10 @@ class MigrationsTest extends TestCase
 		$this->assertMatchesRegularExpression('/000000-000000-migration.sql[^\n]*?success/', $content);
 		$this->assertMatchesRegularExpression('/000000-000001-migration.php[^\n]*?success/', $content);
 		$this->assertMatchesRegularExpression('/000000-000002-migration.tpql[^\n]*?success/', $content);
-		$this->assertMatchesRegularExpression('/000000-000005-migration-\[' . $driver . '\].sql[^\n]*?success/', $content);
+		$this->assertMatchesRegularExpression(
+			'/000000-000005-migration-\[' . $driver . '\].sql[^\n]*?success/',
+			$content,
+		);
 		$this->assertStringContainsString('4 migrations successfully applied', $content);
 	}
 

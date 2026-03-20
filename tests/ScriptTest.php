@@ -6,7 +6,7 @@ namespace Duon\Quma\Tests;
 
 use Duon\Quma\Args;
 use Duon\Quma\Database;
-use Duon\Quma\Script;
+use Duon\Quma\Tests\Util\TestableScript;
 
 /**
  * @internal
@@ -24,13 +24,5 @@ class ScriptTest extends TestCase
 		$script = new TestableScript(new Database($this->connection()), '', true);
 
 		$this->assertSame('', $script->evaluateTemplatePublic($missingFile, new Args([])));
-	}
-}
-
-final class TestableScript extends Script
-{
-	public function evaluateTemplatePublic(string $path, Args $args): string
-	{
-		return $this->evaluateTemplate($path, $args);
 	}
 }
