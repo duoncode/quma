@@ -7,6 +7,7 @@ namespace Duon\Quma;
 use Duon\Quma\Connection;
 use PDO;
 use RuntimeException;
+use Throwable;
 
 /** @psalm-api */
 class Database
@@ -14,6 +15,8 @@ class Database
 	use GetsSetsPrint;
 
 	protected ?PDO $pdo = null;
+	protected ?int $connectedAt = null;
+	protected ?int $lastUsedAt = null;
 
 	public function __construct(protected readonly Connection $conn)
 	{
@@ -43,6 +46,11 @@ class Database
 	public function getFetchMode(): int
 	{
 		return $this->conn->fetchMode;
+	}
+
+	public function isConnected(): bool
+	{
+		return $this->pdo !== null;
 	}
 
 	public function getPdoDriver(): string
@@ -80,8 +88,54 @@ class Database
 		$pdo->setAttribute(PDO::ATTR_CASE, PDO::CASE_NATURAL);
 
 		$this->pdo = $pdo;
+		$this->markConnected();
 
 		return $this;
+	}
+
+	public function disconnect(): void
+	{
+		if ($this->pdo !== null) {
+			try {
+				if ($this->pdo->inTransaction()) {
+					$this->pdo->rollBack();
+				}
+			} catch (Throwable) {
+				// Ignore rollback failures while tearing down the PDO handle.
+			}
+		}
+
+		$this->pdo = null;
+		$this->connectedAt = null;
+		$this->lastUsedAt = null;
+	}
+
+	public function reconnect(): static
+	{
+		$this->disconnect();
+
+		return $this->connect();
+	}
+
+	public function ping(): bool
+	{
+		if ($this->pdo === null) {
+			return false;
+		}
+
+		try {
+			$stmt = $this->pdo->query('SELECT 1');
+
+			if ($stmt === false) {
+				return false;
+			}
+
+			$this->touchConnection();
+
+			return $stmt->fetchColumn() !== false;
+		} catch (Throwable) {
+			return false;
+		}
 	}
 
 	public function quote(string $value): string
@@ -114,10 +168,26 @@ class Database
 		$this->connect();
 
 		if ($this->pdo !== null) {
+			$this->touchConnection();
+
 			return $this->pdo;
 		}
 
 		throw new RuntimeException('Database connection not initialized');
+	}
+
+	protected function markConnected(): void
+	{
+		$now = time();
+		$this->connectedAt = $now;
+		$this->lastUsedAt = $now;
+	}
+
+	protected function touchConnection(): void
+	{
+		if ($this->pdo !== null) {
+			$this->lastUsedAt = time();
+		}
 	}
 
 	public function execute(string $query, mixed ...$args): Query
