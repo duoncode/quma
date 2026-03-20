@@ -6,70 +6,93 @@
 [![Psalm level](https://shepherd.dev/github/duonrun/quma/level.svg?)](https://duonrun.dev/quma)
 [![Psalm coverage](https://shepherd.dev/github/duonrun/quma/coverage.svg?)](https://shepherd.dev/github/duonrun/quma)
 
-This project is a PHP port of Python library [quma](https://quma.readthedocs.io).
+Quma is a no-ORM database library for PHP. You store SQL in files, group those files in folders, and execute them through a small PDO-backed API. Quma also ships with template queries and a migration runner.
 
-## Test Databases
+## Requirements
 
-Set up a local test database with a dedicated user. Both CLI and SQL commands create equivalent results.
+Quma currently requires:
 
-The examples below use default values (`quma` for database name, username, and password). You can change these to your preferred values, but if you do, you must set the corresponding environment variables to make the test suite aware of your changes (see [Environment Variables](#environment-variables)).
+- PHP 8.5 or newer
+- `ext-json`
+- `ext-pdo`
+- `ext-readline`
 
-### PostgreSQL
-
-Using the CLI:
+## Install
 
 ```bash
-echo "quma" | createuser --pwprompt --createdb quma
-createdb --owner quma quma
+composer require duon/quma
 ```
 
-Using SQL:
+## Quickstart
+
+Create a SQL directory structure like this:
+
+```text
+sql/
+  users/
+    byId.sql
+    list.sql
+```
+
+Add a query file:
 
 ```sql
-CREATE ROLE quma WITH LOGIN PASSWORD 'quma' CREATEDB;
-CREATE DATABASE quma WITH OWNER quma;
+SELECT id, email FROM users WHERE id = ?;
 ```
 
-### MySQL/MariaDB
+Then configure Quma and run the query:
 
-Using the CLI:
+```php
+<?php
 
-```bash
-mysql -u root -p -e "CREATE DATABASE quma; CREATE USER 'quma'@'localhost' IDENTIFIED BY 'quma'; GRANT ALL PRIVILEGES ON quma.* TO 'quma'@'localhost';"
+declare(strict_types=1);
+
+use Duon\Quma\Connection;
+use Duon\Quma\Database;
+
+$conn = new Connection(
+    'sqlite:' . __DIR__ . '/app.sqlite',
+    __DIR__ . '/sql',
+    __DIR__ . '/migrations',
+);
+
+$db = new Database($conn);
+
+$user = $db->users->byId(1)->one();
+$users = $db->users->list()->all();
 ```
 
-Using SQL:
+Quma maps directories to properties and files to methods:
 
-```sql
-CREATE DATABASE quma;
-CREATE USER 'quma'@'localhost' IDENTIFIED BY 'quma';
-GRANT ALL PRIVILEGES ON quma.* TO 'quma'@'localhost';
-```
+- `sql/users/byId.sql` becomes `$db->users->byId()`
+- `sql/users/list.sql` becomes `$db->users->list()`
 
-### Environment Variables
+## What Quma provides
 
-Override test database configuration using environment variables. By default, the test suite runs SQLite only; set `QUMA_TEST_DRIVERS` to include MySQL or PostgreSQL.
+- SQL-file based queries with positional or named parameters
+- PDO-backed execution with `one()`, `all()`, `lazy()`, `run()`, and `len()`
+- PHP-powered SQL templates via `.tpql` files
+- multiple SQL directories with driver-specific overrides
+- migration commands for `.sql`, `.tpql`, and `.php` migrations
+- optional query printing for debugging
 
-- `QUMA_TEST_DRIVERS`: Comma-separated list of drivers to test (default: `sqlite`; available: `sqlite`, `mysql`, `pgsql`)
-- `QUMA_DB_SQLITE_DB_PATH_1`: Path for primary SQLite database (default: `quma_db1.sqlite3`)
-- `QUMA_DB_SQLITE_DB_PATH_2`: Path for secondary SQLite database (default: `quma_db2.sqlite3`)
-- `QUMA_DB_PGSQL_HOST`: PostgreSQL host (default: `localhost`)
-- `QUMA_DB_MYSQL_HOST`: MySQL host (default: `127.0.0.1`)
-- `QUMA_DB_NAME`: Database name (default: `quma`)
-- `QUMA_DB_USER`: Database user (default: `quma`)
-- `QUMA_DB_PASSWORD`: Database password (default: `quma`)
+## Documentation
 
-Example:
+Start with the docs in [`docs/index.md`](docs/index.md).
 
-```bash
-export QUMA_DB_PGSQL_HOST=192.168.1.100
-export QUMA_DB_USER=testuser
-export QUMA_DB_PASSWORD=testpass
-export QUMA_TEST_DRIVERS=sqlite,mysql,pgsql
-composer test
-```
+Recommended pages:
 
-## Running Tests
+- [Getting started](docs/getting-started.md)
+- [Query files](docs/query-files.md)
+- [Parameters and results](docs/parameters-and-results.md)
+- [Templates](docs/templates.md)
+- [Migrations overview](docs/migrations/overview.md)
+- [CLI](docs/cli.md)
+- [Testing](docs/testing.md)
+
+## Testing
+
+Quma runs against SQLite by default and can also run against MySQL and PostgreSQL when you provide test databases.
 
 ```bash
 composer test
@@ -78,6 +101,8 @@ composer test:mysql
 composer test:pgsql
 composer test:all
 ```
+
+For database setup and environment variables, see [docs/testing.md](docs/testing.md).
 
 ## License
 
