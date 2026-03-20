@@ -31,6 +31,61 @@ class DatabaseTest extends TestCase
 		$this->assertInstanceOf(PDO::class, $db->getConn());
 	}
 
+	public function testDatabaseTracksConnectionState(): void
+	{
+		$db = new class ($this->connection()) extends Database {
+			public function connectedAtPublic(): ?int
+			{
+				return $this->connectedAt;
+			}
+
+			public function lastUsedAtPublic(): ?int
+			{
+				return $this->lastUsedAt;
+			}
+		};
+
+		$this->assertFalse($db->isConnected());
+		$this->assertNull($db->connectedAtPublic());
+		$this->assertNull($db->lastUsedAtPublic());
+
+		$db->connect();
+
+		$this->assertTrue($db->isConnected());
+		$this->assertIsInt($db->connectedAtPublic());
+		$this->assertIsInt($db->lastUsedAtPublic());
+		$this->assertGreaterThanOrEqual($db->connectedAtPublic(), $db->lastUsedAtPublic());
+
+		$db->disconnect();
+
+		$this->assertFalse($db->isConnected());
+		$this->assertNull($db->connectedAtPublic());
+		$this->assertNull($db->lastUsedAtPublic());
+	}
+
+	public function testReconnectCreatesANewPdoConnection(): void
+	{
+		$db = new Database($this->connection());
+		$first = $db->getConn();
+
+		$db->reconnect();
+		$second = $db->getConn();
+
+		$this->assertNotSame($first, $second);
+	}
+
+	public function testPingReturnsConnectionHealth(): void
+	{
+		$db = new Database($this->connection());
+		$this->assertFalse($db->ping());
+
+		$db->connect();
+		$this->assertTrue($db->ping());
+
+		$db->disconnect();
+		$this->assertFalse($db->ping());
+	}
+
 	public function testGetConnThrowsWhenConnectionWasNotInitialized(): void
 	{
 		$this->expectException(RuntimeException::class);
