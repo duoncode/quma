@@ -86,6 +86,28 @@ class DatabaseTest extends TestCase
 		$this->assertFalse($db->ping());
 	}
 
+	public function testCleanupAfterRequestRollsBackOpenTransactions(): void
+	{
+		$db = $this->getDb();
+
+		$db->begin();
+		$db->members->add('Tim Aymar', 1998, 2001)->run();
+		$this->assertTrue($db->getConn()->inTransaction());
+
+		$db->cleanupAfterRequest();
+
+		$this->assertFalse($db->getConn()->inTransaction());
+		$this->assertCount(self::NUMBER_OF_MEMBERS, $db->members->list()->all());
+	}
+
+	public function testCleanupAfterRequestWithoutConnectionIsNoOp(): void
+	{
+		$db = new Database($this->connection());
+		$db->cleanupAfterRequest();
+
+		$this->assertFalse($db->isConnected());
+	}
+
 	public function testGetConnThrowsWhenConnectionWasNotInitialized(): void
 	{
 		$this->expectException(RuntimeException::class);
