@@ -7,7 +7,7 @@
 - Added explicit `Database` lifecycle helpers: `connected()`, `disconnect()`, `reconnect()`, `ping()`, and `reset()`.
 - Added internal connection timestamp tracking in `Database` to support long-running PHP process integrations.
 
-## [0.1.1](https://github.com/duonrun/quma/releases/tag/0.1.1) (2026-02-07)
+## [0.1.1](https://github.com/duoncode/quma/releases/tag/0.1.1) (2026-02-07)
 
 ### Changed
 
@@ -20,7 +20,7 @@
 - Added stricter migration loading validation with clearer failures for missing files and invalid migration objects.
 - Added a defensive runtime guard when reading the PDO connection before initialization.
 
-## [0.1.0](https://github.com/duonrun/quma/releases/tag/0.1.0) (2026-01-31)
+## [0.1.0](https://github.com/duoncode/quma/releases/tag/0.1.0) (2026-01-31)
 
 Initial release.
 
