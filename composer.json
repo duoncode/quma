@@ -6,10 +6,10 @@
 	"authors": [
 		{
 			"name": "Ernst",
-			"email": "ernst@duon.run"
+			"email": "ernst@duon.sh"
 		}
 	],
-	"homepage": "https://duon.run/quma",
+	"homepage": "https://duon.sh/quma",
 	"keywords": ["duon", "database", "sql"],
 	"autoload": {
 		"psr-4": {
