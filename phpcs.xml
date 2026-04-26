@@ -3,6 +3,7 @@
 	<description>coding standard</description>
 	<rule ref="PSR12">
 		<exclude name="Generic.WhiteSpace.DisallowTabIndent.TabsUsed" />
+		<exclude name="PSR12.Classes.AnonClassDeclaration.SpaceAfterKeyword" />
 		<exclude name="Squiz.WhiteSpace.ScopeClosingBrace.ContentBefore" />
 	</rule>
 	<exclude-pattern>tests/templates/</exclude-pattern>
