@@ -17,7 +17,7 @@ class Database
 	protected ?int $connectedAt = null;
 	protected ?int $lastUsedAt = null;
 
-	/** @var array<string, string> */
+	/** @var array<string, LoadedScript> */
 	protected array $compiledScripts = [];
 
 	public function __construct(
@@ -68,7 +68,7 @@ class Database
 		return $this->conn->sql();
 	}
 
-	public function loadScript(string $path, bool $isTemplate): string
+	public function loadScript(string $path, bool $isTemplate): LoadedScript
 	{
 		$key = ($isTemplate ? 'tpql:' : 'sql:') . $path;
 
@@ -83,9 +83,10 @@ class Database
 		}
 
 		$compiled = $this->conn->applyPlaceholders($source, $path, $isTemplate);
-		$this->compiledScripts[$key] = $compiled;
+		$script = new LoadedScript($compiled, $path);
+		$this->compiledScripts[$key] = $script;
 
-		return $compiled;
+		return $script;
 	}
 
 	public function assertNoTemplatePlaceholders(string $source, string $path): void

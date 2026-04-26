@@ -55,13 +55,17 @@ class Folder
 		$script = $this->scriptPath($key, false);
 
 		if (is_string($script)) {
-			return new Script($this->db, $this->db->loadScript($script, false), false, $script);
+			$loaded = $this->db->loadScript($script, false);
+
+			return new Script($this->db, $loaded->source, false, $loaded->sourcePath);
 		}
 
 		$dynStmt = $this->scriptPath($key, true);
 
 		if (is_string($dynStmt)) {
-			return new Script($this->db, $this->db->loadScript($dynStmt, true), true, $dynStmt);
+			$loaded = $this->db->loadScript($dynStmt, true);
+
+			return new Script($this->db, $loaded->source, true, $loaded->sourcePath, $loaded->cachePath);
 		}
 
 		throw new RuntimeException('SQL script does not exist');
