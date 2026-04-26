@@ -39,7 +39,8 @@ class Connection
 	/**
 	 * @psalm-param SqlConfig $sql
 	 * @psalm-param SqlConfig|null $migrations
-	 * */
+	 * @mago-expect lint:excessive-parameter-list Public constructor keeps the existing connection API.
+	 */
 	public function __construct(
 		public readonly string $dsn,
 		string|array $sql,

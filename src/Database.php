@@ -101,7 +101,7 @@ class Database
 					$this->pdo->rollBack();
 				}
 			} catch (Throwable) {
-				// Ignore rollback failures while tearing down the PDO handle.
+				// @mago-expect lint:no-empty-catch-clause Rollback failures are intentionally ignored during teardown.
 			}
 		}
 
