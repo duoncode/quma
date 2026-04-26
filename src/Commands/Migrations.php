@@ -56,6 +56,7 @@ final class Migrations extends Command
 				$this->error('Migration table could not be created.');
 
 				return $result;
+
 				// @codeCoverageIgnoreEnd
 			}
 		}
@@ -94,9 +95,9 @@ final class Migrations extends Command
 			if (!array_key_exists('default', $migrationNamespaces)) {
 				$this->error("Migration namespace 'default' does not exist");
 				$this->info(
-					"If you have defined namespaced migrations, you must either provide a namespace using the "
+					'If you have defined namespaced migrations, you must either provide a namespace using the '
 					. "`--namespace` flag when running this command, or define a namespace named 'default' which "
-					. "will be used when no namespace is provided.",
+					. 'will be used when no namespace is provided.',
 				);
 
 				return 1;
@@ -134,7 +135,7 @@ final class Migrations extends Command
 			$script = file_get_contents($migration);
 
 			if ($script === false) {
-				$this->showMessage($migration, new RuntimeException("Could not read migration file"));
+				$this->showMessage($migration, new RuntimeException('Could not read migration file'));
 				$result = self::ERROR;
 
 				break;
@@ -241,6 +242,7 @@ final class Migrations extends Command
 		// to be able to test meaningfully
 		// @codeCoverageIgnoreStart
 		throw new RuntimeException('Database driver not supported');
+
 		// @codeCoverageIgnoreEnd
 	}
 
@@ -388,9 +390,11 @@ final class Migrations extends Command
 
 	protected function showEmptyMessage(string $migration): void
 	{
-		echo "\033[33mWarning\033[0m: Migration '\033[1;33m"
-			. basename($migration)
-			. "'\033[0m is empty. Skipped\n";
+		echo
+			"\033[33mWarning\033[0m: Migration '\033[1;33m"
+				. basename($migration)
+				. "'\033[0m is empty. Skipped\n"
+		;
 	}
 
 	protected function showMessage(
@@ -399,9 +403,11 @@ final class Migrations extends Command
 		bool $showStacktrace = false,
 	): void {
 		if ($e) {
-			echo "\033[1;31mError\033[0m: while working on migration '\033[1;33m"
-				. basename($migration)
-				. "\033[0m'\n";
+			echo
+				"\033[1;31mError\033[0m: while working on migration '\033[1;33m"
+					. basename($migration)
+					. "\033[0m'\n"
+			;
 			echo $e->getMessage() . "\n";
 
 			if ($showStacktrace) {
@@ -411,8 +417,10 @@ final class Migrations extends Command
 			return;
 		}
 
-		echo "\033[1;32mSuccess\033[0m: Migration '\033[1;33m"
-			. basename($migration)
-			. "\033[0m' successfully applied\n";
+		echo
+			"\033[1;32mSuccess\033[0m: Migration '\033[1;33m"
+				. basename($migration)
+				. "\033[0m' successfully applied\n"
+		;
 	}
 }

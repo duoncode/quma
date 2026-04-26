@@ -39,7 +39,7 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 		ob_start();
-		$result = (new Runner($this->commands()))->run();
+		$result = new Runner($this->commands())->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -54,7 +54,7 @@ class MigrationsTest extends TestCase
 
 		$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'doesnotexist'];
 
-		(new Runner($this->commands(multipleConnections: true)))->run();
+		new Runner($this->commands(multipleConnections: true))->run();
 	}
 
 	public function testRunMigrationsNoMigrationsDirectoriesDefined(): void
@@ -62,7 +62,7 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 		ob_start();
-		$result = (new Runner($this->commands(migrations: [])))->run();
+		$result = new Runner($this->commands(migrations: []))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -77,7 +77,7 @@ class MigrationsTest extends TestCase
 		$driver = strtok($dsn, ':');
 
 		ob_start();
-		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$result = new Runner($this->commands(dsn: $dsn))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -99,7 +99,7 @@ class MigrationsTest extends TestCase
 		$driver = strtok($dsn, ':');
 
 		ob_start();
-		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$result = new Runner($this->commands(dsn: $dsn))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -121,16 +121,19 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 		ob_start();
-		(new Runner($this->commands(dsn: $dsn)))->run();
+		new Runner($this->commands(dsn: $dsn))->run();
 		ob_end_clean();
 
 		ob_start();
-		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$result = new Runner($this->commands(dsn: $dsn))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
 		$this->assertSame(0, $result);
-		$this->assertDoesNotMatchRegularExpression('/000000-000000-migration.sql[^\n]*?success/', $content);
+		$this->assertDoesNotMatchRegularExpression(
+			'/000000-000000-migration.sql[^\n]*?success/',
+			$content,
+		);
 		$this->assertStringContainsString('No migrations applied', $content);
 	}
 
@@ -139,13 +142,13 @@ class MigrationsTest extends TestCase
 		// Run existing migrations first
 		ob_start();
 		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
-		(new Runner($this->commands()))->run();
+		new Runner($this->commands())->run();
 		ob_end_clean();
 
 		// add the migrations
 		ob_start();
 		$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration'];
-		$migration = (new Runner($this->commands()))->run();
+		$migration = new Runner($this->commands())->run();
 		ob_end_clean();
 
 		$this->assertIsString($migration);
@@ -159,7 +162,7 @@ class MigrationsTest extends TestCase
 		// Re-run migrations
 		ob_start();
 		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
-		$result = (new Runner($this->commands()))->run();
+		$result = new Runner($this->commands())->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 		if (is_file($migration)) {
@@ -177,7 +180,7 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration.tpql'];
 
 		ob_start();
-		$migration = (new Runner($this->commands()))->run();
+		$migration = new Runner($this->commands())->run();
 		ob_end_clean();
 
 		$this->assertIsString($migration);
@@ -200,7 +203,7 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test migration.php'];
 
 		ob_start();
-		$migration = (new Runner($this->commands()))->run();
+		$migration = new Runner($this->commands())->run();
 		ob_end_clean();
 
 		$this->assertIsString($migration);
@@ -224,7 +227,7 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'add-migration', '-f', 'test.exe'];
 
 		ob_start();
-		(new Runner($this->commands()))->run();
+		new Runner($this->commands())->run();
 		$output = ob_get_contents();
 		ob_end_clean();
 
@@ -244,7 +247,7 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'add-migration', '-f', 'test'];
 
 		ob_start();
-		(new Runner($this->commands(migrations: TestCase::root() . '/../vendor')))->run();
+		new Runner($this->commands(migrations: TestCase::root() . '/../vendor'))->run();
 		$output = ob_get_contents();
 		ob_end_clean();
 
@@ -257,13 +260,13 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-failing{$ext}"];
 
 		ob_start();
-		$migration = (new Runner($this->commands(dsn: $dsn)))->run();
+		$migration = new Runner($this->commands(dsn: $dsn))->run();
 
 		// Add content and run it
 		file_put_contents($migration, 'RUBBISH;');
 		$_SERVER['argv'] = ['run', 'migrations', '--apply', '--stacktrace'];
 
-		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$result = new Runner($this->commands(dsn: $dsn))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 		if (is_file($migration)) {
@@ -292,13 +295,13 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'add-migration', '--file', "test-migration-php-failing.{$ext}"];
 
 		ob_start();
-		$migration = (new Runner($this->commands(dsn: $dsn)))->run();
+		$migration = new Runner($this->commands(dsn: $dsn))->run();
 
 		// Add content and run it
 		file_put_contents($migration, '<?php echo if)');
 		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
-		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$result = new Runner($this->commands(dsn: $dsn))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 		if (is_file($migration)) {
@@ -323,7 +326,7 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test-migration.sql'];
 
 		ob_start();
-		(new Runner($this->commands(migrations: $tmpdir)))->run();
+		new Runner($this->commands(migrations: $tmpdir))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -345,14 +348,14 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 		ob_start();
-		$result = (new Runner($this->commands()))->run();
+		$result = new Runner($this->commands())->run();
 		ob_end_clean();
 
 		// Run migration with specific namespace
 		$_SERVER['argv'] = ['run', 'migrations', '--namespace', 'feature', '--apply'];
 
 		ob_start();
-		$result = (new Runner(\Duon\Quma\Commands::get($conn)))->run();
+		$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -373,7 +376,7 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'migrations', '--namespace', 'nonexistent', '--apply'];
 
 		ob_start();
-		$result = (new Runner(\Duon\Quma\Commands::get($conn)))->run();
+		$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -393,7 +396,7 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 		ob_start();
-		$result = (new Runner(\Duon\Quma\Commands::get($conn)))->run();
+		$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 

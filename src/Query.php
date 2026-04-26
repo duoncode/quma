@@ -39,13 +39,15 @@ class Query
 		}
 
 		if ($db->print()) {
-			$msg = "\n\n-----------------------------------------------\n\n"
+			$msg =
+				"\n\n-----------------------------------------------\n\n"
 				. $this->interpolate()
 				. "\n------------------------------------------------\n";
 
 			if (isset($_SERVER['SERVER_SOFTWARE'])) {
 				// @codeCoverageIgnoreStart
 				error_log($msg);
+
 				// @codeCoverageIgnoreEnd
 			} else {
 				echo $msg;

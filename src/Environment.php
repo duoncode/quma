@@ -148,7 +148,7 @@ class Environment
 			$a = is_string($a) ? $a : '';
 			$b = is_string($b) ? $b : '';
 
-			return (basename($a) < basename($b)) ? -1 : 1;
+			return basename($a) < basename($b) ? -1 : 1;
 		});
 
 		return array_values($migrations);
@@ -171,12 +171,10 @@ class Environment
                 FROM sqlite_master
                 WHERE type='table'
                 AND name='{$table}';",
-
 			'mysql' => "
                 SELECT count(*) AS available
                 FROM information_schema.tables
                 WHERE table_name='{$table}';",
-
 			'pgsql' => "
                 SELECT count(*) AS available
                 FROM pg_tables
@@ -231,7 +229,8 @@ class Environment
 				// Would require an unsupported driver to be installed.
 				// @codeCoverageIgnoreStart
 				return false;
-				// @codeCoverageIgnoreEnd
+
+			// @codeCoverageIgnoreEnd
 		}
 	}
 }

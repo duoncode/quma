@@ -21,6 +21,7 @@ use Throwable;
 class TestCase extends BaseTestCase
 {
 	protected const DS = DIRECTORY_SEPARATOR;
+
 	private static ?string $sqliteDbPath1 = null;
 	private static ?string $sqliteDbPath2 = null;
 
@@ -89,14 +90,16 @@ class TestCase extends BaseTestCase
 	{
 		$prefix = self::root() . '/sql/';
 
-		return $additionalDirs
-			? [
-				$prefix . 'default',
-				[
-					'sqlite' => $prefix . 'additional',
-					'all' => $prefix . 'default',
-				],
-			] : $prefix . 'default';
+		return (
+			$additionalDirs
+				? [
+					$prefix . 'default',
+					[
+						'sqlite' => $prefix . 'additional',
+						'all' => $prefix . 'default',
+					],
+				] : $prefix . 'default'
+		);
 	}
 
 	public function getDb(
@@ -123,7 +126,8 @@ class TestCase extends BaseTestCase
                     joined INTEGER NOT NULL,
                     left INTEGER
                 )
-            ', "
+            ',
+			"
                 INSERT INTO members
                     (name, joined, left)
                 VALUES
@@ -144,13 +148,15 @@ class TestCase extends BaseTestCase
                     ('Shannon Hamm', 1997, 2001),
                     ('Scott Clendenin', 1997, 2001),
                     ('Richard Christy', 1997, 2001)
-            ", '
+            ",
+			'
                 CREATE TABLE albums (
                     album INTEGER PRIMARY KEY,
                     year  INTEGER NOT NULL,
                     title  VARCHAR (255) NOT NULL
                 )
-            ', "
+            ',
+			"
                 INSERT INTO albums
                     (year, title)
                 VALUES
@@ -161,13 +167,15 @@ class TestCase extends BaseTestCase
                     (1993,  'Individual Thought Patterns'),
                     (1995,  'Symbolic'),
                     (1998,  'The Sound of Perseverance')
-            ", '
+            ",
+			'
                 CREATE TABLE contributions (
                     album INTEGER NOT NULL,
                     member  INTEGER NOT NULL,
                     PRIMARY KEY(album, member)
                 )
-            ', '
+            ',
+			'
                 INSERT INTO contributions
                     (album, member)
                 VALUES
@@ -188,7 +196,8 @@ class TestCase extends BaseTestCase
                     (15, 7),
                     (16, 7),
                     (17, 7)
-            ', 'CREATE TABLE typetest (id INTEGER PRIMARY KEY, val)',
+            ',
+			'CREATE TABLE typetest (id INTEGER PRIMARY KEY, val)',
 		];
 
 		// execute the sql commands to create new tables
@@ -294,7 +303,8 @@ class TestCase extends BaseTestCase
 			[
 				'transactions' => true,
 				'dsn' => "pgsql:host={$dbPgsqlHost};dbname={$dbName};user={$dbUser};password={$dbPassword}",
-			], [
+			],
+			[
 				'transactions' => false,
 				'dsn' => "mysql:host={$dbMysqlHost};dbname={$dbName};user={$dbUser};password={$dbPassword}",
 			],

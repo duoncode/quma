@@ -32,6 +32,7 @@ final class CreateMigrationsTable extends Command
 				echo "\033[1;32mSuccess\033[0m: Created table '{$env->table}'\n";
 
 				return 0;
+
 				// Would require to create additional errornous DDL or to
 				// setup a different test database. Too much effort.
 				// @codeCoverageIgnoreStart
@@ -44,6 +45,7 @@ final class CreateMigrationsTable extends Command
 				}
 
 				return 1;
+
 				// @codeCoverageIgnoreEnd
 			}
 		} else {
@@ -53,6 +55,7 @@ final class CreateMigrationsTable extends Command
 			echo "PDO driver '{$env->driver}' not supported. Aborting\n";
 
 			return 1;
+
 			// @codeCoverageIgnoreEnd
 		}
 	}

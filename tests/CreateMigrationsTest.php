@@ -38,7 +38,7 @@ class CreateMigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'create-migrations-table'];
 
 		ob_start();
-		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$result = new Runner($this->commands(dsn: $dsn))->run();
 		ob_end_clean();
 
 		$this->assertSame(0, $result);
@@ -51,7 +51,7 @@ class CreateMigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'create-migrations-table'];
 
 		ob_start();
-		$result = (new Runner($this->commands(dsn: $dsn)))->run();
+		$result = new Runner($this->commands(dsn: $dsn))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -69,10 +69,10 @@ class CreateMigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'first'];
 
 		ob_start();
-		$result = (new Runner($this->commands(
+		$result = new Runner($this->commands(
 			multipleConnections: true,
 			firstMultipleConnectionsKey: 'first',
-		)))->run();
+		))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -85,10 +85,10 @@ class CreateMigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'create-migrations-table'];
 
 		ob_start();
-		$result = (new Runner($this->commands(
+		$result = new Runner($this->commands(
 			multipleConnections: true,
 			firstMultipleConnectionsKey: 'default',
-		)))->run();
+		))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -101,7 +101,7 @@ class CreateMigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'second'];
 
 		ob_start();
-		$result = (new Runner($this->commands(multipleConnections: true)))->run();
+		$result = new Runner($this->commands(multipleConnections: true))->run();
 		ob_end_clean();
 
 		$this->assertSame(0, $result);
@@ -113,7 +113,7 @@ class CreateMigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'create-migrations-table', '--conn', 'second'];
 
 		ob_start();
-		$result = (new Runner($this->commands(multipleConnections: true)))->run();
+		$result = new Runner($this->commands(multipleConnections: true))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 

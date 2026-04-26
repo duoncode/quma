@@ -82,9 +82,12 @@ class DatabaseTest extends TestCase
 	{
 		$db = new InspectableDatabase($this->connection());
 
-		$pdo = new class ('sqlite::memory:') extends PDO {
-			public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
-			{
+		$pdo = new class('sqlite::memory:') extends PDO {
+			public function query(
+				string $query,
+				?int $fetchMode = null,
+				mixed ...$fetchModeArgs,
+			): PDOStatement|false {
 				return false;
 			}
 		};
@@ -98,9 +101,12 @@ class DatabaseTest extends TestCase
 	{
 		$db = new InspectableDatabase($this->connection());
 
-		$pdo = new class ('sqlite::memory:') extends PDO {
-			public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
-			{
+		$pdo = new class('sqlite::memory:') extends PDO {
+			public function query(
+				string $query,
+				?int $fetchMode = null,
+				mixed ...$fetchModeArgs,
+			): PDOStatement|false {
 				throw new RuntimeException('ping failed');
 			}
 		};
@@ -136,7 +142,7 @@ class DatabaseTest extends TestCase
 	{
 		$db = new InspectableDatabase($this->connection());
 
-		$pdo = new class ('sqlite::memory:') extends PDO {
+		$pdo = new class('sqlite::memory:') extends PDO {
 			public function inTransaction(): bool
 			{
 				throw new RuntimeException('disconnect probe failed');
@@ -324,7 +330,10 @@ class DatabaseTest extends TestCase
 		$result = $db->members->joined(['year' => 1983])->one(PDO::FETCH_ASSOC);
 		$this->assertCount(4, $result);
 
-		$result = $db->members->joined(['year' => 1983, 'interestedInNames' => true])->one(PDO::FETCH_ASSOC);
+		$result = $db->members->joined([
+			'year' => 1983,
+			'interestedInNames' => true,
+		])->one(PDO::FETCH_ASSOC);
 		$this->assertCount(5, $result);
 	}
 

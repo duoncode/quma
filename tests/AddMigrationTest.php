@@ -25,7 +25,7 @@ class AddMigrationTest extends TestCase
 		$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test.sql'];
 
 		ob_start();
-		$result = (new Runner($this->commands(migrations: [])))->run();
+		$result = new Runner($this->commands(migrations: []))->run();
 		$output = ob_get_contents();
 		ob_end_clean();
 
@@ -38,7 +38,7 @@ class AddMigrationTest extends TestCase
 		$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test.sql'];
 
 		ob_start();
-		$result = (new Runner($this->commands(migrations: ['empty' => []])))->run();
+		$result = new Runner($this->commands(migrations: ['empty' => []]))->run();
 		$output = ob_get_contents();
 		ob_end_clean();
 
@@ -58,7 +58,7 @@ class AddMigrationTest extends TestCase
 		$handler = set_error_handler(static fn(): bool => true);
 		try {
 			ob_start();
-			$result = (new Runner($this->commands(migrations: ['temp' => $tempFile])))->run();
+			$result = new Runner($this->commands(migrations: ['temp' => $tempFile]))->run();
 			$output = ob_get_contents();
 			ob_end_clean();
 		} finally {

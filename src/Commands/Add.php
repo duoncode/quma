@@ -32,6 +32,7 @@ final class Add extends Command
 				return 1;
 			}
 			$fileName = $input;
+
 			// @codeCoverageIgnoreEnd
 		}
 
@@ -106,16 +107,19 @@ final class Add extends Command
 	protected function getPhpContent(string $fileName, string $timestamp): string
 	{
 		// Translates what-is-up.sql into WhatIsUp
-		$className = implode(
-			'',
-			explode(
-				'-',
+		$className =
+			implode(
+				'',
 				explode(
-					'.',
-					ucwords($fileName, '-'),
-				)[0],
-			),
-		) . '_' . str_replace('-', '_', $timestamp);
+					'-',
+					explode(
+						'.',
+						ucwords($fileName, '-'),
+					)[0],
+				),
+			)
+			. '_'
+			. str_replace('-', '_', $timestamp);
 
 		return "<?php
 

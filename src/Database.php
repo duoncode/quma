@@ -18,8 +18,9 @@ class Database
 	protected ?int $connectedAt = null;
 	protected ?int $lastUsedAt = null;
 
-	public function __construct(protected readonly Connection $conn)
-	{
+	public function __construct(
+		protected readonly Connection $conn,
+	) {
 		$this->print = $conn->print();
 	}
 
