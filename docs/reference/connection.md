@@ -80,7 +80,7 @@ $conn = new Connection(
 );
 ```
 
-Placeholder names must match `[A-Za-z_][A-Za-z0-9_.:-]*`. Values must be strings and are inserted as raw SQL text. Quma does not quote or escape them.
+Static placeholder names must match `[A-Za-z_][A-Za-z0-9_.:-]*`. Values must be strings and are inserted as raw SQL text. Quma does not quote or escape them.
 
 ## Public properties
 
@@ -107,17 +107,17 @@ This method supports the same input formats as the constructor.
 
 ## Static placeholder methods
 
-### `staticPlaceholders(): array`
+### `placeholders(): array`
 
-Returns the placeholder map resolved for the active driver.
+Returns the static placeholder map resolved for the active driver.
 
-### `applyStaticPlaceholders(string $source, string $path, bool $isTemplate = false): string`
+### `applyPlaceholders(string $source, string $path, bool $isTemplate = false): string`
 
 Applies static placeholders to SQL or template source. This method is used internally by file-based queries and migrations.
 
-### `assertNoTemplateStaticPlaceholders(string $source, string $path): void`
+### `assertNoTemplatePlaceholders(string $source, string $path): void`
 
-Throws when rendered template output still contains `[::...::]` text. This catches unsupported placeholders generated from PHP code blocks.
+Throws when rendered template output still contains `[::...::]` text. This catches unsupported static placeholders generated from PHP code blocks.
 
 ## Migration directory methods
 

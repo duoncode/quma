@@ -45,7 +45,7 @@ class Script
 			}
 
 			$script = $this->evaluateTemplate($this->script, $args);
-			$this->db->assertNoTemplateStaticPlaceholders($script, $this->sourcePath ?? $this->script);
+			$this->db->assertNoTemplatePlaceholders($script, $this->sourcePath ?? $this->script);
 
 			// We need to wrap the result of the prepare call in an array
 			// to get back to the format of ...$argsArray.

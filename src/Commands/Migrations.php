@@ -420,7 +420,7 @@ final class Migrations extends Command
 		bool $showStacktrace,
 	): string {
 		try {
-			$script = $this->env->conn->applyStaticPlaceholders($script, $migration);
+			$script = $this->env->conn->applyPlaceholders($script, $migration);
 
 			if (trim($script) === '') {
 				$this->showEmptyMessage($migration);
@@ -474,7 +474,7 @@ final class Migrations extends Command
 				throw new RuntimeException('Could not read migration file');
 			}
 
-			$template = $conn->applyStaticPlaceholders($template, $migration, true);
+			$template = $conn->applyPlaceholders($template, $migration, true);
 			$templatePath = $this->writeTemplateCache($template);
 
 			ob_start();
@@ -497,7 +497,7 @@ final class Migrations extends Command
 				return self::WARNING;
 			}
 
-			$conn->assertNoTemplateStaticPlaceholders($script, $migration);
+			$conn->assertNoTemplatePlaceholders($script, $migration);
 
 			return $this->migrateSQL($db, $namespace, $migration, $script, $showStacktrace);
 		} catch (Throwable $e) {

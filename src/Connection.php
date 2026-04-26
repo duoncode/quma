@@ -18,8 +18,8 @@ use ValueError;
  * @psalm-type MigrationDirsFlat = list<non-empty-string>
  * @psalm-type MigrationDirsNamespaced = array<non-empty-string, non-empty-string|list<non-empty-string>>
  * @psalm-type MigrationDirs = MigrationDirsFlat|MigrationDirsNamespaced
- * @psalm-type StaticPlaceholderMap = array<non-empty-string, string>
- * @psalm-type StaticPlaceholderConfig = array<non-empty-string, StaticPlaceholderMap>
+ * @psalm-type PlaceholderMap = array<non-empty-string, string>
+ * @psalm-type PlaceholderConfig = array<non-empty-string, PlaceholderMap>
  */
 class Connection
 {
@@ -34,7 +34,7 @@ class Connection
 	/** @psalm-var MigrationDirs */
 	protected array $migrations;
 
-	protected StaticPlaceholders $staticPlaceholders;
+	protected Placeholders $placeholders;
 
 	protected string $migrationsTable = 'migrations';
 	protected string $migrationsColumnMigration = 'migration';
@@ -43,7 +43,7 @@ class Connection
 	/**
 	 * @psalm-param SqlConfig $sql
 	 * @psalm-param SqlConfig|null $migrations
-	 * @psalm-param StaticPlaceholderConfig $placeholders
+	 * @psalm-param PlaceholderConfig $placeholders
 	 * @mago-expect lint:excessive-parameter-list Public constructor keeps the existing connection API.
 	 */
 	public function __construct(
@@ -61,27 +61,27 @@ class Connection
 		$this->driver = $this->readDriver($this->dsn);
 		$this->sql = $this->readFlatDirs($sql);
 		$this->migrations = $this->readMigrationDirs($migrations ?? []);
-		$this->staticPlaceholders = new StaticPlaceholders($this->driver, $placeholders);
+		$this->placeholders = new Placeholders($this->driver, $placeholders);
 		$this->print = $print;
 	}
 
 	/** @return array<string, string> */
-	public function staticPlaceholders(): array
+	public function placeholders(): array
 	{
-		return $this->staticPlaceholders->values();
+		return $this->placeholders->values();
 	}
 
-	public function applyStaticPlaceholders(
+	public function applyPlaceholders(
 		string $source,
 		string $path,
 		bool $isTemplate = false,
 	): string {
-		return $this->staticPlaceholders->compile($source, $path, $isTemplate);
+		return $this->placeholders->compile($source, $path, $isTemplate);
 	}
 
-	public function assertNoTemplateStaticPlaceholders(string $source, string $path): void
+	public function assertNoTemplatePlaceholders(string $source, string $path): void
 	{
-		$this->staticPlaceholders->assertNoTemplatePlaceholders($source, $path);
+		$this->placeholders->assertNoTemplatePlaceholders($source, $path);
 	}
 
 	public function setMigrationsTable(string $table): void

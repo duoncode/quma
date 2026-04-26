@@ -442,7 +442,7 @@ class MigrationsTest extends TestCase
 		}
 	}
 
-	public function testRunMigrationsUsesStaticPlaceholders(): void
+	public function testRunMigrationsUsesPlaceholders(): void
 	{
 		$dir = $this->createMigrationDir('static-placeholders');
 		file_put_contents(
@@ -492,7 +492,7 @@ class MigrationsTest extends TestCase
 		}
 	}
 
-	public function testTpqlMigrationRejectsGeneratedStaticPlaceholders(): void
+	public function testTpqlMigrationRejectsGeneratedPlaceholders(): void
 	{
 		$dir = $this->createMigrationDir('generated-static-placeholder');
 		file_put_contents(
@@ -517,7 +517,7 @@ class MigrationsTest extends TestCase
 
 			$this->assertSame(1, $result);
 			$this->assertStringContainsString(
-				'Placeholders inside PHP blocks or generated template output are not supported',
+				'Static placeholders inside PHP blocks or generated template output are not supported',
 				$content,
 			);
 		} finally {

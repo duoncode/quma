@@ -76,7 +76,7 @@ WHERE active = :active
 
 Quma applies static placeholders before it renders the PHP template. The rendered SQL then goes through normal PDO preparation and parameter binding.
 
-Do not put static placeholders inside PHP code blocks or generate them from PHP. This is unsupported and Quma throws a clear exception if a rendered template still contains `[::...::]` text. Move the placeholder into the literal SQL portion of the template, or use trusted PHP configuration directly.
+Do not put static placeholders inside PHP code blocks or generate them from PHP. This is unsupported and Quma throws a clear exception if a rendered template still contains `[::...::]` text. Move the static placeholder into the literal SQL portion of the template, or use trusted PHP configuration directly.
 
 ## Unused parameters are stripped
 
