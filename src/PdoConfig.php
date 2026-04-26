@@ -7,7 +7,7 @@ namespace Duon\Quma;
 use PDO;
 
 /** @internal */
-final class ConnectionPdoConfig
+final class PdoConfig
 {
 	public ?string $username = null;
 	public ?string $password = null;

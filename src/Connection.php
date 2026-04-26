@@ -7,18 +7,18 @@ namespace Duon\Quma;
 /**
  * @psalm-api
  *
- * @psalm-import-type SqlConfig from ConnectionConfig
- * @psalm-import-type MigrationDirs from ConnectionConfig
- * @psalm-import-type PlaceholderConfig from ConnectionConfig
+ * @psalm-import-type SqlConfig from Config
+ * @psalm-import-type MigrationDirs from Config
+ * @psalm-import-type PlaceholderConfig from Config
  */
 class Connection
 {
-	protected ConnectionConfig $config;
+	protected Config $config;
 
 	/** @psalm-param SqlConfig $sql */
 	public function __construct(string $dsn, string|array $sql)
 	{
-		$this->config = new ConnectionConfig($dsn, $sql);
+		$this->config = new Config($dsn, $sql);
 	}
 
 	public function dsn(): string
