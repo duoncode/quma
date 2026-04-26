@@ -14,9 +14,6 @@ final class StaticPlaceholders
 	private const string TOKEN_PATTERN = '/\[::(' . self::NAME_PATTERN . ')::\]/';
 	private const string TOKEN_START_PATTERN = '/^\[::(' . self::NAME_PATTERN . ')::\]/';
 
-	/** @var array<string, array<string, string>> */
-	private readonly array $config;
-
 	/** @var array<string, string> */
 	private readonly array $values;
 
@@ -25,10 +22,10 @@ final class StaticPlaceholders
 		private readonly string $driver,
 		array $config,
 	) {
-		$this->config = $this->normalizeConfig($config);
+		$config = $this->normalizeConfig($config);
 		$this->values = array_replace(
-			$this->config['all'] ?? [],
-			$this->config[$this->driver] ?? [],
+			$config['all'] ?? [],
+			$config[$this->driver] ?? [],
 		);
 	}
 
@@ -194,9 +191,6 @@ final class StaticPlaceholders
 			$token = $match[0][0];
 			$offset = $match[0][1];
 			$name = $match[1][0];
-			assert(is_string($token));
-			assert(is_int($offset));
-			assert(is_string($name));
 
 			$compiled .= substr($fragment, $cursor, $offset - $cursor);
 
@@ -227,9 +221,7 @@ final class StaticPlaceholders
 				throw $this->malformedPlaceholder($path, $source, $baseOffset + $position);
 			}
 
-			$token = $matches[0];
-			assert(is_string($token));
-			$offset = $position + strlen($token);
+			$offset = $position + strlen($matches[0]);
 		}
 	}
 
