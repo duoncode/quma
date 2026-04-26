@@ -54,7 +54,7 @@ class Connection
 	}
 
 	public function credentials(
-		?string $username,
+		string $username,
 		#[\SensitiveParameter]
 		?string $password = null,
 	): static {
