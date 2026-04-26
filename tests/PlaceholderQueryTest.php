@@ -46,7 +46,7 @@ class PlaceholderQueryTest extends TestCase
 			'sqlite' => ['table' => 'members'],
 		]));
 
-		$result = $db->music->byMember(['member' => 1])->one(PDO::FETCH_ASSOC);
+		$result = $db->music->byMember(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
 
 		$this->assertSame('Chuck Schuldiner', $result['name']);
 	}
@@ -64,14 +64,14 @@ class PlaceholderQueryTest extends TestCase
 			new Connection($this->getDsn(), $dir)->placeholders(['all' => ['table' => 'members']]),
 		);
 
-		$this->assertSame('before', $db->music->cached()->one(PDO::FETCH_ASSOC)['value']);
+		$this->assertSame('before', $db->music->cached()->one(fetchMode: PDO::FETCH_ASSOC)['value']);
 
 		file_put_contents(
 			$file,
 			"SELECT 'after' AS value FROM [::table::] LIMIT 1;",
 		);
 
-		$this->assertSame('before', $db->music->cached()->one(PDO::FETCH_ASSOC)['value']);
+		$this->assertSame('before', $db->music->cached()->one(fetchMode: PDO::FETCH_ASSOC)['value']);
 	}
 
 	public function testTemplateFileUsesPlaceholdersBeforeRendering(): void
@@ -96,7 +96,7 @@ class PlaceholderQueryTest extends TestCase
 		$result = $db->music->dynamic([
 			'member' => 1,
 			'joinedAfter' => 1980,
-		])->one(PDO::FETCH_ASSOC);
+		])->one(fetchMode: PDO::FETCH_ASSOC);
 
 		$this->assertSame('Chuck Schuldiner', $result['name']);
 	}
@@ -117,7 +117,7 @@ class PlaceholderQueryTest extends TestCase
 
 		$this->assertSame(
 			'cached',
-			$db->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+			$db->music->cached(['unused' => true])->one(fetchMode: PDO::FETCH_ASSOC)['value'],
 		);
 		$cacheFiles = glob($cacheDir . '/tpql-*.php');
 		$this->assertIsArray($cacheFiles);
@@ -125,13 +125,15 @@ class PlaceholderQueryTest extends TestCase
 
 		$this->assertSame(
 			'cached',
-			$db->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+			$db->music->cached(['unused' => true])->one(fetchMode: PDO::FETCH_ASSOC)['value'],
 		);
 		$this->assertSame($cacheFiles, glob($cacheDir . '/tpql-*.php'));
 
 		$this->assertSame(
 			'cached',
-			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+			new Database($conn)->music->cached([
+				'unused' => true,
+			])->one(fetchMode: PDO::FETCH_ASSOC)['value'],
 		);
 		$this->assertSame($cacheFiles, glob($cacheDir . '/tpql-*.php'));
 	}
@@ -146,7 +148,9 @@ class PlaceholderQueryTest extends TestCase
 		$conn = new Connection($this->getDsn(), $dir)->cache($cacheDir);
 		$this->assertSame(
 			'before',
-			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+			new Database($conn)->music->cached([
+				'unused' => true,
+			])->one(fetchMode: PDO::FETCH_ASSOC)['value'],
 		);
 		$cacheFiles = glob($cacheDir . '/tpql-*.php');
 		$this->assertIsArray($cacheFiles);
@@ -158,7 +162,9 @@ class PlaceholderQueryTest extends TestCase
 
 		$this->assertSame(
 			'after changed',
-			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+			new Database($conn)->music->cached([
+				'unused' => true,
+			])->one(fetchMode: PDO::FETCH_ASSOC)['value'],
 		);
 		$cacheFiles = glob($cacheDir . '/tpql-*.php');
 		$this->assertIsArray($cacheFiles);
@@ -179,7 +185,9 @@ class PlaceholderQueryTest extends TestCase
 			->cache($cacheDir);
 		$this->assertSame(
 			'first',
-			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+			new Database($conn)->music->cached([
+				'unused' => true,
+			])->one(fetchMode: PDO::FETCH_ASSOC)['value'],
 		);
 
 		$conn = new Connection($this->getDsn(), $dir)
@@ -187,7 +195,9 @@ class PlaceholderQueryTest extends TestCase
 			->cache($cacheDir);
 		$this->assertSame(
 			'second',
-			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+			new Database($conn)->music->cached([
+				'unused' => true,
+			])->one(fetchMode: PDO::FETCH_ASSOC)['value'],
 		);
 
 		$cacheFiles = glob($cacheDir . '/tpql-*.php');
@@ -212,7 +222,7 @@ class PlaceholderQueryTest extends TestCase
 			new Connection($this->getDsn(), $dir)->placeholders(['all' => ['table' => 'members']]),
 		);
 
-		$db->music->bad(['member' => 1])->one(PDO::FETCH_ASSOC);
+		$db->music->bad(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
 	}
 
 	private function createSqlDir(): string

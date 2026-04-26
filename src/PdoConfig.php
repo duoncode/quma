@@ -15,5 +15,5 @@ final class PdoConfig
 	/** @var array<array-key, mixed> */
 	public array $options = [];
 
-	public int $fetchMode = PDO::FETCH_BOTH;
+	public int $fetchMode = PDO::FETCH_ASSOC;
 }

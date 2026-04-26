@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Quma\Tests\Util;
 
+use Closure;
 use Duon\Quma\Query;
 
 final class FakeQuery extends Query
@@ -12,7 +13,7 @@ final class FakeQuery extends Query
 		private readonly int $available,
 	) {}
 
-	public function one(?int $fetchMode = null): ?array
+	public function one(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null
 	{
 		return ['available' => $this->available];
 	}

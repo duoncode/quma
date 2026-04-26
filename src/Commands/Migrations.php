@@ -310,10 +310,10 @@ final class Migrations extends Command
 		$column = $this->env->columnMigration;
 		$migrations = $db->execute("SELECT {$column} AS migration FROM {$table};")->all();
 
-		return array_values(array_map(
+		return array_map(
 			static fn(array $mig): string => (string) $mig['migration'],
 			$migrations,
-		));
+		);
 	}
 
 	protected function planMigrations(string $namespace, bool $tableExists): int

@@ -328,13 +328,13 @@ class DatabaseTest extends TestCase
 	{
 		$db = $this->getDb();
 
-		$result = $db->members->joined(['year' => 1983])->one(PDO::FETCH_ASSOC);
+		$result = $db->members->joined(['year' => 1983])->one(fetchMode: PDO::FETCH_ASSOC);
 		$this->assertCount(4, $result);
 
 		$result = $db->members->joined([
 			'year' => 1983,
 			'interestedInNames' => true,
-		])->one(PDO::FETCH_ASSOC);
+		])->one(fetchMode: PDO::FETCH_ASSOC);
 		$this->assertCount(5, $result);
 	}
 

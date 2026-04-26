@@ -136,7 +136,7 @@ class {$className} implements MigrationInterface
     public function run(Database \$db): bool
     {
         \$db->execute('')->run();
-        \$result = \$db->execute('')->all(PDO::FETCH_ASSOC);
+        \$result = \$db->execute('')->all(fetchMode: PDO::FETCH_ASSOC);
 
         return true;
     }
