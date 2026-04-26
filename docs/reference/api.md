@@ -137,4 +137,5 @@ These types are part of the public namespace, but most application code does not
 - `Args`
 - `ArgType`
 - `PreparedQuery`
+- `StaticPlaceholders`
 - `Util`
