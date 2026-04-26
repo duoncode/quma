@@ -9,7 +9,9 @@ use DateTime;
 use DateTimeImmutable;
 use Duon\Quma\Column;
 use Duon\Quma\Hydratable;
+use Duon\Quma\Hydration\ClassMetadata;
 use Duon\Quma\Hydration\Hydrator;
+use Duon\Quma\Hydration\MetadataCache;
 use Duon\Quma\Hydration\StaticReflectionCache;
 use Duon\Quma\HydrationException;
 use Duon\Quma\InvalidHydrationTargetException;
@@ -18,6 +20,8 @@ use Duon\Quma\TypeCoercionException;
 use Iterator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
+use stdClass;
+use TypeError;
 
 /**
  * @internal
@@ -280,6 +284,88 @@ class HydrationTest extends TestCase
 		$this->assertInstanceOf(HydrationDeletedEvent::class, $deleted);
 	}
 
+	public function testHydratesClassWithoutConstructor(): void
+	{
+		$object = new Hydrator()->hydrate(['ignored' => true], HydrationNoConstructor::class, null);
+
+		$this->assertInstanceOf(HydrationNoConstructor::class, $object);
+	}
+
+	public function testRejectsBuiltinTargetInReflectionCache(): void
+	{
+		$this->expectException(InvalidHydrationTargetException::class);
+		$this->expectExceptionMessage('target is not an existing class');
+
+		new StaticReflectionCache()->metadata('int');
+	}
+
+	public function testHydratableTargetMustProvideConcreteFactory(): void
+	{
+		$this->expectException(InvalidHydrationTargetException::class);
+		$this->expectExceptionMessage('Hydratable::fromRow() must be public, static, and concrete');
+
+		new Hydrator()->hydrate([], HydrationAbstractFactory::class, null);
+	}
+
+	public function testMetadataRejectsPrivateConstructors(): void
+	{
+		$this->expectException(InvalidHydrationTargetException::class);
+		$this->expectExceptionMessage('target is not instantiable');
+
+		new Hydrator()->hydrate([], HydrationPrivateConstructor::class, null);
+	}
+
+	public function testInvalidColumnAttributeArgumentsThrow(): void
+	{
+		$this->expectException(InvalidHydrationTargetException::class);
+		$this->expectExceptionMessage('has an invalid #[Column] attribute');
+
+		new Hydrator()->hydrate(['value' => 'x'], HydrationInvalidColumn::class, null);
+	}
+
+	public function testInconsistentHydratableMetadataIsRejected(): void
+	{
+		$cache = new class implements MetadataCache {
+			#[\Override]
+			public function metadata(string $class): ClassMetadata
+			{
+				return new ClassMetadata(stdClass::class, true, true, null);
+			}
+		};
+
+		$this->expectException(InvalidHydrationTargetException::class);
+		$this->expectExceptionMessage('target is not hydratable');
+
+		new Hydrator($cache)->hydrate([], stdClass::class, null);
+	}
+
+	public function testInconsistentInstantiabilityMetadataIsRejected(): void
+	{
+		$cache = new class implements MetadataCache {
+			#[\Override]
+			public function metadata(string $class): ClassMetadata
+			{
+				return new ClassMetadata(stdClass::class, false, false, []);
+			}
+		};
+
+		$this->expectException(InvalidHydrationTargetException::class);
+		$this->expectExceptionMessage('target is not instantiable');
+
+		new Hydrator($cache)->hydrate([], stdClass::class, null);
+	}
+
+	public function testConstructorTypeErrorsAreWrapped(): void
+	{
+		try {
+			new Hydrator()->hydrate(['value' => 1], HydrationConstructorThrowsTypeError::class, null);
+			$this->fail('Expected a type coercion exception.');
+		} catch (TypeCoercionException $e) {
+			$this->assertStringContainsString('constructor rejected hydrated arguments', $e->getMessage());
+			$this->assertInstanceOf(TypeError::class, $e->getPrevious());
+		}
+	}
+
 	#[DataProvider('invalidTargetProvider')]
 	public function testInvalidTargetsThrow(string $class): void
 	{
@@ -302,6 +388,7 @@ class HydrationTest extends TestCase
 			'empty column' => [HydrationEmptyColumn::class],
 			'variadic parameter' => [HydrationVariadicParameter::class],
 			'by-reference parameter' => [HydrationByReferenceParameter::class],
+			'unsupported object parameter' => [HydrationUnsupportedObjectParameter::class],
 		];
 	}
 
@@ -346,6 +433,8 @@ class HydrationTest extends TestCase
 		return strlen($value) === 10 ? 'Y-m-d' : 'Y-m-d H:i:s';
 	}
 }
+
+final class HydrationNoConstructor {}
 
 final readonly class HydrationCountry
 {
@@ -508,6 +597,8 @@ final class HydrationFactoryThrowsRuntime implements Hydratable
 	}
 }
 
+abstract class HydrationAbstractFactory implements Hydratable {}
+
 abstract class HydrationEvent
 {
 	public function __construct(
@@ -521,6 +612,19 @@ final class HydrationDeletedEvent extends HydrationEvent {}
 
 abstract class HydrationAbstractTarget {}
 
+final class HydrationPrivateConstructor
+{
+	private function __construct() {}
+}
+
+final class HydrationConstructorThrowsTypeError
+{
+	public function __construct(int $value)
+	{
+		throw new TypeError('constructor failed');
+	}
+}
+
 final class HydrationUntypedParameter
 {
 	public function __construct($value) {}
@@ -529,6 +633,11 @@ final class HydrationUntypedParameter
 final class HydrationArrayParameter
 {
 	public function __construct(array $value) {}
+}
+
+final class HydrationUnsupportedObjectParameter
+{
+	public function __construct(RuntimeException $value) {}
 }
 
 final class HydrationIntersectionParameter
@@ -544,6 +653,11 @@ final class HydrationDnfParameter
 final class HydrationEmptyColumn
 {
 	public function __construct(#[Column('')] string $value) {}
+}
+
+final class HydrationInvalidColumn
+{
+	public function __construct(#[Column([])] string $value) {}
 }
 
 final class HydrationVariadicParameter
