@@ -25,13 +25,7 @@ class QueryHydrationTest extends TestCase
 
 		$members = $db->members->list()->all(QueryHydrationMember::class);
 		$first = $db->members->list()->one(QueryHydrationMember::class);
-		$lazy = $db->members->list()->lazy(QueryHydrationMember::class);
-		$firstLazy = null;
-
-		foreach ($lazy as $member) {
-			$firstLazy = $member;
-			break;
-		}
+		$firstLazy = $db->members->list()->lazy(QueryHydrationMember::class)->current();
 
 		$this->assertCount(DatabaseTest::NUMBER_OF_MEMBERS, $members);
 		$this->assertInstanceOf(QueryHydrationMember::class, $members[0]);
@@ -121,11 +115,9 @@ class QueryHydrationTest extends TestCase
 			return QueryHydrationMember::class;
 		};
 
-		foreach ($this->getDb()->members->list()->lazy($resolver) as $member) {
-			$this->assertInstanceOf(QueryHydrationMember::class, $member);
-			break;
-		}
+		$member = $this->getDb()->members->list()->lazy($resolver)->current();
 
+		$this->assertInstanceOf(QueryHydrationMember::class, $member);
 		$this->assertSame(1, $calls);
 	}
 
