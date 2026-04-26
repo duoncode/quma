@@ -13,6 +13,8 @@ class Database
 {
 	use GetsSetsPrint;
 
+	protected const int TEMPLATE_CACHE_VERSION = 1;
+
 	protected ?PDO $pdo = null;
 	protected ?int $connectedAt = null;
 	protected ?int $lastUsedAt = null;
@@ -83,7 +85,8 @@ class Database
 		}
 
 		$compiled = $this->conn->applyPlaceholders($source, $path, $isTemplate);
-		$script = new LoadedScript($compiled, $path);
+		$cachePath = $isTemplate ? $this->cacheTemplate($path, $compiled) : null;
+		$script = new LoadedScript($compiled, $path, $cachePath);
 		$this->compiledScripts[$key] = $script;
 
 		return $script;
@@ -92,6 +95,83 @@ class Database
 	public function assertNoTemplatePlaceholders(string $source, string $path): void
 	{
 		$this->conn->assertNoTemplatePlaceholders($source, $path);
+	}
+
+	protected function cacheTemplate(string $sourcePath, string $source): ?string
+	{
+		$cacheDir = $this->conn->cacheDir();
+
+		if ($cacheDir === null) {
+			return null;
+		}
+
+		$cachePath = $this->templateCachePath($sourcePath, $cacheDir);
+
+		if (is_file($cachePath)) {
+			return $cachePath;
+		}
+
+		$this->writeTemplateCache($sourcePath, $source, $cacheDir, $cachePath);
+
+		return $cachePath;
+	}
+
+	/** @psalm-param non-empty-string $cacheDir */
+	protected function templateCachePath(string $sourcePath, string $cacheDir): string
+	{
+		$modifiedAt = filemtime($sourcePath);
+		$size = filesize($sourcePath);
+
+		if ($modifiedAt === false || $size === false) {
+			throw new RuntimeException('Could not read SQL template metadata: ' . $sourcePath);
+		}
+
+		$key = json_encode([
+			'version' => self::TEMPLATE_CACHE_VERSION,
+			'path' => $sourcePath,
+			'driver' => $this->conn->driver,
+			'placeholders' => $this->conn->placeholders(),
+			'modifiedAt' => $modifiedAt,
+			'size' => $size,
+		], JSON_THROW_ON_ERROR);
+
+		return $cacheDir . DIRECTORY_SEPARATOR . 'tpql-' . hash('sha256', $key) . '.php';
+	}
+
+	/** @psalm-param non-empty-string $cacheDir */
+	protected function writeTemplateCache(
+		string $sourcePath,
+		string $source,
+		string $cacheDir,
+		string $cachePath,
+	): void {
+		$tmp = tempnam($cacheDir, 'tpql-');
+
+		if ($tmp === false) {
+			throw new RuntimeException('Could not create compiled TPQL cache file in ' . $cacheDir);
+		}
+
+		try {
+			if (file_put_contents($tmp, $source, LOCK_EX) === false) {
+				throw new RuntimeException(
+					"Could not write compiled TPQL cache file for {$sourcePath} to {$cachePath}",
+				);
+			}
+
+			if (is_file($cachePath)) {
+				return;
+			}
+
+			if (!rename($tmp, $cachePath) && !is_file($cachePath)) {
+				throw new RuntimeException(
+					"Could not write compiled TPQL cache file for {$sourcePath} to {$cachePath}",
+				);
+			}
+		} finally {
+			if (is_file($tmp)) {
+				unlink($tmp);
+			}
+		}
 	}
 
 	public function connect(): static

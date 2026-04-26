@@ -109,6 +109,96 @@ class PlaceholderQueryTest extends TestCase
 		$this->assertSame('Chuck Schuldiner', $result['name']);
 	}
 
+	public function testTemplateQueryUsesConfiguredCacheDir(): void
+	{
+		$dir = $this->createSqlDir();
+		$cacheDir = $this->createTempDir('quma-cache-');
+		file_put_contents(
+			$dir . '/music/cached.tpql',
+			"SELECT '[::value::]' AS value;",
+		);
+
+		$conn = new Connection(
+			$this->getDsn(),
+			$dir,
+			placeholders: ['all' => ['value' => 'cached']],
+		);
+		$conn->cacheDir($cacheDir);
+		$db = new Database($conn);
+
+		$this->assertSame(
+			'cached',
+			$db->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+		);
+		$cacheFiles = glob($cacheDir . '/tpql-*.php');
+		$this->assertIsArray($cacheFiles);
+		$this->assertCount(1, $cacheFiles);
+
+		$this->assertSame(
+			'cached',
+			$db->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+		);
+		$this->assertSame($cacheFiles, glob($cacheDir . '/tpql-*.php'));
+	}
+
+	public function testTemplateCacheKeyChangesWithSourceMetadata(): void
+	{
+		$dir = $this->createSqlDir();
+		$cacheDir = $this->createTempDir('quma-cache-');
+		$file = $dir . '/music/cached.tpql';
+		file_put_contents($file, "SELECT 'before' AS value;");
+
+		$conn = new Connection($this->getDsn(), $dir);
+		$conn->cacheDir($cacheDir);
+		$this->assertSame(
+			'before',
+			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+		);
+		$cacheFiles = glob($cacheDir . '/tpql-*.php');
+		$this->assertIsArray($cacheFiles);
+		$this->assertCount(1, $cacheFiles);
+
+		file_put_contents($file, "SELECT 'after changed' AS value;");
+		touch($file, time() + 2);
+		clearstatcache(true, $file);
+
+		$this->assertSame(
+			'after changed',
+			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+		);
+		$cacheFiles = glob($cacheDir . '/tpql-*.php');
+		$this->assertIsArray($cacheFiles);
+		$this->assertCount(2, $cacheFiles);
+	}
+
+	public function testTemplateCacheKeyChangesWithPlaceholders(): void
+	{
+		$dir = $this->createSqlDir();
+		$cacheDir = $this->createTempDir('quma-cache-');
+		file_put_contents(
+			$dir . '/music/cached.tpql',
+			"SELECT '[::value::]' AS value;",
+		);
+
+		$conn = new Connection($this->getDsn(), $dir, placeholders: ['all' => ['value' => 'first']]);
+		$conn->cacheDir($cacheDir);
+		$this->assertSame(
+			'first',
+			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+		);
+
+		$conn = new Connection($this->getDsn(), $dir, placeholders: ['all' => ['value' => 'second']]);
+		$conn->cacheDir($cacheDir);
+		$this->assertSame(
+			'second',
+			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+		);
+
+		$cacheFiles = glob($cacheDir . '/tpql-*.php');
+		$this->assertIsArray($cacheFiles);
+		$this->assertCount(2, $cacheFiles);
+	}
+
 	public function testTemplateGeneratedPlaceholdersThrowClearException(): void
 	{
 		$this->expectException(RuntimeException::class);
@@ -133,8 +223,16 @@ class PlaceholderQueryTest extends TestCase
 
 	private function createSqlDir(): string
 	{
-		$dir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'quma-sql-' . uniqid();
+		$dir = $this->createTempDir('quma-sql-');
 		mkdir($dir . '/music', 0o700, true);
+
+		return $dir;
+	}
+
+	private function createTempDir(string $prefix): string
+	{
+		$dir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $prefix . uniqid();
+		mkdir($dir, 0o700);
 		$this->tempDirs[] = $dir;
 
 		return $dir;
@@ -142,20 +240,20 @@ class PlaceholderQueryTest extends TestCase
 
 	private function removeDir(string $dir): void
 	{
-		$files = glob($dir . '/music/*');
+		$files = glob($dir . '/*');
 
 		if (is_array($files)) {
 			foreach ($files as $file) {
-				if (!is_file($file)) {
+				if (is_file($file)) {
+					unlink($file);
+
 					continue;
 				}
 
-				unlink($file);
+				if (is_dir($file)) {
+					$this->removeDir($file);
+				}
 			}
-		}
-
-		if (is_dir($dir . '/music')) {
-			rmdir($dir . '/music');
 		}
 
 		if (is_dir($dir)) {

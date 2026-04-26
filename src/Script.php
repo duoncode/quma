@@ -64,6 +64,10 @@ class Script
 	{
 		$context = $this->buildTemplateContext($args);
 
+		if ($this->cachePath !== null) {
+			return $this->renderTemplateFile($this->cachePath, $context);
+		}
+
 		if ($this->sourcePath === null) {
 			if (!is_file($template)) {
 				return '';
