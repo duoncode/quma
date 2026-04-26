@@ -72,19 +72,20 @@ final class Placeholders
 
 	public function assertNoTemplatePlaceholders(string $source, string $path): void
 	{
-		$offset = strpos($source, '[::');
-
-		if ($offset === false) {
+		if (!str_contains($source, '[::')) {
 			return;
 		}
 
-		$placeholder = '[::';
 		$matches = [];
 
-		if (preg_match(self::TOKEN_START_PATTERN, substr($source, $offset), $matches) === 1) {
-			$placeholder = $matches[0];
+		if (preg_match(self::TOKEN_PATTERN, $source, $matches, PREG_OFFSET_CAPTURE) !== 1) {
+			return;
 		}
 
+		/** @var array{0: string, 1: int} $match */
+		$match = $matches[0];
+		$placeholder = $match[0];
+		$offset = $match[1];
 		[$line, $column] = $this->location($source, $offset);
 
 		throw new RuntimeException(
