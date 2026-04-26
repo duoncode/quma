@@ -21,15 +21,10 @@ preserve-breaking-conditional-expression = true
 integrations = []
 
 [linter.rules]
-ambiguous-function-call = { enabled = false }
 cyclomatic-complexity = { enabled = false }
-function-name = { camel = true }
-halstead = { enabled = false }
+kan-defect = { enabled = false }
 literal-named-argument = { enabled = false }
-no-assign-in-condition = { enabled = false }
 no-else-clause = { enabled = false }
-no-isset = { enabled = false }
 no-boolean-flag-parameter = { enabled = false }
-no-shorthand-ternary = { enabled = false }
-readable-literal = { min-digits = 7 }
+no-shorthand-ternary = { exclude = ['tests'] }
 too-many-methods = { enabled = false }
