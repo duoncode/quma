@@ -21,6 +21,7 @@ class MigrationsCommandTest extends TestCase
 		$_SERVER['argv'] = ['run'];
 		$conn = $this->connection();
 		$db = new Database($conn);
+		$db->execute('DROP TABLE IF EXISTS migrations')->run();
 		$db->execute('CREATE TABLE migrations (migration text, applied text)')->run();
 
 		$missing = sys_get_temp_dir() . '/missing-migration.sql';
@@ -142,6 +143,27 @@ class MigrationsCommandTest extends TestCase
 		$this->assertStringContainsString('Would apply 1 migration', $output);
 		$this->assertStringContainsString('000001-plan.sql', $output);
 		$this->assertStringContainsString('MySQL migrations are not executed during dry runs', $output);
+	}
+
+	public function testPendingMigrationsSkipsAppliedAndUnsupportedDriverFiles(): void
+	{
+		$_SERVER['argv'] = ['run'];
+		$conn = $this->connection();
+		$command = new Migrations($conn);
+		$method = new ReflectionMethod(Migrations::class, 'pendingMigrations');
+
+		$result = $method->invoke(
+			$command,
+			'default',
+			[
+				'000001-applied.sql',
+				'000002-pgsql-[pgsql].sql',
+				'000003-sqlite-[sqlite].sql',
+			],
+			['000001-applied.sql'],
+		);
+
+		$this->assertSame(['000003-sqlite-[sqlite].sql'], $result);
 	}
 
 	public function testFinishHandlesNonTransactionalDrivers(): void

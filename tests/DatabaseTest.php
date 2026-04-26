@@ -458,6 +458,23 @@ class DatabaseTest extends TestCase
 		$this->assertSame(7, $i);
 	}
 
+	public function testLoadScriptThrowsWhenFileIsMissing(): void
+	{
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('Could not read SQL script');
+
+		$db = new Database($this->connection());
+		$handler = set_error_handler(static fn(): bool => true);
+
+		try {
+			$db->loadScript(sys_get_temp_dir() . '/quma-missing-script-' . uniqid() . '.sql', false);
+		} finally {
+			if ($handler !== null) {
+				restore_error_handler();
+			}
+		}
+	}
+
 	public function testDatabaseExecute(): void
 	{
 		$db = new Database($this->connection());
