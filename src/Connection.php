@@ -18,6 +18,8 @@ use ValueError;
  * @psalm-type MigrationDirsFlat = list<non-empty-string>
  * @psalm-type MigrationDirsNamespaced = array<non-empty-string, non-empty-string|list<non-empty-string>>
  * @psalm-type MigrationDirs = MigrationDirsFlat|MigrationDirsNamespaced
+ * @psalm-type StaticPlaceholderMap = array<non-empty-string, string>
+ * @psalm-type StaticPlaceholderConfig = array<non-empty-string, StaticPlaceholderMap>
  */
 class Connection
 {
@@ -32,6 +34,8 @@ class Connection
 	/** @psalm-var MigrationDirs */
 	protected array $migrations;
 
+	protected StaticPlaceholders $staticPlaceholders;
+
 	protected string $migrationsTable = 'migrations';
 	protected string $migrationsColumnMigration = 'migration';
 	protected string $migrationsColumnApplied = 'applied';
@@ -39,6 +43,7 @@ class Connection
 	/**
 	 * @psalm-param SqlConfig $sql
 	 * @psalm-param SqlConfig|null $migrations
+	 * @psalm-param StaticPlaceholderConfig $placeholders
 	 * @mago-expect lint:excessive-parameter-list Public constructor keeps the existing connection API.
 	 */
 	public function __construct(
@@ -51,11 +56,32 @@ class Connection
 		public readonly array $options = [],
 		public readonly int $fetchMode = PDO::FETCH_BOTH,
 		bool $print = false,
+		array $placeholders = [],
 	) {
 		$this->driver = $this->readDriver($this->dsn);
 		$this->sql = $this->readFlatDirs($sql);
 		$this->migrations = $this->readMigrationDirs($migrations ?? []);
+		$this->staticPlaceholders = new StaticPlaceholders($this->driver, $placeholders);
 		$this->print = $print;
+	}
+
+	/** @return array<string, string> */
+	public function staticPlaceholders(): array
+	{
+		return $this->staticPlaceholders->values();
+	}
+
+	public function applyStaticPlaceholders(
+		string $source,
+		string $path,
+		bool $isTemplate = false,
+	): string {
+		return $this->staticPlaceholders->compile($source, $path, $isTemplate);
+	}
+
+	public function assertNoTemplateStaticPlaceholders(string $source, string $path): void
+	{
+		$this->staticPlaceholders->assertNoTemplatePlaceholders($source, $path);
 	}
 
 	public function setMigrationsTable(string $table): void
