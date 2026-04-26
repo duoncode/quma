@@ -488,12 +488,15 @@ class HydrationTest extends TestCase
 		new StaticReflectionCache()->metadata('int');
 	}
 
-	public function testHydratableTargetMustProvideConcreteFactory(): void
+	public function testAbstractHydratableFactoryFailureIsWrapped(): void
 	{
-		$this->expectException(InvalidHydrationTargetException::class);
-		$this->expectExceptionMessage('Hydratable::fromRow() must be public, static, and concrete');
-
-		new Hydrator()->hydrate([], HydrationAbstractFactory::class, null);
+		try {
+			new Hydrator()->hydrate([], HydrationAbstractFactory::class, null);
+			$this->fail('Expected hydration exception.');
+		} catch (HydrationException $e) {
+			$this->assertStringContainsString('Hydratable::fromRow() failed', $e->getMessage());
+			$this->assertInstanceOf(\Error::class, $e->getPrevious());
+		}
 	}
 
 	public function testMetadataRejectsPrivateConstructors(): void

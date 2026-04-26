@@ -51,14 +51,11 @@ final class StaticReflectionCache implements MetadataCache
 			);
 		}
 
-		$reflection = new ReflectionClass($class);
-		$hydratable = is_a($class, Hydratable::class, true);
-
-		if ($hydratable) {
-			$this->assertHydratableFactory($reflection, $class);
-
-			return new ClassMetadata($class, true, $reflection->isInstantiable(), null);
+		if (is_a($class, Hydratable::class, true)) {
+			return new ClassMetadata($class, true, true, null);
 		}
+
+		$reflection = new ReflectionClass($class);
 
 		if (!$reflection->isInstantiable()) {
 			throw InvalidHydrationTargetException::forTarget($class, reason: 'target is not instantiable');
@@ -82,22 +79,6 @@ final class StaticReflectionCache implements MetadataCache
 		);
 
 		return new ClassMetadata($class, false, true, $parameters);
-	}
-
-	/**
-	 * @psalm-param class-string $class
-	 * @psalm-param ReflectionClass<object> $reflection
-	 */
-	private function assertHydratableFactory(ReflectionClass $reflection, string $class): void
-	{
-		$method = $reflection->getMethod('fromRow');
-
-		if (!$method->isPublic() || !$method->isStatic() || $method->isAbstract()) {
-			throw InvalidHydrationTargetException::forTarget(
-				$class,
-				reason: 'Hydratable::fromRow() must be public, static, and concrete',
-			);
-		}
 	}
 
 	/** @psalm-param class-string $class */
