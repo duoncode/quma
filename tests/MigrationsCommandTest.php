@@ -7,6 +7,7 @@ namespace Duon\Quma\Tests;
 use Duon\Quma\Commands\Migrations;
 use Duon\Quma\Connection;
 use Duon\Quma\Database;
+use PDO;
 use ReflectionMethod;
 use RuntimeException;
 
@@ -33,7 +34,7 @@ class MigrationsCommandTest extends TestCase
 		$handler = set_error_handler(static fn(): bool => true);
 		try {
 			ob_start();
-			$result = $method->invoke($command, 'default', [$missing], $db, $conn, false, true);
+			$result = $method->invoke($command, 'default', [$missing], $db, $conn, false, true, true);
 			$output = ob_get_contents();
 			ob_end_clean();
 		} finally {
@@ -103,6 +104,56 @@ class MigrationsCommandTest extends TestCase
 				unlink($migration);
 			}
 		}
+	}
+
+	public function testMysqlDryRunPlansPendingMigrationsWithoutRunningThem(): void
+	{
+		if (!in_array('mysql', PDO::getAvailableDrivers(), strict: true)) {
+			$this->markTestSkipped('PDO MySQL is not available.');
+		}
+
+		$dir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'quma-mysql-plan-' . uniqid();
+		mkdir($dir, 0o700, true);
+		file_put_contents(
+			$dir . '/000001-plan.sql',
+			'CREATE TABLE mysql_plan_should_not_run (id integer);',
+		);
+
+		$_SERVER['argv'] = ['run'];
+		$conn = new Connection(
+			'mysql:host=localhost;dbname=quma;user=quma;password=quma',
+			$this->getSqlDirs(),
+			$dir,
+		);
+		$command = new Migrations($conn);
+		$method = new ReflectionMethod(Migrations::class, 'planMigrations');
+
+		try {
+			ob_start();
+			$result = $method->invoke($command, '', false);
+			$output = ob_get_contents();
+			ob_end_clean();
+		} finally {
+			$files = glob($dir . '/*');
+
+			if (is_array($files)) {
+				foreach ($files as $file) {
+					if (is_file($file)) {
+						unlink($file);
+					}
+				}
+			}
+
+			if (is_dir($dir)) {
+				rmdir($dir);
+			}
+		}
+
+		$this->assertSame(0, $result);
+		$this->assertStringContainsString("Would create migrations table 'migrations'", $output);
+		$this->assertStringContainsString('Would apply 1 migration', $output);
+		$this->assertStringContainsString('000001-plan.sql', $output);
+		$this->assertStringContainsString('MySQL migrations are not executed during dry runs', $output);
 	}
 
 	public function testFinishHandlesNonTransactionalDrivers(): void

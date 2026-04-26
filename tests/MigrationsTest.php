@@ -441,6 +441,52 @@ class MigrationsTest extends TestCase
 		}
 	}
 
+	public function testMysqlDryRunDoesNotMutateDatabase(): void
+	{
+		$dsn = $this->mysqlDsn();
+
+		if ($dsn === null) {
+			$this->markTestSkipped('MySQL is not available.');
+		}
+
+		$dir = $this->createMigrationDir('mysql-dry-run');
+		file_put_contents(
+			$dir . '/000001-mysql-dry-run.sql',
+			'CREATE TABLE mysql_dry_run_mutation (id integer);',
+		);
+
+		$conn = $this->connection(dsn: $dsn, migrations: $dir);
+		$db = new Database($conn);
+		$db->execute('DROP TABLE IF EXISTS mysql_dry_run_mutation')->run();
+		$db->execute('DROP TABLE IF EXISTS migrations')->run();
+
+		try {
+			$_SERVER['argv'] = ['run', 'migrations'];
+
+			ob_start();
+			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			$output = ob_get_contents();
+			ob_end_clean();
+
+			$metadataTable = $db->execute(
+				"SELECT count(*) AS available FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'migrations';",
+			)->one(PDO::FETCH_ASSOC);
+			$mutationTable = $db->execute(
+				"SELECT count(*) AS available FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'mysql_dry_run_mutation';",
+			)->one(PDO::FETCH_ASSOC);
+
+			$this->assertSame(0, $result);
+			$this->assertStringContainsString('Would apply 1 migration', $output);
+			$this->assertStringContainsString('MySQL migrations are not executed during dry runs', $output);
+			$this->assertSame(0, (int) ($metadataTable['available'] ?? 0));
+			$this->assertSame(0, (int) ($mutationTable['available'] ?? 0));
+		} finally {
+			$db->execute('DROP TABLE IF EXISTS mysql_dry_run_mutation')->run();
+			$db->execute('DROP TABLE IF EXISTS migrations')->run();
+			$this->removeMigrationDir($dir);
+		}
+	}
+
 	public function testRunMigrationsStoresNamespaceInMigrationId(): void
 	{
 		$defaultDir = $this->createMigrationDir('default-namespace');
@@ -491,6 +537,17 @@ class MigrationsTest extends TestCase
 			$this->removeMigrationDir($defaultDir);
 			$this->removeMigrationDir($featureDir);
 		}
+	}
+
+	private function mysqlDsn(): ?string
+	{
+		foreach (TestCase::getAvailableDsns() as $dsn) {
+			if (str_starts_with($dsn, 'mysql')) {
+				return $dsn;
+			}
+		}
+
+		return null;
 	}
 
 	private function createMigrationDir(string $suffix): string

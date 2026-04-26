@@ -43,30 +43,33 @@ final class Migrations extends Command
 	{
 		$env = $this->env;
 		$opts = new Opts();
+		$namespace = $opts->get('--namespace', '');
+		$showStacktrace = $opts->has('--stacktrace');
+		$apply = $opts->has('--apply');
 		$driverSupported = in_array($env->driver, ['sqlite', 'mysql', 'pgsql'], strict: true);
+		$tableExists = $driverSupported && $env->checkIfMigrationsTableExists($env->db);
 
-		if ($driverSupported && !$env->checkIfMigrationsTableExists($env->db)) {
-			$createMigrationTableCmd = new CreateMigrationsTable($env->conn, $env->options);
-			$result = $createMigrationTableCmd->run();
+		if (!$apply && $env->driver === 'mysql') {
+			return $this->planMigrations($namespace, $tableExists);
+		}
+
+		if ($driverSupported && !$tableExists && !$this->supportsTransactions()) {
+			$result = $this->createMigrationsTable();
 
 			if ($result !== 0) {
-				// Would require simulating a failing CreateMigrationsTable command
-				// without a test seam or altering the public API.
-				// @codeCoverageIgnoreStart
-				$this->error('Migration table could not be created.');
-
 				return $result;
-
-				// @codeCoverageIgnoreEnd
 			}
+
+			$tableExists = true;
 		}
 
 		return $this->migrate(
 			$env->db,
 			$env->conn,
-			$opts->get('--namespace', ''),
-			$opts->has('--stacktrace'),
-			$opts->has('--apply'),
+			$namespace,
+			$showStacktrace,
+			$apply,
+			$tableExists,
 		);
 	}
 
@@ -76,34 +79,12 @@ final class Migrations extends Command
 		string $namespace,
 		bool $showStacktrace,
 		bool $apply,
+		bool $tableExists,
 	): int {
-		$migrationNamespaces = $this->env->getMigrations();
+		$migrations = $this->migrationsForNamespace($namespace);
 
-		if ($migrationNamespaces === false) {
+		if ($migrations === false) {
 			return 1;
-		}
-
-		if ($namespace) {
-			if (!array_key_exists($namespace, $migrationNamespaces)) {
-				$this->error("Migration namespace '{$namespace}' does not exist");
-
-				return 1;
-			}
-
-			$migrations = $migrationNamespaces[$namespace];
-		} else {
-			if (!array_key_exists('default', $migrationNamespaces)) {
-				$this->error("Migration namespace 'default' does not exist");
-				$this->info(
-					'If you have defined namespaced migrations, you must either provide a namespace using the '
-					. "`--namespace` flag when running this command, or define a namespace named 'default' which "
-					. 'will be used when no namespace is provided.',
-				);
-
-				return 1;
-			}
-
-			$migrations = $migrationNamespaces['default'];
 		}
 
 		return $this->runMigrations(
@@ -113,7 +94,43 @@ final class Migrations extends Command
 			$conn,
 			$showStacktrace,
 			$apply,
+			$tableExists,
 		);
+	}
+
+	/**
+	 * @return list<string>|false
+	 */
+	protected function migrationsForNamespace(string $namespace): array|false
+	{
+		$migrationNamespaces = $this->env->getMigrations();
+
+		if ($migrationNamespaces === false) {
+			return false;
+		}
+
+		if ($namespace) {
+			if (!array_key_exists($namespace, $migrationNamespaces)) {
+				$this->error("Migration namespace '{$namespace}' does not exist");
+
+				return false;
+			}
+
+			return $migrationNamespaces[$namespace];
+		}
+
+		if (!array_key_exists('default', $migrationNamespaces)) {
+			$this->error("Migration namespace 'default' does not exist");
+			$this->info(
+				'If you have defined namespaced migrations, you must either provide a namespace using the '
+				. "`--namespace` flag when running this command, or define a namespace named 'default' which "
+				. 'will be used when no namespace is provided.',
+			);
+
+			return false;
+		}
+
+		return $migrationNamespaces['default'];
 	}
 
 	protected function runMigrations(
@@ -123,8 +140,22 @@ final class Migrations extends Command
 		Connection $conn,
 		bool $showStacktrace,
 		bool $apply,
+		bool $tableExists,
 	): int {
 		$this->begin($db);
+
+		if (!$tableExists) {
+			$result = $this->createMigrationsTable();
+
+			if ($result !== 0) {
+				if ($this->supportsTransactions()) {
+					$db->rollback();
+				}
+
+				return $result;
+			}
+		}
+
 		$appliedMigrations = $this->getAppliedMigrations($db);
 		$result = self::STARTED;
 		$numApplied = 0;
@@ -181,6 +212,25 @@ final class Migrations extends Command
 		if ($this->supportsTransactions()) {
 			$db->begin();
 		}
+	}
+
+	protected function createMigrationsTable(): int
+	{
+		$createMigrationTableCmd = new CreateMigrationsTable($this->env->conn, $this->env->options);
+		$result = $createMigrationTableCmd->run();
+
+		if ($result === 0) {
+			return 0;
+		}
+
+		// Would require simulating a failing CreateMigrationsTable command
+		// without a test seam or altering the public API.
+		// @codeCoverageIgnoreStart
+		$this->error('Migration table could not be created.');
+
+		return is_int($result) ? $result : 1;
+
+		// @codeCoverageIgnoreEnd
 	}
 
 	protected function finish(
@@ -256,13 +306,85 @@ final class Migrations extends Command
 		// @codeCoverageIgnoreEnd
 	}
 
+	/**
+	 * @return list<string>
+	 */
 	protected function getAppliedMigrations(Database $db): array
 	{
 		$table = $this->env->table;
 		$column = $this->env->columnMigration;
 		$migrations = $db->execute("SELECT {$column} AS migration FROM {$table};")->all();
 
-		return array_map(static fn(array $mig): string => (string) $mig['migration'], $migrations);
+		return array_values(array_map(
+			static fn(array $mig): string => (string) $mig['migration'],
+			$migrations,
+		));
+	}
+
+	protected function planMigrations(string $namespace, bool $tableExists): int
+	{
+		$migrations = $this->migrationsForNamespace($namespace);
+
+		if ($migrations === false) {
+			return 1;
+		}
+
+		$namespace = $namespace ?: 'default';
+		$appliedMigrations = $tableExists ? $this->getAppliedMigrations($this->env->db) : [];
+		$pendingMigrations = $this->pendingMigrations($namespace, $migrations, $appliedMigrations);
+		$numPending = count($pendingMigrations);
+		$plural = $numPending > 1 ? 's' : '';
+
+		echo "\n\033[1;31mNotice\033[0m: Test run only\033[0m\n";
+
+		if (!$tableExists) {
+			echo "Would create migrations table '{$this->env->table}'\n";
+		}
+
+		if ($numPending === 0) {
+			echo "\nNo migrations applied\n";
+		} else {
+			echo "Would apply {$numPending} migration{$plural}:\n";
+
+			foreach ($pendingMigrations as $migration) {
+				echo '  - ' . basename($migration) . "\n";
+			}
+		}
+
+		echo "\nMySQL migrations are not executed during dry runs because Quma cannot safely ";
+		echo "roll back the full migration batch on this driver. Use --apply to run them.\n";
+
+		return 0;
+	}
+
+	/**
+	 * @param list<string> $migrations
+	 * @param list<string> $appliedMigrations
+	 *
+	 * @return list<string>
+	 */
+	protected function pendingMigrations(
+		string $namespace,
+		array $migrations,
+		array $appliedMigrations,
+	): array {
+		$pending = [];
+
+		foreach ($migrations as $migration) {
+			assert($migration !== '', 'Migration path must be a non-empty string.');
+
+			if (in_array($this->migrationId($namespace, $migration), $appliedMigrations, strict: true)) {
+				continue;
+			}
+
+			if (!$this->supportedByDriver($migration)) {
+				continue;
+			}
+
+			$pending[] = $migration;
+		}
+
+		return $pending;
 	}
 
 	protected function migrationId(string $namespace, string $migration): string
