@@ -41,11 +41,16 @@ jobs:
           sudo -u postgres createdb ${{ env.QUMA_DB_NAME }}
           sudo -u postgres psql -c "CREATE USER ${{ env.QUMA_DB_USER }} WITH SUPERUSER PASSWORD '${{ env.QUMA_DB_PASSWORD }}';"
 
+      - name: Run linter
+        run: |
+          ./vendor/bin/mago fmt --check
+          ./vendor/bin/mago lint
+
       - name: Run tests
         run: php -d pcov.enabled=1 ./vendor/bin/phpunit --coverage-clover=coverage.xml --coverage-filter=src --coverage-html=coverage
 
       - name: Run Psalm
-        run: vendor/bin/psalm --output-format=github --shepherd
+        run: ./vendor/bin/psalm --output-format=github --shepherd
 
       - name: Upload coverage report to Codacy
         continue-on-error: true
