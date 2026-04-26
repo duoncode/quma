@@ -123,7 +123,7 @@ class Database
 		$size = filesize($sourcePath);
 
 		if ($modifiedAt === false || $size === false) {
-			throw new RuntimeException('Could not read SQL template metadata: ' . $sourcePath);
+			throw new RuntimeException('Could not read SQL template metadata: ' . $sourcePath); // @codeCoverageIgnore
 		}
 
 		$key = json_encode([
@@ -138,7 +138,10 @@ class Database
 		return $cacheDir . DIRECTORY_SEPARATOR . 'tpql-' . hash('xxh128', $key) . '.php';
 	}
 
-	/** @psalm-param non-empty-string $cacheDir */
+	/**
+	 * @codeCoverageIgnore
+	 * @psalm-param non-empty-string $cacheDir
+	 **/
 	protected function writeTemplateCache(
 		string $sourcePath,
 		string $source,
