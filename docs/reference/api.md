@@ -6,6 +6,35 @@ title: API reference
 
 This page summarizes the main public types that application code works with directly.
 
+## `Duon\Quma\Connection`
+
+Stores DSN, SQL directory, migration, placeholder, PDO, cache, and debug-printing configuration.
+
+### Constructor
+
+```php
+new Connection(string $dsn, string|array $sql)
+```
+
+### Key methods
+
+- `credentials(?string $username, ?string $password = null): static` sets PDO credentials
+- `options(array $options): static` replaces PDO options
+- `option(int $attribute, mixed $value): static` sets one PDO option
+- `fetch(int $fetchMode): static` sets the default query fetch mode
+- `migrations(string|array $migrations): static` sets migration directories
+- `addMigration(string $migrations): static` prepends one flat migration directory
+- `migrationNamespace(string $namespace, string|array $dirs): static` sets one namespaced migration entry
+- `migrationTable(string $table): static` sets the migration metadata table
+- `migrationColumns(string $migration, string $applied = 'applied'): static` sets migration metadata columns
+- `placeholders(array $placeholders): static` sets static placeholder replacements
+- `cache(string $cacheDir): static` sets the `.tpql` query template cache directory
+- `noCache(): static` clears the query template cache directory
+- `addSql(array|string $sql): static` prepends SQL directories
+- `printQueries(bool $print = true): static` enables query printing for later `Database` instances
+
+See [Connection reference](connection.md) for all accessors and configuration formats.
+
 ## `Duon\Quma\Database`
 
 The main entry point for query execution.

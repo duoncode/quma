@@ -75,7 +75,7 @@ Use `--apply` to run MySQL migrations.
 
 The migration command was started without any configured migration directories.
 
-Pass the third `Connection` argument or configure namespaced migrations.
+Call `Connection::migrations()` or configure namespaced migrations with `Connection::migrationNamespace()`.
 
 ## `Migration namespace '...' does not exist`
 

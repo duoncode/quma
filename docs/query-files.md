@@ -48,18 +48,17 @@ FROM [::prefix::]nodes
 WHERE published = :published;
 ```
 
-Configure replacements on `Connection` with the `placeholders` named argument.
+Configure replacements on `Connection` with `placeholders()`.
 
 ```php
-$conn = new Connection(
+$conn = (new Connection(
     'pgsql:host=localhost;dbname=app',
     __DIR__ . '/sql',
-    placeholders: [
-        'all' => ['prefix' => ''],
-        'pgsql' => ['prefix' => 'cms.'],
-        'mysql' => ['prefix' => 'cms_'],
-    ],
-);
+))->placeholders([
+    'all' => ['prefix' => ''],
+    'pgsql' => ['prefix' => 'cms.'],
+    'mysql' => ['prefix' => 'cms_'],
+]);
 ```
 
 Quma resolves static placeholders from `all` and then overlays the active PDO driver. Driver-specific values override `all`, including empty strings.
@@ -68,7 +67,7 @@ Static placeholders are raw SQL text. Quma does not quote or escape them. Use th
 
 Static placeholder names must match `[A-Za-z_][A-Za-z0-9_.:-]*`, so names such as `prefix`, `schema.name`, `tenant-prefix`, and `cms:prefix` are valid. Unknown or malformed static placeholders throw an exception that includes the source file, line, column, and active driver.
 
-Quma substitutes static placeholders when a file is first loaded by a `Database` instance and caches the compiled source for that instance. Direct SQL passed to `Database::execute()` is not processed. For hot `.tpql` query files, you can also configure a persistent template cache with `Connection::cacheDir()`.
+Quma substitutes static placeholders when a file is first loaded by a `Database` instance and caches the compiled source for that instance. Direct SQL passed to `Database::execute()` is not processed. For hot `.tpql` query files, you can also configure a persistent template cache with `Connection::cache()`.
 
 ## Configure SQL directories
 
@@ -175,7 +174,7 @@ This is equivalent to `$db->users->byId(42)->one()`.
 You can prepend more SQL directories after construction.
 
 ```php
-$conn->addSqlDirs([
+$conn->addSql([
     'sqlite' => __DIR__ . '/sql/sqlite-overrides',
 ]);
 ```

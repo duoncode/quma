@@ -8,27 +8,25 @@ Quma includes a migration runner for SQL, template, and PHP migrations. It disco
 
 ## Configure migration directories
 
-Pass the migration configuration as the third `Connection` argument.
+Configure migration directories with `Connection::migrations()`.
 
 ```php
-$conn = new Connection(
+$conn = (new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-    __DIR__ . '/migrations',
-);
+))->migrations(__DIR__ . '/migrations');
 ```
 
 You can also pass a list of directories.
 
 ```php
-$conn = new Connection(
+$conn = (new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-    [
-        __DIR__ . '/migrations/core',
-        __DIR__ . '/migrations/project',
-    ],
-);
+))->migrations([
+    __DIR__ . '/migrations/core',
+    __DIR__ . '/migrations/project',
+]);
 ```
 
 For flat lists, later entries take precedence when Quma resolves the internal directory list.
@@ -93,7 +91,15 @@ By default, the metadata table uses:
 - migration column: `migration`
 - applied column: `applied`
 
-You can customize these names on `Connection`. Quma uses the configured table and column names when it creates the metadata table, reads applied migrations, and records new migrations.
+You can customize these names on `Connection`.
+
+```php
+$conn
+    ->migrationTable('quma_migrations')
+    ->migrationColumns('version', 'executed_at');
+```
+
+Quma uses the configured table and column names when it creates the metadata table, reads applied migrations, and records new migrations.
 
 For flat migrations and the `default` namespace, Quma records the migration file base name, for example `250320-101500-create-users.sql`. For non-default namespaces, Quma records `namespace:basename`, for example `billing:250320-101500-create-users.sql`.
 
@@ -133,7 +139,7 @@ CREATE TABLE [::prefix::]users (
 
 ## Template migrations
 
-A `.tpql` migration is a PHP template that must render SQL. Quma substitutes static placeholders in the literal SQL part before rendering the PHP template. The query template cache configured with `Connection::cacheDir()` does not apply to migrations.
+A `.tpql` migration is a PHP template that must render SQL. Quma substitutes static placeholders in the literal SQL part before rendering the PHP template. The query template cache configured with `Connection::cache()` does not apply to migrations.
 
 Inside migration templates, Quma makes these variables available:
 
