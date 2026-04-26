@@ -492,6 +492,38 @@ class MigrationsTest extends TestCase
 		}
 	}
 
+	public function testTpqlMigrationsDoNotUseTemplateCache(): void
+	{
+		$dir = $this->createMigrationDir('migration-cache-disabled');
+		$cacheDir = $this->createMigrationDir('query-cache');
+		file_put_contents(
+			$dir . '/000001-cache-disabled.tpql',
+			<<<'TPQL'
+				<?php if ($driver === 'sqlite') : ?>
+				CREATE TABLE migration_cache_disabled (id integer);
+				<?php endif ?>
+				TPQL,
+		);
+
+		$conn = $this->connection(migrations: $dir);
+		$conn->cacheDir($cacheDir);
+
+		try {
+			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+
+			ob_start();
+			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			ob_end_clean();
+
+			$cacheFiles = glob($cacheDir . '/tpql-*.php');
+			$this->assertSame(0, $result);
+			$this->assertSame([], $cacheFiles);
+		} finally {
+			$this->removeMigrationDir($dir);
+			$this->removeMigrationDir($cacheDir);
+		}
+	}
+
 	public function testTpqlMigrationRejectsGeneratedPlaceholders(): void
 	{
 		$dir = $this->createMigrationDir('generated-static-placeholder');
