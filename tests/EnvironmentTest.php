@@ -87,11 +87,12 @@ class EnvironmentTest extends TestCase
 		file_put_contents($dir . '/20240101-000000-a.sql', 'SELECT 1;');
 
 		$connection = $this->connection(migrations: [$dir]);
-		$property = new ReflectionProperty(Connection::class, 'migrations');
-		$property->setValue($connection, [
+		$property = new ReflectionProperty(Connection::class, 'config');
+		$config = $property->getValue($connection);
+		$config->migrations = [
 			0 => $dir,
 			'valid' => $dir,
-		]);
+		];
 
 		$_SERVER['argv'] = ['run'];
 		$env = new Environment(['default' => $connection], []);
@@ -110,12 +111,13 @@ class EnvironmentTest extends TestCase
 		file_put_contents($dir . '/20240101-000000-a.sql', 'SELECT 1;');
 
 		$connection = $this->connection(migrations: [$dir]);
-		$property = new ReflectionProperty(Connection::class, 'migrations');
-		$property->setValue($connection, [
+		$property = new ReflectionProperty(Connection::class, 'config');
+		$config = $property->getValue($connection);
+		$config->migrations = [
 			'valid' => [$dir],
 			'invalidType' => 123,
 			'emptyDirs' => [''],
-		]);
+		];
 
 		$_SERVER['argv'] = ['run'];
 		$env = new Environment(['default' => $connection], []);

@@ -41,14 +41,10 @@ class PlaceholderQueryTest extends TestCase
 			'SELECT name FROM [::table::] WHERE member = :member;',
 		);
 
-		$db = new Database(new Connection(
-			$this->getDsn(),
-			$dir,
-			placeholders: [
-				'all' => ['table' => 'albums'],
-				'sqlite' => ['table' => 'members'],
-			],
-		));
+		$db = new Database(new Connection($this->getDsn(), $dir)->placeholders([
+			'all' => ['table' => 'albums'],
+			'sqlite' => ['table' => 'members'],
+		]));
 
 		$result = $db->music->byMember(['member' => 1])->one(PDO::FETCH_ASSOC);
 
@@ -64,11 +60,9 @@ class PlaceholderQueryTest extends TestCase
 			"SELECT 'before' AS value FROM [::table::] LIMIT 1;",
 		);
 
-		$db = new Database(new Connection(
-			$this->getDsn(),
-			$dir,
-			placeholders: ['all' => ['table' => 'members']],
-		));
+		$db = new Database(
+			new Connection($this->getDsn(), $dir)->placeholders(['all' => ['table' => 'members']]),
+		);
 
 		$this->assertSame('before', $db->music->cached()->one(PDO::FETCH_ASSOC)['value']);
 
@@ -95,11 +89,9 @@ class PlaceholderQueryTest extends TestCase
 				TPQL,
 		);
 
-		$db = new Database(new Connection(
-			$this->getDsn(),
-			$dir,
-			placeholders: ['all' => ['table' => 'members']],
-		));
+		$db = new Database(
+			new Connection($this->getDsn(), $dir)->placeholders(['all' => ['table' => 'members']]),
+		);
 
 		$result = $db->music->dynamic([
 			'member' => 1,
@@ -118,12 +110,9 @@ class PlaceholderQueryTest extends TestCase
 			"SELECT '[::value::]' AS value;",
 		);
 
-		$conn = new Connection(
-			$this->getDsn(),
-			$dir,
-			placeholders: ['all' => ['value' => 'cached']],
-		);
-		$conn->cacheDir($cacheDir);
+		$conn = new Connection($this->getDsn(), $dir)
+			->placeholders(['all' => ['value' => 'cached']])
+			->cache($cacheDir);
 		$db = new Database($conn);
 
 		$this->assertSame(
@@ -154,8 +143,7 @@ class PlaceholderQueryTest extends TestCase
 		$file = $dir . '/music/cached.tpql';
 		file_put_contents($file, "SELECT 'before' AS value;");
 
-		$conn = new Connection($this->getDsn(), $dir);
-		$conn->cacheDir($cacheDir);
+		$conn = new Connection($this->getDsn(), $dir)->cache($cacheDir);
 		$this->assertSame(
 			'before',
 			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
@@ -186,15 +174,17 @@ class PlaceholderQueryTest extends TestCase
 			"SELECT '[::value::]' AS value;",
 		);
 
-		$conn = new Connection($this->getDsn(), $dir, placeholders: ['all' => ['value' => 'first']]);
-		$conn->cacheDir($cacheDir);
+		$conn = new Connection($this->getDsn(), $dir)
+			->placeholders(['all' => ['value' => 'first']])
+			->cache($cacheDir);
 		$this->assertSame(
 			'first',
 			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
 		);
 
-		$conn = new Connection($this->getDsn(), $dir, placeholders: ['all' => ['value' => 'second']]);
-		$conn->cacheDir($cacheDir);
+		$conn = new Connection($this->getDsn(), $dir)
+			->placeholders(['all' => ['value' => 'second']])
+			->cache($cacheDir);
 		$this->assertSame(
 			'second',
 			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
@@ -218,11 +208,9 @@ class PlaceholderQueryTest extends TestCase
 			"SELECT name FROM <?= '[::table::]' ?> WHERE member = :member;",
 		);
 
-		$db = new Database(new Connection(
-			$this->getDsn(),
-			$dir,
-			placeholders: ['all' => ['table' => 'members']],
-		));
+		$db = new Database(
+			new Connection($this->getDsn(), $dir)->placeholders(['all' => ['table' => 'members']]),
+		);
 
 		$db->music->bad(['member' => 1])->one(PDO::FETCH_ASSOC);
 	}
@@ -262,8 +250,6 @@ class PlaceholderQueryTest extends TestCase
 			}
 		}
 
-		if (is_dir($dir)) {
-			rmdir($dir);
-		}
+		rmdir($dir);
 	}
 }

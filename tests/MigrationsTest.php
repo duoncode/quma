@@ -416,10 +416,10 @@ class MigrationsTest extends TestCase
 			'CREATE TABLE custom_metadata_result (id integer);',
 		);
 
-		$conn = $this->connection(migrations: $dir);
-		$conn->setMigrationsTable('quma_migrations_custom');
-		$conn->setMigrationsColumnMigration('version');
-		$conn->setMigrationsColumnApplied('executed_at');
+		$conn = $this
+			->connection(migrations: $dir)
+			->migrationTable('quma_migrations_custom')
+			->migrationColumns('version', 'executed_at');
 
 		try {
 			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
@@ -461,14 +461,14 @@ class MigrationsTest extends TestCase
 		$conn = new Connection(
 			$this->getDsn(),
 			TestCase::root() . 'sql/default',
-			migrations: $dir,
-			placeholders: [
+		)
+			->migrations($dir)
+			->placeholders([
 				'all' => [
 					'table.sql' => 'static_sql_migration',
 					'table-tpql' => 'static_tpql_migration',
 				],
-			],
-		);
+			]);
 
 		try {
 			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
@@ -500,9 +500,9 @@ class MigrationsTest extends TestCase
 		$conn = new Connection(
 			$this->getDsn(),
 			TestCase::root() . 'sql/default',
-			migrations: $dir,
-			placeholders: ['all' => ['empty' => '']],
-		);
+		)
+			->migrations($dir)
+			->placeholders(['all' => ['empty' => '']]);
 
 		try {
 			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
@@ -533,8 +533,7 @@ class MigrationsTest extends TestCase
 				TPQL,
 		);
 
-		$conn = $this->connection(migrations: $dir);
-		$conn->cacheDir($cacheDir);
+		$conn = $this->connection(migrations: $dir)->cache($cacheDir);
 
 		try {
 			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
@@ -563,9 +562,9 @@ class MigrationsTest extends TestCase
 		$conn = new Connection(
 			$this->getDsn(),
 			TestCase::root() . 'sql/default',
-			migrations: $dir,
-			placeholders: ['all' => ['table' => 'bad_static_migration']],
-		);
+		)
+			->migrations($dir)
+			->placeholders(['all' => ['table' => 'bad_static_migration']]);
 
 		try {
 			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
