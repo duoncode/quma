@@ -228,14 +228,14 @@ Quma uses these names when it creates the metadata table, checks applied migrati
 
 ## Query printing
 
-### `printQueries(bool $print = true): static`
+### `print(bool $print): static`
 
 Enables or disables query printing for `Database` instances created after this call.
 
 ```php
-$conn->printQueries();
+$conn->print(true);
 ```
 
-### `printsQueries(): bool`
+### `prints(): bool`
 
 Returns whether query printing is enabled on the connection.

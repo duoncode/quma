@@ -31,7 +31,7 @@ new Connection(string $dsn, string|array $sql)
 - `cache(string $cacheDir): static` sets the `.tpql` query template cache directory
 - `noCache(): static` clears the query template cache directory
 - `addSql(array|string $sql): static` prepends SQL directories
-- `printQueries(bool $print = true): static` enables query printing for later `Database` instances
+- `print(bool $print): static` enables query printing for later `Database` instances
 
 See [Connection reference](connection.md) for all accessors and configuration formats.
 
