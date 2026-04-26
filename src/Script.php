@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Duon\Quma;
 
 use InvalidArgumentException;
+use RuntimeException;
 use Throwable;
 
 /** @psalm-api */
@@ -113,21 +114,22 @@ class Script
 	 */
 	protected function renderTemplateSource(string $template, array $context): string
 	{
-		ob_start();
+		$templatePath = tempnam(sys_get_temp_dir(), 'quma-tpql-');
+
+		if ($templatePath === false) {
+			throw new RuntimeException('Could not create template cache file');
+		}
 
 		try {
-			(static function (string $__template, array $__context): void {
-				extract($__context, EXTR_SKIP);
-				eval('?>' . $__template);
-			})($template, $context);
+			if (file_put_contents($templatePath, $template) === false) {
+				throw new RuntimeException('Could not write template cache file');
+			}
 
-			$result = ob_get_clean();
-
-			return is_string($result) ? $result : '';
-		} catch (Throwable $e) {
-			ob_end_clean();
-
-			throw $e;
+			return $this->renderTemplateFile($templatePath, $context);
+		} finally {
+			if (is_file($templatePath)) {
+				unlink($templatePath);
+			}
 		}
 	}
 

@@ -78,17 +78,17 @@ final class StaticPlaceholders
 			return;
 		}
 
-		$token = '[::';
+		$placeholder = '[::';
 		$matches = [];
 
 		if (preg_match(self::TOKEN_START_PATTERN, substr($source, $offset), $matches) === 1) {
-			$token = $matches[0];
+			$placeholder = $matches[0];
 		}
 
 		[$line, $column] = $this->location($source, $offset);
 
 		throw new RuntimeException(
-			"Static placeholder {$token} remained after rendering template {$path}:{$line}:{$column}. "
+			"Static placeholder {$placeholder} remained after rendering template {$path}:{$line}:{$column}. "
 			. 'Placeholders inside PHP blocks or generated template output are not supported. '
 			. 'Move static placeholders into the literal SQL portion of the .tpql file.',
 		);
@@ -188,18 +188,18 @@ final class StaticPlaceholders
 		$cursor = 0;
 
 		foreach ($matches as $match) {
-			$token = $match[0][0];
+			$placeholder = $match[0][0];
 			$offset = $match[0][1];
 			$name = $match[1][0];
 
 			$compiled .= substr($fragment, $cursor, $offset - $cursor);
 
 			if (!array_key_exists($name, $this->values)) {
-				throw $this->unknownPlaceholder($token, $name, $path, $source, $baseOffset + $offset);
+				throw $this->unknownPlaceholder($placeholder, $name, $path, $source, $baseOffset + $offset);
 			}
 
 			$compiled .= $this->values[$name];
-			$cursor = $offset + strlen($token);
+			$cursor = $offset + strlen($placeholder);
 		}
 
 		return $compiled . substr($fragment, $cursor);
@@ -226,7 +226,7 @@ final class StaticPlaceholders
 	}
 
 	private function unknownPlaceholder(
-		string $token,
+		string $placeholder,
 		string $name,
 		string $path,
 		string $source,
@@ -235,7 +235,7 @@ final class StaticPlaceholders
 		[$line, $column] = $this->location($source, $offset);
 
 		return new RuntimeException(
-			"Unknown static placeholder {$token} in {$path}:{$line}:{$column} for driver \"{$this->driver}\".\n"
+			"Unknown static placeholder {$placeholder} in {$path}:{$line}:{$column} for driver \"{$this->driver}\".\n"
 			. "No value was configured for \"{$name}\".\n"
 			. "Add placeholders['all']['{$name}'] or placeholders['{$this->driver}']['{$name}'].\n"
 			. 'Static placeholders are raw SQL fragments. Use them only for trusted configuration, never for user input.',
