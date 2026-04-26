@@ -25,11 +25,11 @@ class ConnectionTest extends TestCase
 		$this->assertSame($dsn, $conn->dsn());
 		$this->assertSame('sqlite', $conn->driver());
 		$this->assertSame(realpath($sql), realpath($conn->sql()[0]));
-		$this->assertFalse($conn->printsQueries());
-		$this->assertSame($conn, $conn->printQueries());
-		$this->assertTrue($conn->printsQueries());
-		$this->assertSame($conn, $conn->printQueries(false));
-		$this->assertFalse($conn->printsQueries());
+		$this->assertFalse($conn->prints());
+		$this->assertSame($conn, $conn->print(true));
+		$this->assertTrue($conn->prints());
+		$this->assertSame($conn, $conn->print(false));
+		$this->assertFalse($conn->prints());
 	}
 
 	public function testPdoConfiguration(): void

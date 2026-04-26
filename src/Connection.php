@@ -86,14 +86,14 @@ class Connection
 		return $this;
 	}
 
-	public function printQueries(bool $print = true): static
+	public function print(bool $print): static
 	{
 		$this->config->print = $print;
 
 		return $this;
 	}
 
-	public function printsQueries(): bool
+	public function prints(): bool
 	{
 		return $this->config->print;
 	}

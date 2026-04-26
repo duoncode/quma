@@ -25,7 +25,7 @@ class Database
 	public function __construct(
 		protected readonly Connection $conn,
 	) {
-		$this->print = $conn->printsQueries();
+		$this->print = $conn->prints();
 	}
 
 	public function __get(string $key): Folder
