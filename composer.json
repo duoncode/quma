@@ -33,8 +33,7 @@
 		"duon/cli": "^0.1"
 	},
 	"require-dev": {
-		"duon/dev": "^3.0",
-		"squizlabs/php_codesniffer": "^4.0"
+		"duon/dev": "^3.0"
 	},
 	"scripts": {
 		"test:base": "./vendor/bin/phpunit --testdox --no-coverage --colors=always",
