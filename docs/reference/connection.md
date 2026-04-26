@@ -132,6 +132,8 @@ Returns the validated migration name column or throws `ValueError`.
 
 Returns the validated applied-at column or throws `ValueError`.
 
+Quma uses these names when it creates the metadata table, checks applied migrations, and records newly applied migrations. For PostgreSQL, a schema-qualified table name such as `public.migrations` is supported.
+
 ## Query printing
 
 `Connection` uses the shared `print()` helper.
@@ -141,9 +143,3 @@ $conn->print(true);
 ```
 
 That flag is passed into `Database` and controls whether `Query` prints an interpolated debug version of the SQL when it is created.
-
-## Current limitation
-
-`Connection` exposes setters for custom migrations table and column names, and Quma validates those names when it builds the environment and DDL.
-
-However, the migration runner currently records applied migrations with a hardcoded insert into `migrations (migration)`. Do not rely on custom migration metadata names for production migration runs until that behavior is aligned.

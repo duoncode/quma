@@ -52,12 +52,15 @@ php your-cli-entry.php db:migrations --apply
 
 Options:
 
-- `--apply` commits the run when the driver supports transactional migrations
+- `--apply` runs and records pending migrations
 - `--namespace <name>` runs only one migration namespace
 - `--stacktrace` prints stack traces for migration failures
 - `--conn <name>` selects one named connection when you registered multiple connections
 
-Without `--apply`, transactional drivers perform a dry run and roll back at the end.
+Without `--apply`, `db:migrations` never mutates the database:
+
+- SQLite and PostgreSQL execute the batch inside a transaction and roll it back at the end.
+- MySQL lists the pending migrations and a rollback warning without executing, rendering, requiring, creating a metadata table, or recording anything.
 
 ## `db:create-migrations-table`
 

@@ -46,6 +46,8 @@ php your-cli-entry.php db:migrations --namespace feature --apply
 
 Quma loads only the files from that namespace.
 
+When Quma records applied migrations, non-default namespaces are part of the stored migration ID. For example, `feature/250320-101500-create-users.sql` is recorded as `feature:250320-101500-create-users.sql`. The `default` namespace keeps the plain file base name for compatibility.
+
 ## The special `default` namespace
 
 If you do not pass `--namespace`, Quma expects a namespace named `default`.
@@ -86,7 +88,7 @@ $conn = new Connection(
 
 Quma collects migration files from all directories in the selected namespace and then sorts the files by base name.
 
-Use consistent timestamp prefixes to keep the order predictable.
+Use consistent timestamp prefixes to keep the order predictable. File names only need to be unique within one namespace. Non-default namespaces are recorded with a namespace prefix, so two namespaces can use the same file base name without blocking each other.
 
 ## Invalid namespaces
 

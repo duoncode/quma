@@ -69,7 +69,7 @@ Quma only applies the file that matches the current driver.
 
 Quma exposes a `migrations` command through `Duon\Quma\Commands::get()`.
 
-Without `--apply`, the command performs a dry run when the driver supports transactions.
+Without `--apply`, the command never mutates the database. SQLite and PostgreSQL run the batch inside a transaction and roll it back. MySQL shows a plan only because Quma cannot safely roll back a full MySQL migration batch.
 
 ```bash
 php your-cli-entry.php db:migrations
@@ -91,6 +91,10 @@ By default, the metadata table uses:
 - migration column: `migration`
 - applied column: `applied`
 
+You can customize these names on `Connection`. Quma uses the configured table and column names when it creates the metadata table, reads applied migrations, and records new migrations.
+
+For flat migrations and the `default` namespace, Quma records the migration file base name, for example `250320-101500-create-users.sql`. For non-default namespaces, Quma records `namespace:basename`, for example `billing:250320-101500-create-users.sql`.
+
 ## Dry run and transaction behavior
 
 Transaction behavior depends on the driver.
@@ -106,7 +110,8 @@ For SQLite and PostgreSQL:
 
 For MySQL:
 
-- there is no dry-run rollback path in the migration runner
+- running `migrations` without `--apply` lists the pending migrations and does not execute, render, require, create a metadata table, or record anything
+- running `migrations --apply` applies migrations directly because there is no rollback path in the migration runner
 - successful migrations remain applied before a later error
 
 ## Empty migrations

@@ -7,6 +7,16 @@
 - Added explicit `Database` lifecycle helpers: `connected()`, `disconnect()`, `reconnect()`, `ping()`, and `reset()`.
 - Added internal connection timestamp tracking in `Database` to support long-running PHP process integrations.
 
+### Changed
+
+- Changed MySQL migration dry runs to print a plan without mutating the database.
+- Changed non-default migration namespaces to record applied migrations as `namespace:basename`.
+
+### Fixed
+
+- Fixed custom migration metadata table and column names when reading and recording applied migrations.
+- Fixed dynamic SQL folder and script resolution to reject invalid path segments.
+
 ## [0.1.1](https://github.com/duoncode/quma/releases/tag/0.1.1) (2026-02-07)
 
 ### Changed

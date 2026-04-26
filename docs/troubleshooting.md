@@ -26,6 +26,12 @@ Check:
 - that the file ends in `.sql` or `.tpql`
 - that the file is present in the highest-priority directory for the current driver
 
+## `Invalid SQL folder name: ...` or `Invalid SQL script name: ...`
+
+Folder and script names must be single path segments. Quma rejects empty names, `.`, `..`, path separators, and NUL bytes before resolving SQL files.
+
+Use `$db->users->byId()` instead of deriving folder or script names from untrusted input.
+
 ## `Path does not exist: ...`
 
 `Connection` validates SQL and migration paths up front.
@@ -58,6 +64,12 @@ Do not use:
 ```php
 $db->users->listActive(true);
 ```
+
+## MySQL dry runs only print a plan
+
+MySQL migrations are not transactional in Quma. When you run `db:migrations` without `--apply` on MySQL, Quma lists pending migrations and exits without executing migrations, rendering templates, requiring PHP migrations, creating the metadata table, or recording anything.
+
+Use `--apply` to run MySQL migrations.
 
 ## `No migration directories defined in configuration`
 
@@ -111,9 +123,3 @@ public function run(Environment $env): void
 ```
 
 Review generated PHP migration files before using them.
-
-## Custom migration metadata names are not fully wired through
-
-`Connection` exposes setters for the migrations table and column names, but the migration runner currently records applied migrations with a hardcoded insert into `migrations (migration)`.
-
-Until that behavior is aligned, use the default migration metadata names for real migration runs.
