@@ -11,7 +11,6 @@ use Duon\Quma\Column;
 use Duon\Quma\Hydratable;
 use Duon\Quma\InvalidHydrationTargetException;
 use ReflectionClass;
-use ReflectionIntersectionType;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionType;
@@ -190,29 +189,19 @@ final class StaticReflectionCache implements MetadataCache
 				$names[] = $this->namedTypeMetadata($class, $parameterName, $inner);
 			}
 
-			if ($names === []) {
-				throw InvalidHydrationTargetException::forParameter(
-					$class,
-					$parameterName,
-					'uses unsupported type null',
-				);
-			}
-
+			/**
+			 * ReflectionUnionType always contains at least one non-null arm in valid PHP;
+			 * Psalm cannot infer that after the runtime null-arm filter above.
+			 *
+			 * @var non-empty-list<NamedTypeMetadata> $names
+			 */
 			return new TypeMetadata('union', $type->allowsNull(), $names);
-		}
-
-		if ($type instanceof ReflectionIntersectionType) {
-			throw InvalidHydrationTargetException::forParameter(
-				$class,
-				$parameterName,
-				'uses an unsupported intersection type',
-			);
 		}
 
 		throw InvalidHydrationTargetException::forParameter(
 			$class,
 			$parameterName,
-			'uses an unsupported type',
+			'uses an unsupported intersection type',
 		);
 	}
 
@@ -227,14 +216,6 @@ final class StaticReflectionCache implements MetadataCache
 	): NamedTypeMetadata {
 		$name = $type->getName();
 		$lower = strtolower($name);
-
-		if (in_array($lower, ['self', 'parent', 'static'], true)) {
-			throw InvalidHydrationTargetException::forParameter(
-				$class,
-				$parameterName,
-				"uses unsupported type {$name}",
-			);
-		}
 
 		if ($type->isBuiltin()) {
 			if (in_array($lower, ['int', 'float', 'bool', 'string'], true)) {
