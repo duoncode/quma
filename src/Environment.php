@@ -7,7 +7,6 @@ namespace Duon\Quma;
 use Duon\Cli\Opts;
 use PDO;
 use RuntimeException;
-use Throwable;
 
 /**
  * @psalm-api
@@ -29,16 +28,13 @@ class Environment
 	) {
 		$opts = new Opts();
 
-		try {
-			$key = $opts->get('--conn', 'default');
-			assert(isset($connections[$key]), 'Selected connection must exist.');
-			$this->conn = $connections[$key];
-		} catch (Throwable) {
-			$key ??= '<undefied>';
+		$key = $opts->get('--conn', 'default');
 
+		if (!array_key_exists($key, $connections)) {
 			throw new RuntimeException("Connection '{$key}' does not exist");
 		}
 
+		$this->conn = $connections[$key];
 		$this->showStacktrace = $opts->has('--stacktrace');
 		$this->db = new Database($this->conn);
 		$this->driver = $this->conn->driver;

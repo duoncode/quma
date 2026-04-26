@@ -44,7 +44,7 @@ class Query
 				. $this->interpolate()
 				. "\n------------------------------------------------\n";
 
-			if (isset($_SERVER['SERVER_SOFTWARE'])) {
+			if (($_SERVER['SERVER_SOFTWARE'] ?? null) !== null) {
 				// @codeCoverageIgnoreStart
 				error_log($msg);
 
