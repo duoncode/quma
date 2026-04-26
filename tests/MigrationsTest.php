@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Duon\Quma\Tests;
 
 use Duon\Cli\Runner;
+use Duon\Quma\Connection;
 use Duon\Quma\Database;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -436,6 +437,89 @@ class MigrationsTest extends TestCase
 			$this->assertSame(0, $result);
 			$this->assertSame([['version' => '000001-custom.sql']], $rows);
 			$this->assertSame(0, (int) ($defaultTable['available'] ?? 0));
+		} finally {
+			$this->removeMigrationDir($dir);
+		}
+	}
+
+	public function testRunMigrationsUsesStaticPlaceholders(): void
+	{
+		$dir = $this->createMigrationDir('static-placeholders');
+		file_put_contents(
+			$dir . '/000001-static-sql.sql',
+			'CREATE TABLE [::table.sql::] (id integer);',
+		);
+		file_put_contents(
+			$dir . '/000002-static-tpql.tpql',
+			<<<'TPQL'
+				<?php if ($driver === 'sqlite') : ?>
+				CREATE TABLE [::table-tpql::] (id integer);
+				<?php endif ?>
+				TPQL,
+		);
+
+		$conn = new Connection(
+			$this->getDsn(),
+			TestCase::root() . 'sql/default',
+			migrations: $dir,
+			placeholders: [
+				'all' => [
+					'table.sql' => 'static_sql_migration',
+					'table-tpql' => 'static_tpql_migration',
+				],
+			],
+		);
+
+		try {
+			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+
+			ob_start();
+			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			ob_end_clean();
+
+			$db = new Database($conn);
+			$sqlTable = $db->execute(
+				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='static_sql_migration';",
+			)->one(PDO::FETCH_ASSOC);
+			$tpqlTable = $db->execute(
+				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='static_tpql_migration';",
+			)->one(PDO::FETCH_ASSOC);
+			$this->assertSame(0, $result);
+			$this->assertSame(1, (int) ($sqlTable['available'] ?? 0));
+			$this->assertSame(1, (int) ($tpqlTable['available'] ?? 0));
+		} finally {
+			$this->removeMigrationDir($dir);
+		}
+	}
+
+	public function testTpqlMigrationRejectsGeneratedStaticPlaceholders(): void
+	{
+		$dir = $this->createMigrationDir('generated-static-placeholder');
+		file_put_contents(
+			$dir . '/000001-bad.tpql',
+			"CREATE TABLE <?= '[::table::]' ?> (id integer);",
+		);
+
+		$conn = new Connection(
+			$this->getDsn(),
+			TestCase::root() . 'sql/default',
+			migrations: $dir,
+			placeholders: ['all' => ['table' => 'bad_static_migration']],
+		);
+
+		try {
+			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+
+			ob_start();
+			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			$content = ob_get_contents();
+			ob_end_clean();
+
+			$this->assertSame(1, $result);
+			$this->assertStringContainsString(
+				'Placeholders inside PHP blocks or generated template output are not supported',
+				$content,
+			);
 		} finally {
 			$this->removeMigrationDir($dir);
 		}

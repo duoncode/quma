@@ -11,7 +11,6 @@ use Duon\Quma\Database;
 use Duon\Quma\Environment;
 use Duon\Quma\MigrationInterface;
 use Override;
-use PDOException;
 use RuntimeException;
 use Throwable;
 
@@ -421,12 +420,20 @@ final class Migrations extends Command
 		bool $showStacktrace,
 	): string {
 		try {
+			$script = $this->env->conn->applyStaticPlaceholders($script, $migration);
+
+			if (trim($script) === '') {
+				$this->showEmptyMessage($migration);
+
+				return self::WARNING;
+			}
+
 			$db->execute($script)->run();
 			$this->logMigration($db, $namespace, $migration);
 			$this->showMessage($migration);
 
 			return self::SUCCESS;
-		} catch (PDOException $e) {
+		} catch (Throwable $e) {
 			$this->showMessage($migration, $e, $showStacktrace);
 
 			return self::ERROR;
@@ -448,24 +455,30 @@ final class Migrations extends Command
 			];
 
 			$executeTemplate = static function (
-				string $migrationPath,
+				string $template,
 				array $context,
 			): void {
 				extract($context, EXTR_SKIP);
-
-				/** @psalm-suppress UnresolvableInclude */
-				require $migrationPath;
+				eval('?>' . $template);
 			};
 
 			if (!is_file($migration)) {
 				throw new RuntimeException('Could not read migration file');
 			}
 
+			$template = file_get_contents($migration);
+
+			if ($template === false) {
+				throw new RuntimeException('Could not read migration file');
+			}
+
+			$template = $conn->applyStaticPlaceholders($template, $migration, true);
+
 			ob_start();
 			$script = '';
 
 			try {
-				$executeTemplate($migration, $context);
+				$executeTemplate($template, $context);
 				$script = ob_get_contents();
 			} finally {
 				ob_end_clean();
@@ -476,6 +489,8 @@ final class Migrations extends Command
 
 				return self::WARNING;
 			}
+
+			$conn->assertNoTemplateStaticPlaceholders($script, $migration);
 
 			return $this->migrateSQL($db, $namespace, $migration, $script, $showStacktrace);
 		} catch (Throwable $e) {
