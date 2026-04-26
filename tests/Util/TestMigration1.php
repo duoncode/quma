@@ -37,12 +37,12 @@ final class TestMigration1 implements MigrationInterface
 			"SELECT id, name_{$driver} FROM genres WHERE id = 1",
 		)->all(PDO::FETCH_ASSOC);
 
-		assert(count($result) === 1);
+		assert(count($result) === 1, 'The migration should insert one genre row.');
 
 		switch ($driver) {
 			case 'sqlite':
 				$result = $db->execute("PRAGMA table_info('genres')")->all();
-				assert($result[1]['name'] === 'name_sqlite');
+				assert($result[1]['name'] === 'name_sqlite', 'The SQLite migration should add name_sqlite.');
 
 				break;
 			case 'pgsql':
@@ -53,7 +53,7 @@ final class TestMigration1 implements MigrationInterface
 					. "AND column_name='name_pgsql'",
 				)->one();
 
-				assert($result['exists'] === 1);
+				assert($result['exists'] === 1, 'The PostgreSQL migration should add name_pgsql.');
 
 				break;
 			case 'mysql':
@@ -61,7 +61,10 @@ final class TestMigration1 implements MigrationInterface
 					"SHOW COLUMNS FROM genres WHERE Field = 'name_mysql'",
 				)->one();
 
-				assert($result['Field'] ?? false === 'name_mysql');
+				assert(
+					$result['Field'] ?? false === 'name_mysql',
+					'The MySQL migration should add name_mysql.',
+				);
 
 				break;
 		}

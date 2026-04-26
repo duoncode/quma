@@ -21,7 +21,7 @@ final class Add extends Command
 		$opts = new Opts();
 		$fileName = $opts->get('-f', $opts->get('--file', ''));
 
-		if (empty($fileName)) {
+		if ($fileName === '') {
 			// Would stop the test suit and wait for input
 			// @codeCoverageIgnoreStart
 			$input = readline('Name of the migration script: ');

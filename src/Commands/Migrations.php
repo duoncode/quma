@@ -122,7 +122,7 @@ final class Migrations extends Command
 		$numApplied = 0;
 
 		foreach ($migrations as $migration) {
-			assert(!empty($migration) && is_string($migration));
+			assert(is_string($migration) && $migration !== '', 'Migration path must be a non-empty string.');
 
 			if (in_array(basename($migration), $appliedMigrations, strict: true)) {
 				continue;

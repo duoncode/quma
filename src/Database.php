@@ -28,7 +28,7 @@ class Database
 		$exists = false;
 
 		foreach ($this->conn->sql() as $path) {
-			assert(is_string($path));
+			assert(is_string($path), 'SQL directory path must be a string.');
 			$exists = is_dir($path . DIRECTORY_SEPARATOR . $key);
 
 			if ($exists) {

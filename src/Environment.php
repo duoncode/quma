@@ -31,7 +31,7 @@ class Environment
 
 		try {
 			$key = $opts->get('--conn', 'default');
-			assert(isset($connections[$key]));
+			assert(isset($connections[$key]), 'Selected connection must exist.');
 			$this->conn = $connections[$key];
 		} catch (Throwable) {
 			$key ??= '<undefied>';

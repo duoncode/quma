@@ -160,7 +160,7 @@ class Connection
 		$driver = explode(':', $dsn)[0];
 
 		if (in_array($driver, PDO::getAvailableDrivers(), strict: true)) {
-			assert(!empty($driver));
+			assert($driver !== '', 'PDO driver name must not be empty.');
 
 			return $driver;
 		}

@@ -238,7 +238,7 @@ class Query
 				if ($query !== null && preg_match($pattern, $query, $matches)) {
 					$match = $matches[0];
 					$replacement = "___CHUCK_REPLACE_{$i}___";
-					assert(!empty($match));
+					assert($match !== '', 'Query placeholder match must not be empty.');
 					$swaps[$replacement] = $match;
 
 					$query = preg_replace($pattern, $replacement, $query, limit: 1);
