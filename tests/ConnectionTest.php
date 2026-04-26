@@ -45,6 +45,24 @@ class ConnectionTest extends TestCase
 		$this->assertStringEndsWith('/more', $sql[2]);
 	}
 
+	public function testStaticPlaceholderConfiguration(): void
+	{
+		$conn = new Connection(
+			$this->getDsn(),
+			TestCase::root() . 'sql/default',
+			placeholders: [
+				'all' => ['prefix' => 'all_'],
+				'sqlite' => ['prefix' => 'sqlite_'],
+			],
+		);
+
+		$this->assertSame(['prefix' => 'sqlite_'], $conn->staticPlaceholders());
+		$this->assertSame(
+			'SELECT * FROM sqlite_nodes',
+			$conn->applyStaticPlaceholders('SELECT * FROM [::prefix::]nodes', 'query.sql'),
+		);
+	}
+
 	public function testAddSqlDirsLater(): void
 	{
 		$conn = new Connection(
