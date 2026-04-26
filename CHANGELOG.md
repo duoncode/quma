@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [Unreleased](https://github.com/duoncode/quoma/compare/0.1.1...HEAD)
 
 ### Added
 
