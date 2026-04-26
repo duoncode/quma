@@ -7,12 +7,53 @@ namespace Duon\Quma\Tests;
 use Duon\Quma\Args;
 use Duon\Quma\Database;
 use Duon\Quma\Tests\Util\TestableScript;
+use RuntimeException;
 
 /**
  * @internal
  */
 class ScriptTest extends TestCase
 {
+	public function testEvaluateTemplateRendersTemplateFile(): void
+	{
+		$template = tempnam(sys_get_temp_dir(), 'quma-template-');
+		assert(is_string($template), 'Template path must be available.');
+		file_put_contents($template, 'Hello <?= $name ?> from <?= $pdodriver ?>');
+
+		try {
+			$script = new TestableScript(new Database($this->connection()), '', true);
+			$result = $script->evaluateTemplatePublic($template, new Args([['name' => 'Chuck']]));
+
+			$this->assertSame('Hello Chuck from sqlite', $result);
+		} finally {
+			if (is_file($template)) {
+				unlink($template);
+			}
+		}
+	}
+
+	public function testEvaluateTemplateCleansBufferWhenTemplateThrows(): void
+	{
+		$template = tempnam(sys_get_temp_dir(), 'quma-template-');
+		assert(is_string($template), 'Template path must be available.');
+		file_put_contents($template, "before<?php throw new \\RuntimeException('template failed'); ?>");
+		$level = ob_get_level();
+
+		try {
+			$this->expectException(RuntimeException::class);
+			$this->expectExceptionMessage('template failed');
+
+			$script = new TestableScript(new Database($this->connection()), '', true);
+			$script->evaluateTemplatePublic($template, new Args([]));
+		} finally {
+			$this->assertSame($level, ob_get_level());
+
+			if (is_file($template)) {
+				unlink($template);
+			}
+		}
+	}
+
 	public function testEvaluateTemplateReturnsEmptyStringForMissingFile(): void
 	{
 		$missingFile = sys_get_temp_dir() . '/quma-missing-template-' . uniqid() . '.tpql';

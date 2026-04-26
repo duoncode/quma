@@ -318,6 +318,17 @@ class ConnectionTest extends TestCase
 		$this->assertStringEndsWith('/additional', $dirs[2]);
 	}
 
+	public function testReadFlatDirsSkipsUnsupportedNestedListValues(): void
+	{
+		$conn = new Connection($this->getDsn(), TestCase::root() . 'sql/default');
+		$method = new ReflectionMethod(Connection::class, 'readFlatDirs');
+
+		$dirs = $method->invoke($conn, [[123, TestCase::root() . 'sql/default']], false);
+
+		$this->assertCount(1, $dirs);
+		$this->assertStringEndsWith('/default', $dirs[0]);
+	}
+
 	public function testReadDirsEntrySkipsUnsupportedValues(): void
 	{
 		$conn = new Connection($this->getDsn(), TestCase::root() . 'sql/default');

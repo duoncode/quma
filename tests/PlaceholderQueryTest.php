@@ -139,6 +139,12 @@ class PlaceholderQueryTest extends TestCase
 			$db->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
 		);
 		$this->assertSame($cacheFiles, glob($cacheDir . '/tpql-*.php'));
+
+		$this->assertSame(
+			'cached',
+			new Database($conn)->music->cached(['unused' => true])->one(PDO::FETCH_ASSOC)['value'],
+		);
+		$this->assertSame($cacheFiles, glob($cacheDir . '/tpql-*.php'));
 	}
 
 	public function testTemplateCacheKeyChangesWithSourceMetadata(): void

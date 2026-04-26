@@ -492,6 +492,34 @@ class MigrationsTest extends TestCase
 		}
 	}
 
+	public function testRunMigrationsSkipsSqlThatBecomesEmptyAfterPlaceholderSubstitution(): void
+	{
+		$dir = $this->createMigrationDir('empty-placeholder');
+		file_put_contents($dir . '/000001-empty-placeholder.sql', '[::empty::]');
+
+		$conn = new Connection(
+			$this->getDsn(),
+			TestCase::root() . 'sql/default',
+			migrations: $dir,
+			placeholders: ['all' => ['empty' => '']],
+		);
+
+		try {
+			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+
+			ob_start();
+			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			$content = ob_get_contents();
+			ob_end_clean();
+
+			$this->assertSame(0, $result);
+			$this->assertStringContainsString('is empty. Skipped', $content);
+			$this->assertStringContainsString('No migrations applied', $content);
+		} finally {
+			$this->removeMigrationDir($dir);
+		}
+	}
+
 	public function testTpqlMigrationsDoNotUseTemplateCache(): void
 	{
 		$dir = $this->createMigrationDir('migration-cache-disabled');

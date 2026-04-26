@@ -113,6 +113,15 @@ class PlaceholdersTest extends TestCase
 		$placeholders->compileSql('SELECT * FROM [::table name::]', 'query.sql');
 	}
 
+	public function testPlaceholderExceptionReportsMultilineLocation(): void
+	{
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('Unknown static placeholder [::table::] in query.sql:2:6');
+
+		$placeholders = new Placeholders('sqlite', []);
+		$placeholders->compileSql("SELECT 1\nFROM [::table::]", 'query.sql');
+	}
+
 	public function testDefaultScopeIsRejected(): void
 	{
 		$this->expectException(InvalidArgumentException::class);
@@ -120,6 +129,26 @@ class PlaceholdersTest extends TestCase
 
 		new Placeholders('sqlite', [
 			'default' => ['prefix' => 'cms_'],
+		]);
+	}
+
+	public function testEmptyScopeIsRejected(): void
+	{
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('Static placeholder scopes must be non-empty strings');
+
+		new Placeholders('sqlite', [
+			'' => ['prefix' => 'cms_'],
+		]);
+	}
+
+	public function testNumericScopeIsRejected(): void
+	{
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('Static placeholder scopes must be non-empty strings');
+
+		new Placeholders('sqlite', [
+			['prefix' => 'cms_'],
 		]);
 	}
 
