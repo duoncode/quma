@@ -48,33 +48,20 @@ class Folder
 		return false;
 	}
 
-	protected function readScript(string $key): string|false
-	{
-		$script = $this->scriptPath($key, false);
-
-		if (is_string($script)) {
-			return file_get_contents($script);
-		}
-
-		return false;
-	}
-
 	protected function getScript(string $key): Script
 	{
 		Util::assertPathSegment($key, 'SQL script name');
 
-		$stmt = $this->readScript($key);
+		$script = $this->scriptPath($key, false);
 
-		if ($stmt !== false) {
-			return new Script($this->db, $stmt, false);
+		if (is_string($script)) {
+			return new Script($this->db, $this->db->loadScript($script, false), false, $script);
 		}
 
-		// If $stmt is not truthy until now,
-		// assume the script is a dnyamic sql template
 		$dynStmt = $this->scriptPath($key, true);
 
 		if (is_string($dynStmt)) {
-			return new Script($this->db, $dynStmt, true);
+			return new Script($this->db, $this->db->loadScript($dynStmt, true), true, $dynStmt);
 		}
 
 		throw new RuntimeException('SQL script does not exist');

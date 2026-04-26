@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Duon\Quma;
 
 use InvalidArgumentException;
+use Throwable;
 
 /** @psalm-api */
 class Script
@@ -12,12 +13,18 @@ class Script
 	protected Database $db;
 	protected string $script;
 	protected bool $isTemplate;
+	protected ?string $sourcePath;
 
-	public function __construct(Database $db, string $script, bool $isTemplate)
-	{
+	public function __construct(
+		Database $db,
+		string $script,
+		bool $isTemplate,
+		?string $sourcePath = null,
+	) {
 		$this->db = $db;
 		$this->script = $script;
 		$this->isTemplate = $isTemplate;
+		$this->sourcePath = $sourcePath;
 	}
 
 	public function __invoke(mixed ...$args): Query
@@ -37,6 +44,7 @@ class Script
 			}
 
 			$script = $this->evaluateTemplate($this->script, $args);
+			$this->db->assertNoTemplateStaticPlaceholders($script, $this->sourcePath ?? $this->script);
 
 			// We need to wrap the result of the prepare call in an array
 			// to get back to the format of ...$argsArray.
@@ -48,16 +56,19 @@ class Script
 		return new Query($this->db, $script, $args);
 	}
 
-	protected function evaluateTemplate(string $path, Args $args): string
+	protected function evaluateTemplate(string $template, Args $args): string
 	{
-		if (!is_file($path)) {
-			return '';
+		$context = $this->buildTemplateContext($args);
+
+		if ($this->sourcePath === null) {
+			if (!is_file($template)) {
+				return '';
+			}
+
+			return $this->renderTemplateFile($template, $context);
 		}
 
-		return $this->renderTemplateFile(
-			$path,
-			$this->buildTemplateContext($args),
-		);
+		return $this->renderTemplateSource($template, $context);
 	}
 
 	/**
@@ -79,16 +90,45 @@ class Script
 	{
 		ob_start();
 
-		(static function (string $__templatePath, array $__context): void {
-			extract($__context, EXTR_SKIP);
+		try {
+			(static function (string $__templatePath, array $__context): void {
+				extract($__context, EXTR_SKIP);
 
-			/** @psalm-suppress UnresolvableInclude */
-			require $__templatePath;
-		})($templatePath, $context);
+				/** @psalm-suppress UnresolvableInclude */
+				require $__templatePath;
+			})($templatePath, $context);
 
-		$result = ob_get_clean();
+			$result = ob_get_clean();
 
-		return is_string($result) ? $result : '';
+			return is_string($result) ? $result : '';
+		} catch (Throwable $e) {
+			ob_end_clean();
+
+			throw $e;
+		}
+	}
+
+	/**
+	 * @param array<array-key, mixed> $context
+	 */
+	protected function renderTemplateSource(string $template, array $context): string
+	{
+		ob_start();
+
+		try {
+			(static function (string $__template, array $__context): void {
+				extract($__context, EXTR_SKIP);
+				eval('?>' . $__template);
+			})($template, $context);
+
+			$result = ob_get_clean();
+
+			return is_string($result) ? $result : '';
+		} catch (Throwable $e) {
+			ob_end_clean();
+
+			throw $e;
+		}
 	}
 
 	/**
