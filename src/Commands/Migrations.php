@@ -106,10 +106,18 @@ final class Migrations extends Command
 			$migrations = $migrationNamespaces['default'];
 		}
 
-		return $this->runMigrations($migrations, $db, $conn, $showStacktrace, $apply);
+		return $this->runMigrations(
+			$namespace ?: 'default',
+			$migrations,
+			$db,
+			$conn,
+			$showStacktrace,
+			$apply,
+		);
 	}
 
 	protected function runMigrations(
+		string $namespace,
 		array $migrations,
 		Database $db,
 		Connection $conn,
@@ -124,7 +132,9 @@ final class Migrations extends Command
 		foreach ($migrations as $migration) {
 			assert(is_string($migration) && $migration !== '', 'Migration path must be a non-empty string.');
 
-			if (in_array(basename($migration), $appliedMigrations, strict: true)) {
+			$migrationId = $this->migrationId($namespace, $migration);
+
+			if (in_array($migrationId, $appliedMigrations, strict: true)) {
 				continue;
 			}
 
@@ -149,9 +159,9 @@ final class Migrations extends Command
 			}
 
 			$result = match (pathinfo($migration, PATHINFO_EXTENSION)) {
-				'sql' => $this->migrateSQL($db, $migration, $script, $showStacktrace),
-				'tpql' => $this->migrateTPQL($db, $conn, $migration, $showStacktrace),
-				'php' => $this->migratePHP($db, $migration, $showStacktrace),
+				'sql' => $this->migrateSQL($db, $namespace, $migration, $script, $showStacktrace),
+				'tpql' => $this->migrateTPQL($db, $conn, $namespace, $migration, $showStacktrace),
+				'php' => $this->migratePHP($db, $namespace, $migration, $showStacktrace),
 			};
 
 			if ($result === self::ERROR) {
@@ -250,9 +260,20 @@ final class Migrations extends Command
 	{
 		$table = $this->env->table;
 		$column = $this->env->columnMigration;
-		$migrations = $db->execute("SELECT {$column} FROM {$table};")->all();
+		$migrations = $db->execute("SELECT {$column} AS migration FROM {$table};")->all();
 
 		return array_map(static fn(array $mig): string => (string) $mig['migration'], $migrations);
+	}
+
+	protected function migrationId(string $namespace, string $migration): string
+	{
+		$name = basename($migration);
+
+		if ($namespace === 'default') {
+			return $name;
+		}
+
+		return $namespace . ':' . $name;
 	}
 
 	/**
@@ -277,13 +298,14 @@ final class Migrations extends Command
 
 	protected function migrateSQL(
 		Database $db,
+		string $namespace,
 		string $migration,
 		string $script,
 		bool $showStacktrace,
 	): string {
 		try {
 			$db->execute($script)->run();
-			$this->logMigration($db, $migration);
+			$this->logMigration($db, $namespace, $migration);
 			$this->showMessage($migration);
 
 			return self::SUCCESS;
@@ -297,6 +319,7 @@ final class Migrations extends Command
 	protected function migrateTPQL(
 		Database $db,
 		Connection $conn,
+		string $namespace,
 		string $migration,
 		bool $showStacktrace,
 	): string {
@@ -337,7 +360,7 @@ final class Migrations extends Command
 				return self::WARNING;
 			}
 
-			return $this->migrateSQL($db, $migration, $script, $showStacktrace);
+			return $this->migrateSQL($db, $namespace, $migration, $script, $showStacktrace);
 		} catch (Throwable $e) {
 			$this->showMessage($migration, $e, $showStacktrace);
 
@@ -347,13 +370,14 @@ final class Migrations extends Command
 
 	protected function migratePHP(
 		Database $db,
+		string $namespace,
 		string $migration,
 		bool $showStacktrace,
 	): string {
 		try {
 			$migObj = $this->loadPhpMigration($migration);
 			$migObj->run($this->env);
-			$this->logMigration($db, $migration);
+			$this->logMigration($db, $namespace, $migration);
 			$this->showMessage($migration);
 
 			return self::SUCCESS;
@@ -379,12 +403,14 @@ final class Migrations extends Command
 		return $migrationObject;
 	}
 
-	protected function logMigration(Database $db, string $migration): void
+	protected function logMigration(Database $db, string $namespace, string $migration): void
 	{
-		$name = basename($migration);
+		$table = $this->env->table;
+		$column = $this->env->columnMigration;
+
 		$db->execute(
-			'INSERT INTO migrations (migration) VALUES (:migration)',
-			['migration' => $name],
+			"INSERT INTO {$table} ({$column}) VALUES (:migration)",
+			['migration' => $this->migrationId($namespace, $migration)],
 		)->run();
 	}
 

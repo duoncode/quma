@@ -168,7 +168,8 @@ class Environment
 			'mysql' => "
                 SELECT count(*) AS available
                 FROM information_schema.tables
-                WHERE table_name='{$table}';",
+                WHERE table_schema = DATABASE()
+                AND table_name='{$table}';",
 			'pgsql' => "
                 SELECT count(*) AS available
                 FROM pg_tables

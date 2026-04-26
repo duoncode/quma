@@ -33,7 +33,7 @@ class MigrationsCommandTest extends TestCase
 		$handler = set_error_handler(static fn(): bool => true);
 		try {
 			ob_start();
-			$result = $method->invoke($command, [$missing], $db, $conn, false, true);
+			$result = $method->invoke($command, 'default', [$missing], $db, $conn, false, true);
 			$output = ob_get_contents();
 			ob_end_clean();
 		} finally {
@@ -60,7 +60,7 @@ class MigrationsCommandTest extends TestCase
 		}
 
 		ob_start();
-		$result = $method->invoke($command, $db, $conn, $missing, false);
+		$result = $method->invoke($command, $db, $conn, 'default', $missing, false);
 		$output = ob_get_contents();
 		ob_end_clean();
 

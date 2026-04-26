@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Duon\Quma\Tests;
 
 use Duon\Cli\Runner;
+use Duon\Quma\Database;
+use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Depends;
 use RuntimeException;
@@ -403,6 +405,117 @@ class MigrationsTest extends TestCase
 		$this->assertSame(1, $result);
 		$this->assertStringContainsString("Migration namespace 'default' does not exist", $content);
 		$this->assertStringContainsString('--namespace', $content);
+	}
+
+	public function testRunMigrationsUsesCustomMetadataNames(): void
+	{
+		$dir = $this->createMigrationDir('custom-metadata');
+		file_put_contents(
+			$dir . '/000001-custom.sql',
+			'CREATE TABLE custom_metadata_result (id integer);',
+		);
+
+		$conn = $this->connection(migrations: $dir);
+		$conn->setMigrationsTable('quma_migrations_custom');
+		$conn->setMigrationsColumnMigration('version');
+		$conn->setMigrationsColumnApplied('executed_at');
+
+		try {
+			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+
+			ob_start();
+			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			ob_end_clean();
+
+			$db = new Database($conn);
+			$rows = $db->execute('SELECT version FROM quma_migrations_custom')->all(PDO::FETCH_ASSOC);
+			$defaultTable = $db->execute(
+				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='migrations';",
+			)->one(PDO::FETCH_ASSOC);
+
+			$this->assertSame(0, $result);
+			$this->assertSame([['version' => '000001-custom.sql']], $rows);
+			$this->assertSame(0, (int) ($defaultTable['available'] ?? 0));
+		} finally {
+			$this->removeMigrationDir($dir);
+		}
+	}
+
+	public function testRunMigrationsStoresNamespaceInMigrationId(): void
+	{
+		$defaultDir = $this->createMigrationDir('default-namespace');
+		$featureDir = $this->createMigrationDir('feature-namespace');
+		file_put_contents($defaultDir . '/000001-shared.sql', 'CREATE TABLE ns_default (id integer);');
+		file_put_contents($featureDir . '/000001-shared.sql', 'CREATE TABLE ns_feature (id integer);');
+
+		$conn = $this->connection(
+			migrations: [
+				'default' => [$defaultDir],
+				'feature' => [$featureDir],
+			],
+		);
+
+		try {
+			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+
+			ob_start();
+			$defaultResult = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			ob_end_clean();
+
+			$_SERVER['argv'] = ['run', 'migrations', '--namespace', 'feature', '--apply'];
+
+			ob_start();
+			$featureResult = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			ob_end_clean();
+
+			$db = new Database($conn);
+			$rows = $db->execute(
+				'SELECT migration FROM migrations ORDER BY migration',
+			)->all(PDO::FETCH_ASSOC);
+			$defaultTable = $db->execute(
+				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='ns_default';",
+			)->one(PDO::FETCH_ASSOC);
+			$featureTable = $db->execute(
+				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='ns_feature';",
+			)->one(PDO::FETCH_ASSOC);
+
+			$this->assertSame(0, $defaultResult);
+			$this->assertSame(0, $featureResult);
+			$this->assertSame(
+				['000001-shared.sql', 'feature:000001-shared.sql'],
+				array_column($rows, 'migration'),
+			);
+			$this->assertSame(1, (int) ($defaultTable['available'] ?? 0));
+			$this->assertSame(1, (int) ($featureTable['available'] ?? 0));
+		} finally {
+			$this->removeMigrationDir($defaultDir);
+			$this->removeMigrationDir($featureDir);
+		}
+	}
+
+	private function createMigrationDir(string $suffix): string
+	{
+		$dir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'quma-migrations-' . $suffix . '-' . uniqid();
+		mkdir($dir, 0o700, true);
+
+		return $dir;
+	}
+
+	private function removeMigrationDir(string $dir): void
+	{
+		$files = glob($dir . '/*');
+
+		if (is_array($files)) {
+			foreach ($files as $file) {
+				if (is_file($file)) {
+					unlink($file);
+				}
+			}
+		}
+
+		if (is_dir($dir)) {
+			rmdir($dir);
+		}
 	}
 
 	public static function connectionProvider(): array
