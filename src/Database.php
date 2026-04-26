@@ -25,6 +25,8 @@ class Database
 
 	public function __get(string $key): Folder
 	{
+		Util::assertPathSegment($key, 'SQL folder name');
+
 		$exists = false;
 
 		foreach ($this->conn->sql() as $path) {

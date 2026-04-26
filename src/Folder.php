@@ -14,6 +14,8 @@ class Folder
 
 	public function __construct(Database $db, string $folder)
 	{
+		Util::assertPathSegment($folder, 'SQL folder name');
+
 		$this->db = $db;
 		$this->folder = $folder;
 	}
@@ -59,6 +61,8 @@ class Folder
 
 	protected function getScript(string $key): Script
 	{
+		Util::assertPathSegment($key, 'SQL script name');
+
 		$stmt = $this->readScript($key);
 
 		if ($stmt !== false) {

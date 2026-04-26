@@ -9,6 +9,7 @@ use Duon\Quma\Tests\Util\InspectableDatabase;
 use InvalidArgumentException;
 use PDO;
 use PDOStatement;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use stdClass;
 
@@ -525,5 +526,38 @@ class DatabaseTest extends TestCase
 
 		$db = $this->getDb();
 		$db->members->doesNotExist;
+	}
+
+	#[DataProvider('invalidPathSegmentProvider')]
+	public function testRejectsInvalidSqlFolderSegments(string $segment): void
+	{
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('Invalid SQL folder name');
+
+		$db = $this->getDb();
+		$db->{$segment};
+	}
+
+	#[DataProvider('invalidPathSegmentProvider')]
+	public function testRejectsInvalidSqlScriptSegments(string $segment): void
+	{
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('Invalid SQL script name');
+
+		$db = $this->getDb();
+		$db->members->{$segment};
+	}
+
+	public static function invalidPathSegmentProvider(): array
+	{
+		return [
+			[''],
+			['.'],
+			['..'],
+			['../members'],
+			['members/../members'],
+			['members\\byId'],
+			["members\0byId"],
+		];
 	}
 }
