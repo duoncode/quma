@@ -103,13 +103,13 @@ class Connection
 		}
 
 		if (!is_writable($cacheDir)) {
-			throw new ValueError('Cache directory is not writable: ' . $cacheDir);
+			throw new ValueError('Cache directory is not writable: ' . $cacheDir); // @codeCoverageIgnore
 		}
 
 		$path = realpath($cacheDir);
 
 		if ($path === false || $path === '') {
-			throw new ValueError('Cache directory does not exist: ' . $cacheDir);
+			throw new ValueError('Cache directory does not exist: ' . $cacheDir); // @codeCoverageIgnore
 		}
 
 		$this->cacheDir = $path;

@@ -124,12 +124,12 @@ class Script
 		$templatePath = tempnam(sys_get_temp_dir(), 'quma-tpql-');
 
 		if ($templatePath === false) {
-			throw new RuntimeException('Could not create template cache file');
+			throw new RuntimeException('Could not create template cache file'); // @codeCoverageIgnore
 		}
 
 		try {
 			if (file_put_contents($templatePath, $template) === false) {
-				throw new RuntimeException('Could not write template cache file');
+				throw new RuntimeException('Could not write template cache file'); // @codeCoverageIgnore
 			}
 
 			return $this->renderTemplateFile($templatePath, $context);

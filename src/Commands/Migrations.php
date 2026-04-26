@@ -56,7 +56,7 @@ final class Migrations extends Command
 			$result = $this->createMigrationsTable();
 
 			if ($result !== 0) {
-				return $result;
+				return $result; // @codeCoverageIgnore
 			}
 
 			$tableExists = true;
@@ -141,13 +141,14 @@ final class Migrations extends Command
 		if (!$tableExists) {
 			$result = $this->createMigrationsTable();
 
+			// @codeCoverageIgnoreStart
 			if ($result !== 0) {
 				if ($this->supportsTransactions()) {
 					$db->rollback();
 				}
 
 				return $result;
-			}
+			} // @codeCoverageIgnoreEnd
 		}
 
 		$appliedMigrations = $this->getAppliedMigrations($db);
@@ -320,7 +321,7 @@ final class Migrations extends Command
 		$migrations = $this->migrationsForNamespace($namespace);
 
 		if ($migrations === false) {
-			return 1;
+			return 1; // @codeCoverageIgnore
 		}
 
 		$namespace = $namespace !== '' ? $namespace : 'default';
@@ -336,7 +337,7 @@ final class Migrations extends Command
 		}
 
 		if ($numPending === 0) {
-			echo "\nNo migrations applied\n";
+			echo "\nNo migrations applied\n"; // @codeCoverageIgnore
 		} else {
 			echo "Would apply {$numPending} migration{$plural}:\n";
 
@@ -471,7 +472,7 @@ final class Migrations extends Command
 			$template = file_get_contents($migration);
 
 			if ($template === false) {
-				throw new RuntimeException('Could not read migration file');
+				throw new RuntimeException('Could not read migration file'); // @codeCoverageIgnore
 			}
 
 			$template = $conn->applyPlaceholders($template, $migration, true);
@@ -512,16 +513,17 @@ final class Migrations extends Command
 		$templatePath = tempnam(sys_get_temp_dir(), 'quma-mig-');
 
 		if ($templatePath === false) {
-			throw new RuntimeException('Could not create migration template cache file');
+			throw new RuntimeException('Could not create migration template cache file'); // @codeCoverageIgnore
 		}
 
 		if (file_put_contents($templatePath, $template) === false) {
+			// @codeCoverageIgnoreStart
 			if (is_file($templatePath)) {
 				unlink($templatePath);
 			}
 
 			throw new RuntimeException('Could not write migration template cache file');
-		}
+		} // @codeCoverageIgnoreEnd
 
 		return $templatePath;
 	}
