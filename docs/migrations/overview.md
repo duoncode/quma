@@ -11,19 +11,19 @@ Quma includes a migration runner for SQL, template, and PHP migrations. It disco
 Configure migration directories with `Connection::migrations()`.
 
 ```php
-$conn = (new Connection(
+$conn = new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-))->migrations(__DIR__ . '/migrations');
+)->migrations(__DIR__ . '/migrations');
 ```
 
 You can also pass a list of directories.
 
 ```php
-$conn = (new Connection(
+$conn = new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-))->migrations([
+)->migrations([
     __DIR__ . '/migrations/core',
     __DIR__ . '/migrations/project',
 ]);

@@ -11,10 +11,10 @@ Migration namespaces let you keep multiple independent migration sets in one app
 A flat migration configuration looks like this:
 
 ```php
-$conn = (new Connection(
+$conn = new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-))->migrations(__DIR__ . '/migrations');
+)->migrations(__DIR__ . '/migrations');
 ```
 
 Quma treats flat migration directories as one namespace named `default`.
@@ -22,10 +22,10 @@ Quma treats flat migration directories as one namespace named `default`.
 A namespaced configuration looks like this:
 
 ```php
-$conn = (new Connection(
+$conn = new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-))->migrations([
+)->migrations([
     'default' => [__DIR__ . '/migrations/core'],
     'feature' => [__DIR__ . '/migrations/feature'],
     'install' => __DIR__ . '/migrations/install',
@@ -68,10 +68,10 @@ Inside a namespace, you can use:
 Example:
 
 ```php
-$conn = (new Connection(
+$conn = new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-))->migrations([
+)->migrations([
     'default' => [
         [
             'sqlite' => __DIR__ . '/migrations/sqlite',

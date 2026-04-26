@@ -51,10 +51,10 @@ WHERE published = :published;
 Configure replacements on `Connection` with `placeholders()`.
 
 ```php
-$conn = (new Connection(
+$conn = new Connection(
     'pgsql:host=localhost;dbname=app',
     __DIR__ . '/sql',
-))->placeholders([
+)->placeholders([
     'all' => ['prefix' => ''],
     'pgsql' => ['prefix' => 'cms.'],
     'mysql' => ['prefix' => 'cms_'],
