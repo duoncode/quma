@@ -17,6 +17,9 @@ class Database
 	protected ?int $connectedAt = null;
 	protected ?int $lastUsedAt = null;
 
+	/** @var array<string, string> */
+	protected array $compiledScripts = [];
+
 	public function __construct(
 		protected readonly Connection $conn,
 	) {
@@ -63,6 +66,31 @@ class Database
 	public function getSqlDirs(): array
 	{
 		return $this->conn->sql();
+	}
+
+	public function loadScript(string $path, bool $isTemplate): string
+	{
+		$key = ($isTemplate ? 'tpql:' : 'sql:') . $path;
+
+		if (array_key_exists($key, $this->compiledScripts)) {
+			return $this->compiledScripts[$key];
+		}
+
+		$source = file_get_contents($path);
+
+		if ($source === false) {
+			throw new RuntimeException('Could not read SQL script: ' . $path);
+		}
+
+		$compiled = $this->conn->applyStaticPlaceholders($source, $path, $isTemplate);
+		$this->compiledScripts[$key] = $compiled;
+
+		return $compiled;
+	}
+
+	public function assertNoTemplateStaticPlaceholders(string $source, string $path): void
+	{
+		$this->conn->assertNoTemplateStaticPlaceholders($source, $path);
 	}
 
 	public function connect(): static
