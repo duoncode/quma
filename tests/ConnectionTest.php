@@ -322,6 +322,15 @@ class ConnectionTest extends TestCase
 		$this->assertStringEndsWith('/additional', $migrations['install']);
 	}
 
+	public function testMigrationNamespaceRejectsEmptyNamespace(): void
+	{
+		$this->expectException(ValueError::class);
+		$this->expectExceptionMessage('Migration namespace must not be empty');
+
+		new Connection($this->getDsn(), TestCase::root() . 'sql/default')
+			->migrationNamespace('', TestCase::root() . 'migrations');
+	}
+
 	public function testMigrationNamespaceRejectsFlatMigrations(): void
 	{
 		$this->expectException(ValueError::class);
