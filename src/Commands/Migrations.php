@@ -455,11 +455,13 @@ final class Migrations extends Command
 			];
 
 			$executeTemplate = static function (
-				string $template,
+				string $templatePath,
 				array $context,
 			): void {
 				extract($context, EXTR_SKIP);
-				eval('?>' . $template);
+
+				/** @psalm-suppress UnresolvableInclude */
+				require $templatePath;
 			};
 
 			if (!is_file($migration)) {
@@ -473,15 +475,20 @@ final class Migrations extends Command
 			}
 
 			$template = $conn->applyStaticPlaceholders($template, $migration, true);
+			$templatePath = $this->writeTemplateCache($template);
 
 			ob_start();
 			$script = '';
 
 			try {
-				$executeTemplate($template, $context);
+				$executeTemplate($templatePath, $context);
 				$script = ob_get_contents();
 			} finally {
 				ob_end_clean();
+
+				if (is_file($templatePath)) {
+					unlink($templatePath);
+				}
 			}
 
 			if (!is_string($script) || trim($script) === '') {
@@ -498,6 +505,25 @@ final class Migrations extends Command
 
 			return self::ERROR;
 		}
+	}
+
+	protected function writeTemplateCache(string $template): string
+	{
+		$templatePath = tempnam(sys_get_temp_dir(), 'quma-mig-');
+
+		if ($templatePath === false) {
+			throw new RuntimeException('Could not create migration template cache file');
+		}
+
+		if (file_put_contents($templatePath, $template) === false) {
+			if (is_file($templatePath)) {
+				unlink($templatePath);
+			}
+
+			throw new RuntimeException('Could not write migration template cache file');
+		}
+
+		return $templatePath;
 	}
 
 	protected function migratePHP(
