@@ -12,7 +12,7 @@ use RuntimeException;
 /**
  * @internal
  */
-class StaticPlaceholderQueryTest extends TestCase
+class PlaceholderQueryTest extends TestCase
 {
 	/** @var list<string> */
 	private array $tempDirs = [];
@@ -33,7 +33,7 @@ class StaticPlaceholderQueryTest extends TestCase
 		parent::tearDown();
 	}
 
-	public function testSqlFileUsesStaticPlaceholdersAndRuntimeParameters(): void
+	public function testSqlFileUsesPlaceholdersAndRuntimeParameters(): void
 	{
 		$dir = $this->createSqlDir();
 		file_put_contents(
@@ -80,7 +80,7 @@ class StaticPlaceholderQueryTest extends TestCase
 		$this->assertSame('before', $db->music->cached()->one(PDO::FETCH_ASSOC)['value']);
 	}
 
-	public function testTemplateFileUsesStaticPlaceholdersBeforeRendering(): void
+	public function testTemplateFileUsesPlaceholdersBeforeRendering(): void
 	{
 		$dir = $this->createSqlDir();
 		file_put_contents(
@@ -113,7 +113,7 @@ class StaticPlaceholderQueryTest extends TestCase
 	{
 		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessage(
-			'Placeholders inside PHP blocks or generated template output are not supported',
+			'Static placeholders inside PHP blocks or generated template output are not supported',
 		);
 
 		$dir = $this->createSqlDir();

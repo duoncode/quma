@@ -82,15 +82,15 @@ class Database
 			throw new RuntimeException('Could not read SQL script: ' . $path);
 		}
 
-		$compiled = $this->conn->applyStaticPlaceholders($source, $path, $isTemplate);
+		$compiled = $this->conn->applyPlaceholders($source, $path, $isTemplate);
 		$this->compiledScripts[$key] = $compiled;
 
 		return $compiled;
 	}
 
-	public function assertNoTemplateStaticPlaceholders(string $source, string $path): void
+	public function assertNoTemplatePlaceholders(string $source, string $path): void
 	{
-		$this->conn->assertNoTemplateStaticPlaceholders($source, $path);
+		$this->conn->assertNoTemplatePlaceholders($source, $path);
 	}
 
 	public function connect(): static

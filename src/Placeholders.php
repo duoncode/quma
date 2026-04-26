@@ -7,7 +7,7 @@ namespace Duon\Quma;
 use InvalidArgumentException;
 use RuntimeException;
 
-final class StaticPlaceholders
+final class Placeholders
 {
 	public const string NAME_PATTERN = '[A-Za-z_][A-Za-z0-9_.:-]*';
 
@@ -89,7 +89,7 @@ final class StaticPlaceholders
 
 		throw new RuntimeException(
 			"Static placeholder {$placeholder} remained after rendering template {$path}:{$line}:{$column}. "
-			. 'Placeholders inside PHP blocks or generated template output are not supported. '
+			. 'Static placeholders inside PHP blocks or generated template output are not supported. '
 			. 'Move static placeholders into the literal SQL portion of the .tpql file.',
 		);
 	}

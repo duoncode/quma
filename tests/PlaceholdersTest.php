@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Duon\Quma\Tests;
 
-use Duon\Quma\StaticPlaceholders;
+use Duon\Quma\Placeholders;
 use InvalidArgumentException;
 use RuntimeException;
 
 /**
  * @internal
  */
-class StaticPlaceholdersTest extends TestCase
+class PlaceholdersTest extends TestCase
 {
 	public function testResolvesAllAndDriverPlaceholders(): void
 	{
-		$placeholders = new StaticPlaceholders('sqlite', [
+		$placeholders = new Placeholders('sqlite', [
 			'all' => [
 				'prefix' => 'cms_',
 				'table' => 'fallback',
@@ -40,7 +40,7 @@ class StaticPlaceholdersTest extends TestCase
 
 	public function testAllowsPlaceholderNamesWithSeparators(): void
 	{
-		$placeholders = new StaticPlaceholders('sqlite', [
+		$placeholders = new Placeholders('sqlite', [
 			'all' => [
 				'schema.name' => 'main.',
 				'cms:prefix' => 'cms_',
@@ -59,7 +59,7 @@ class StaticPlaceholdersTest extends TestCase
 
 	public function testTemplateCompilationSkipsPhpBlocks(): void
 	{
-		$placeholders = new StaticPlaceholders('sqlite', [
+		$placeholders = new Placeholders('sqlite', [
 			'all' => ['table' => 'members'],
 		]);
 		$template = "SELECT * FROM [::table::]\n<?php echo '[::table::]'; ?>";
@@ -74,10 +74,10 @@ class StaticPlaceholdersTest extends TestCase
 	{
 		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessage(
-			'Placeholders inside PHP blocks or generated template output are not supported',
+			'Static placeholders inside PHP blocks or generated template output are not supported',
 		);
 
-		$placeholders = new StaticPlaceholders('sqlite', []);
+		$placeholders = new Placeholders('sqlite', []);
 		$placeholders->assertNoTemplatePlaceholders('SELECT * FROM [::table::]', 'query.tpql');
 	}
 
@@ -91,7 +91,7 @@ class StaticPlaceholdersTest extends TestCase
 			"Add placeholders['all']['table'] or placeholders['sqlite']['table']",
 		);
 
-		$placeholders = new StaticPlaceholders('sqlite', []);
+		$placeholders = new Placeholders('sqlite', []);
 		$placeholders->compileSql('SELECT * FROM [::table::]', 'query.sql');
 	}
 
@@ -101,7 +101,7 @@ class StaticPlaceholdersTest extends TestCase
 		$this->expectExceptionMessage('Malformed static placeholder in query.sql:1:15');
 		$this->expectExceptionMessage('Expected [::name::]');
 
-		$placeholders = new StaticPlaceholders('sqlite', []);
+		$placeholders = new Placeholders('sqlite', []);
 		$placeholders->compileSql('SELECT * FROM [::table name::]', 'query.sql');
 	}
 
@@ -110,7 +110,7 @@ class StaticPlaceholdersTest extends TestCase
 		$this->expectException(InvalidArgumentException::class);
 		$this->expectExceptionMessage("Replace placeholders['default'] with placeholders['all']");
 
-		new StaticPlaceholders('sqlite', [
+		new Placeholders('sqlite', [
 			'default' => ['prefix' => 'cms_'],
 		]);
 	}
@@ -122,7 +122,7 @@ class StaticPlaceholdersTest extends TestCase
 			"Static placeholders for scope 'prefix' must be an array of string values",
 		);
 
-		new StaticPlaceholders('sqlite', [
+		new Placeholders('sqlite', [
 			'prefix' => 'cms_',
 		]);
 	}
@@ -132,7 +132,7 @@ class StaticPlaceholdersTest extends TestCase
 		$this->expectException(InvalidArgumentException::class);
 		$this->expectExceptionMessage('Invalid static placeholder name');
 
-		new StaticPlaceholders('sqlite', [
+		new Placeholders('sqlite', [
 			'all' => ['table name' => 'members'],
 		]);
 	}
@@ -142,7 +142,7 @@ class StaticPlaceholdersTest extends TestCase
 		$this->expectException(InvalidArgumentException::class);
 		$this->expectExceptionMessage("Static placeholder 'prefix' in scope 'all' must be a string");
 
-		new StaticPlaceholders('sqlite', [
+		new Placeholders('sqlite', [
 			'all' => ['prefix' => 123],
 		]);
 	}
@@ -152,7 +152,7 @@ class StaticPlaceholdersTest extends TestCase
 		$this->expectException(InvalidArgumentException::class);
 		$this->expectExceptionMessage('must not contain another static placeholder');
 
-		new StaticPlaceholders('sqlite', [
+		new Placeholders('sqlite', [
 			'all' => ['prefix' => '[::schema::].'],
 		]);
 	}

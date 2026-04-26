@@ -62,11 +62,11 @@ $conn = new Connection(
 );
 ```
 
-Quma resolves placeholders from `all` and then overlays the active PDO driver. Driver-specific values override `all`, including empty strings.
+Quma resolves static placeholders from `all` and then overlays the active PDO driver. Driver-specific values override `all`, including empty strings.
 
 Static placeholders are raw SQL text. Quma does not quote or escape them. Use them only for trusted configuration, never for request or user input. Keep runtime values in PDO placeholders such as `:published` or `?`.
 
-Placeholder names must match `[A-Za-z_][A-Za-z0-9_.:-]*`, so names such as `prefix`, `schema.name`, `tenant-prefix`, and `cms:prefix` are valid. Unknown or malformed placeholders throw an exception that includes the source file, line, column, and active driver.
+Static placeholder names must match `[A-Za-z_][A-Za-z0-9_.:-]*`, so names such as `prefix`, `schema.name`, `tenant-prefix`, and `cms:prefix` are valid. Unknown or malformed static placeholders throw an exception that includes the source file, line, column, and active driver.
 
 Quma substitutes static placeholders when a file is first loaded by a `Database` instance and caches the compiled source for that instance. Direct SQL passed to `Database::execute()` is not processed.
 

@@ -45,7 +45,7 @@ class ConnectionTest extends TestCase
 		$this->assertStringEndsWith('/more', $sql[2]);
 	}
 
-	public function testStaticPlaceholderConfiguration(): void
+	public function testPlaceholderConfiguration(): void
 	{
 		$conn = new Connection(
 			$this->getDsn(),
@@ -56,10 +56,10 @@ class ConnectionTest extends TestCase
 			],
 		);
 
-		$this->assertSame(['prefix' => 'sqlite_'], $conn->staticPlaceholders());
+		$this->assertSame(['prefix' => 'sqlite_'], $conn->placeholders());
 		$this->assertSame(
 			'SELECT * FROM sqlite_nodes',
-			$conn->applyStaticPlaceholders('SELECT * FROM [::prefix::]nodes', 'query.sql'),
+			$conn->applyPlaceholders('SELECT * FROM [::prefix::]nodes', 'query.sql'),
 		);
 	}
 
