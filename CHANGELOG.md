@@ -4,6 +4,9 @@
 
 ### Added
 
+- Added driver-aware static placeholders with `[::name::]` syntax for trusted SQL configuration fragments such as table prefixes and schema names.
+- Added static placeholder support to `.sql` queries, `.tpql` query templates, `.sql` migrations, and `.tpql` migrations.
+- Added optional `.tpql` query template caching via `Connection::cacheDir()`.
 - Added explicit `Database` lifecycle helpers: `connected()`, `disconnect()`, `reconnect()`, `ping()`, and `reset()`.
 - Added internal connection timestamp tracking in `Database` to support long-running PHP process integrations.
 
