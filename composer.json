@@ -10,7 +10,11 @@
 		}
 	],
 	"homepage": "https://duon.sh/quma",
-	"keywords": ["duon", "database", "sql"],
+	"keywords": [
+		"duon",
+		"database",
+		"sql"
+	],
 	"autoload": {
 		"psr-4": {
 			"Duon\\Quma\\": "src/"
@@ -29,7 +33,7 @@
 		"duon/cli": "^0.1"
 	},
 	"require-dev": {
-		"duon/dev": "^2.5",
+		"duon/dev": "^3.0",
 		"squizlabs/php_codesniffer": "^4.0"
 	},
 	"scripts": {
