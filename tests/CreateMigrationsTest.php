@@ -123,6 +123,6 @@ class CreateMigrationsTest extends TestCase
 
 	public static function connectionProvider(): array
 	{
-		return array_map(fn($dsn) => [$dsn], TestCase::getAvailableDsns());
+		return array_map(static fn($dsn) => [$dsn], TestCase::getAvailableDsns());
 	}
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Duon\Quma;
 
-use Duon\Quma\Util;
 use PDO;
 use RuntimeException;
 use ValueError;
@@ -46,6 +45,7 @@ class Connection
 		string|array $sql,
 		string|array|null $migrations = null,
 		public readonly ?string $username = null,
+		#[\SensitiveParameter]
 		public readonly ?string $password = null,
 		public readonly array $options = [],
 		public readonly int $fetchMode = PDO::FETCH_BOTH,
@@ -159,7 +159,7 @@ class Connection
 	{
 		$driver = explode(':', $dsn)[0];
 
-		if (in_array($driver, PDO::getAvailableDrivers())) {
+		if (in_array($driver, PDO::getAvailableDrivers(), strict: true)) {
 			assert(!empty($driver));
 
 			return $driver;
@@ -204,12 +204,14 @@ class Connection
 
 			if (array_is_list($entry)) {
 				foreach ($entry as $path) {
-					if (is_string($path)) {
-						if ($preserveOrder) {
-							$dirs[] = $this->preparePath($path);
-						} else {
-							array_unshift($dirs, $this->preparePath($path));
-						}
+					if (!is_string($path)) {
+						continue;
+					}
+
+					if ($preserveOrder) {
+						$dirs[] = $this->preparePath($path);
+					} else {
+						array_unshift($dirs, $this->preparePath($path));
 					}
 				}
 

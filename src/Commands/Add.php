@@ -44,7 +44,7 @@ final class Add extends Command
 		if (!$ext) {
 			$fileName .= '.sql';
 		} else {
-			if (!in_array($ext, ['sql', 'php', 'tpql'])) {
+			if (!in_array($ext, ['sql', 'php', 'tpql'], strict: true)) {
 				echo "Wrong file extension '{$ext}'. Use 'sql', 'php' or 'tpql' instead.\nAborting.\n";
 
 				return 1;
@@ -69,7 +69,7 @@ final class Add extends Command
 			return 1;
 		}
 
-		if (strpos($migrationsDir, '/vendor') !== false) {
+		if (str_contains($migrationsDir, '/vendor')) {
 			echo "The migrations directory is inside './vendor'.\n  -> {$migrationsDir}\nAborting.\n";
 
 			return 1;

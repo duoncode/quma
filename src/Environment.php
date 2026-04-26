@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Duon\Quma;
 
 use Duon\Cli\Opts;
-use Duon\Quma\Connection;
-use Duon\Quma\Database;
 use PDO;
 use RuntimeException;
 use Throwable;
@@ -36,7 +34,7 @@ class Environment
 			assert(isset($connections[$key]));
 			$this->conn = $connections[$key];
 		} catch (Throwable) {
-			$key = $key ?? '<undefied>';
+			$key ??= '<undefied>';
 
 			throw new RuntimeException("Connection '{$key}' does not exist");
 		}
@@ -144,7 +142,7 @@ class Environment
 		}
 
 		// Sort by file name instead of full path
-		uasort($migrations, function ($a, $b) {
+		uasort($migrations, static function ($a, $b) {
 			$a = is_string($a) ? $a : '';
 			$b = is_string($b) ? $b : '';
 
@@ -159,7 +157,7 @@ class Environment
 		$driver = $db->getPdoDriver();
 		$table = $this->table;
 
-		if ($driver === 'pgsql' && strpos($table, '.') !== false) {
+		if ($driver === 'pgsql' && str_contains($table, '.')) {
 			[$schema, $table] = explode('.', $table);
 		} else {
 			$schema = 'public';
@@ -191,7 +189,7 @@ class Environment
 
 	public function getMigrationsTableDDL(): string|false
 	{
-		if ($this->driver === 'pgsql' && strpos($this->table, '.') !== false) {
+		if ($this->driver === 'pgsql' && str_contains($this->table, '.')) {
 			[$schema, $table] = explode('.', $this->table);
 		} else {
 			$schema = 'public';

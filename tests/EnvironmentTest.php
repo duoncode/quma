@@ -166,7 +166,7 @@ class EnvironmentTest extends TestCase
 	private function createMigrationDir(string $suffix): string
 	{
 		$dir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'quma-migrations-' . $suffix . '-' . uniqid();
-		mkdir($dir, 0700, true);
+		mkdir($dir, 0o700, true);
 
 		return $dir;
 	}
@@ -177,9 +177,11 @@ class EnvironmentTest extends TestCase
 
 		if (is_array($files)) {
 			foreach ($files as $file) {
-				if (is_file($file)) {
-					unlink($file);
+				if (!is_file($file)) {
+					continue;
 				}
+
+				unlink($file);
 			}
 		}
 

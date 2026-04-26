@@ -43,7 +43,7 @@ final class Migrations extends Command
 	{
 		$env = $this->env;
 		$opts = new Opts();
-		$driverSupported = in_array($env->driver, ['sqlite', 'mysql', 'pgsql']);
+		$driverSupported = in_array($env->driver, ['sqlite', 'mysql', 'pgsql'], strict: true);
 
 		if ($driverSupported && !$env->checkIfMigrationsTableExists($env->db)) {
 			$createMigrationTableCmd = new CreateMigrationsTable($env->conn, $env->options);
@@ -124,7 +124,7 @@ final class Migrations extends Command
 		foreach ($migrations as $migration) {
 			assert(!empty($migration) && is_string($migration));
 
-			if (in_array(basename($migration), $appliedMigrations)) {
+			if (in_array(basename($migration), $appliedMigrations, strict: true)) {
 				continue;
 			}
 
@@ -252,7 +252,7 @@ final class Migrations extends Command
 		$column = $this->env->columnMigration;
 		$migrations = $db->execute("SELECT {$column} FROM {$table};")->all();
 
-		return array_map(fn(array $mig): string => (string) $mig['migration'], $migrations);
+		return array_map(static fn(array $mig): string => (string) $mig['migration'], $migrations);
 	}
 
 	/**

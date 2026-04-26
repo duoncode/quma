@@ -84,7 +84,7 @@ class Query
 	{
 		$this->db->connect();
 		$this->stmt->execute();
-		$fetchMode = $fetchMode ?? $this->db->getFetchMode();
+		$fetchMode ??= $this->db->getFetchMode();
 
 		while (($record = $this->fetchArrayRecord($fetchMode)) !== null) {
 			yield $record;

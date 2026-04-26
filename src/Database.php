@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Duon\Quma;
 
-use Duon\Quma\Connection;
 use PDO;
 use RuntimeException;
 use Throwable;

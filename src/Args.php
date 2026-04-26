@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace Duon\Quma;
 
-use Duon\Quma\Util;
-
 /**
  * @psalm-type ArgsArray = list<mixed>|array<non-empty-string, mixed>
  */
 final class Args
 {
-	protected ArgType $type;
-	protected int $count;
+	private ArgType $type;
+	private int $count;
 
 	/** @psalm-var ArgsArray */
-	protected readonly array $args;
+	private readonly array $args;
 
 	public function __construct(array $args)
 	{
@@ -50,7 +48,7 @@ final class Args
 		return $this->type;
 	}
 
-	protected function prepare(array $args): array
+	private function prepare(array $args): array
 	{
 		$this->count = count($args);
 

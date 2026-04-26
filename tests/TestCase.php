@@ -8,7 +8,6 @@ use Duon\Cli\Commands;
 use Duon\Quma\Commands as QumaCommands;
 use Duon\Quma\Connection;
 use Duon\Quma\Database;
-use Override;
 use PDO;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Throwable;
@@ -79,7 +78,7 @@ class TestCase extends BaseTestCase
 	): Connection {
 		$dsn = $dsn ?: $this->getDsn();
 		$sql = $this->getSqlDirs($additionalDirs);
-		$migrations = $migrations ?? self::root() . 'migrations';
+		$migrations ??= self::root() . 'migrations';
 		$conn = new Connection($dsn, $sql, migrations: $migrations);
 		$conn->setMigrationsTable(str_starts_with($dsn, 'pgsql') ? 'public.migrations' : 'migrations');
 
@@ -230,12 +229,12 @@ class TestCase extends BaseTestCase
 
 		if ($transactionsOnly) {
 			return array_map(
-				fn($dsn) => $dsn['dsn'],
-				array_filter($dsns, fn($dsn) => $dsn['transactions'] === true),
+				static fn($dsn) => $dsn['dsn'],
+				array_filter($dsns, static fn($dsn) => $dsn['transactions'] === true),
 			);
 		}
 
-		return array_map(fn($dsn) => $dsn['dsn'], $dsns);
+		return array_map(static fn($dsn) => $dsn['dsn'], $dsns);
 	}
 
 	public static function cleanUpTestDbs(): void
@@ -311,16 +310,16 @@ class TestCase extends BaseTestCase
 		];
 	}
 
-	protected static function getDbFile(string $file = null): string
+	protected static function getDbFile(?string $file = null): string
 	{
-		$file = $file ?? self::getSqliteDbPath1();
+		$file ??= self::getSqliteDbPath1();
 
 		return sys_get_temp_dir() . DIRECTORY_SEPARATOR . $file;
 	}
 
-	protected static function getDsn(string $file = null): string
+	protected static function getDsn(?string $file = null): string
 	{
-		$file = $file ?? self::getSqliteDbPath1();
+		$file ??= self::getSqliteDbPath1();
 		return 'sqlite:' . self::getDbFile($file);
 	}
 }

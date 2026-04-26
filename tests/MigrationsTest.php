@@ -321,7 +321,7 @@ class MigrationsTest extends TestCase
 	public function testFailingDueToReadonlyMigrationsDirectory(): void
 	{
 		$tmpdir = sys_get_temp_dir() . '/chuck' . (string) mt_rand();
-		mkdir($tmpdir, 0400);
+		mkdir($tmpdir, 0o400);
 
 		$_SERVER['argv'] = ['run', 'add-migration', '--file', 'test-migration.sql'];
 
@@ -407,12 +407,12 @@ class MigrationsTest extends TestCase
 
 	public static function connectionProvider(): array
 	{
-		return array_map(fn($dsn) => [$dsn], TestCase::getAvailableDsns());
+		return array_map(static fn($dsn) => [$dsn], TestCase::getAvailableDsns());
 	}
 
 	public static function transactionConnectionProvider(): array
 	{
-		return array_map(fn($dsn) => [$dsn], TestCase::getAvailableDsns(transactionsOnly: true));
+		return array_map(static fn($dsn) => [$dsn], TestCase::getAvailableDsns(transactionsOnly: true));
 	}
 
 	public static function migrationExtensionProvider(): array
