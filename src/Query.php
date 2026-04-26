@@ -81,15 +81,18 @@ class Query
 			$this->executed = true;
 		}
 
+		/**
+		 * @mago-expect lint:inline-variable-return Psalm makes this necessary
+		 * @var array<string, mixed>|null $record
+		 */
 		$record = $this->fetchArrayRecord($fetchMode);
-		/** @var array<string, mixed>|null $record */
 
 		if ($record === null || $map === null) {
 			return $record;
 		}
 
-		$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
 		/** @var T $object */
+		return $this->hydrator()->hydrate($record, $map, $this->sourcePath);
 
 		return $object;
 	}
