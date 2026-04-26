@@ -92,7 +92,7 @@ class Query
 		}
 
 		/** @var T $object */
-		return $this->hydrator()->hydrate($record, $map, $this->sourcePath);
+		$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
 
 		return $object;
 	}
