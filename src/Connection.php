@@ -36,6 +36,9 @@ class Connection
 
 	protected Placeholders $placeholders;
 
+	/** @var non-empty-string|null */
+	protected ?string $cacheDir = null;
+
 	protected string $migrationsTable = 'migrations';
 	protected string $migrationsColumnMigration = 'migration';
 	protected string $migrationsColumnApplied = 'applied';
@@ -82,6 +85,36 @@ class Connection
 	public function assertNoTemplatePlaceholders(string $source, string $path): void
 	{
 		$this->placeholders->assertNoTemplatePlaceholders($source, $path);
+	}
+
+	/** @return non-empty-string|null */
+	public function cacheDir(?string $cacheDir = null): ?string
+	{
+		if ($cacheDir === null) {
+			return $this->cacheDir;
+		}
+
+		if (!file_exists($cacheDir)) {
+			throw new ValueError('Cache directory does not exist: ' . $cacheDir);
+		}
+
+		if (!is_dir($cacheDir)) {
+			throw new ValueError('Cache path is not a directory: ' . $cacheDir);
+		}
+
+		if (!is_writable($cacheDir)) {
+			throw new ValueError('Cache directory is not writable: ' . $cacheDir);
+		}
+
+		$path = realpath($cacheDir);
+
+		if ($path === false || $path === '') {
+			throw new ValueError('Cache directory does not exist: ' . $cacheDir);
+		}
+
+		$this->cacheDir = $path;
+
+		return $this->cacheDir;
 	}
 
 	public function setMigrationsTable(string $table): void
