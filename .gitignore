@@ -1,3 +1,8 @@
+/.coverage
+/site
+/tests/migratons/2*
+/tmp
+/vendor
 *.log
 .cache
 .env
@@ -5,12 +10,5 @@
 __pycache__
 clover.xml
 composer.lock
-tests/migratons/2*
-/coverage
-/site
-/tmp
-/vendor
-
-# Local config overrides (not committed)
-/phpunit.xml
-/psalm.xml
+phpunit.xml
+psalm.xml
