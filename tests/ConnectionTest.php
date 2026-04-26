@@ -94,7 +94,7 @@ class ConnectionTest extends TestCase
 
 		$conn = new Connection($this->getDsn(), TestCase::root() . 'sql/default');
 		$file = tempnam(sys_get_temp_dir(), 'quma-cache-file-');
-		assert(is_string($file));
+		assert(is_string($file), 'Temporary cache file path must be available.');
 
 		try {
 			$conn->cacheDir($file);
