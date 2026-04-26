@@ -81,6 +81,14 @@ class PlaceholdersTest extends TestCase
 		$placeholders->assertNoTemplatePlaceholders('SELECT * FROM [::table::]', 'query.tpql');
 	}
 
+	public function testRenderedTemplateAllowsIncompletePlaceholderMarker(): void
+	{
+		$placeholders = new Placeholders('sqlite', []);
+		$placeholders->assertNoTemplatePlaceholders("SELECT '[::' AS marker", 'query.tpql');
+
+		$this->assertTrue(true);
+	}
+
 	public function testUnknownPlaceholderThrowsHelpfulException(): void
 	{
 		$this->expectException(RuntimeException::class);
