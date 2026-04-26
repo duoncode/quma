@@ -11,11 +11,10 @@ Migration namespaces let you keep multiple independent migration sets in one app
 A flat migration configuration looks like this:
 
 ```php
-$conn = new Connection(
+$conn = (new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-    __DIR__ . '/migrations',
-);
+))->migrations(__DIR__ . '/migrations');
 ```
 
 Quma treats flat migration directories as one namespace named `default`.
@@ -23,15 +22,14 @@ Quma treats flat migration directories as one namespace named `default`.
 A namespaced configuration looks like this:
 
 ```php
-$conn = new Connection(
+$conn = (new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-    [
-        'default' => [__DIR__ . '/migrations/core'],
-        'feature' => [__DIR__ . '/migrations/feature'],
-        'install' => __DIR__ . '/migrations/install',
-    ],
-);
+))->migrations([
+    'default' => [__DIR__ . '/migrations/core'],
+    'feature' => [__DIR__ . '/migrations/feature'],
+    'install' => __DIR__ . '/migrations/install',
+]);
 ```
 
 In a namespaced setup, each key becomes the namespace name.
@@ -70,18 +68,17 @@ Inside a namespace, you can use:
 Example:
 
 ```php
-$conn = new Connection(
+$conn = (new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-    [
-        'default' => [
-            [
-                'sqlite' => __DIR__ . '/migrations/sqlite',
-                'all' => __DIR__ . '/migrations/common',
-            ],
+))->migrations([
+    'default' => [
+        [
+            'sqlite' => __DIR__ . '/migrations/sqlite',
+            'all' => __DIR__ . '/migrations/common',
         ],
     ],
-);
+]);
 ```
 
 ## Ordering within namespaces
@@ -100,9 +97,9 @@ php your-cli-entry.php db:migrations --namespace missing --apply
 
 ## Adding migration directories later
 
-`Connection::addMigrationDir()` only works for flat migration configurations. If the connection uses namespaced migrations, `addMigrationDir()` does nothing.
+`Connection::addMigration()` only works for flat migration configurations. If the connection uses namespaced migrations, it throws `ValueError`.
 
-If you need namespaced migrations, define them in the constructor.
+Use `Connection::migrationNamespace()` to add or replace one namespaced migration entry after construction.
 
 ## Recommended layout
 

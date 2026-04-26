@@ -56,14 +56,13 @@ declare(strict_types=1);
 
 use Duon\Quma\Connection;
 
-$conn = new Connection(
+$conn = (new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-    __DIR__ . '/migrations',
-);
+))->migrations(__DIR__ . '/migrations');
 ```
 
-The third argument configures migration directories. If you do not use migrations yet, you can omit it.
+The `migrations()` call configures migration directories. If you do not use migrations yet, you can omit it.
 
 ## Create a database handle
 

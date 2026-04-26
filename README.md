@@ -50,11 +50,10 @@ declare(strict_types=1);
 use Duon\Quma\Connection;
 use Duon\Quma\Database;
 
-$conn = new Connection(
+$conn = (new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-    __DIR__ . '/migrations',
-);
+))->migrations(__DIR__ . '/migrations');
 
 $db = new Database($conn);
 

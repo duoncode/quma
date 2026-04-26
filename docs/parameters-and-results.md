@@ -122,16 +122,15 @@ The exact row count depends on the PDO driver. For example, SQLite may return `0
 
 ## Fetch modes
 
-Quma uses the `fetchMode` from `Connection` by default. The constructor default is `PDO::FETCH_BOTH`.
+Quma uses the fetch mode from `Connection` by default. The default is `PDO::FETCH_BOTH`.
 
 ```php
 use PDO;
 
-$conn = new Connection(
+$conn = (new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-    fetchMode: PDO::FETCH_ASSOC,
-);
+))->fetch(PDO::FETCH_ASSOC);
 ```
 
 You can also override the fetch mode per call.

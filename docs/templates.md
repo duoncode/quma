@@ -85,7 +85,7 @@ By default, Quma writes compiled template source to a temporary file for each `.
 For hot `.tpql` query files, configure a cache directory on `Connection`.
 
 ```php
-$conn->cacheDir(__DIR__ . '/var/cache/quma');
+$conn->cache(__DIR__ . '/var/cache/quma');
 ```
 
 The directory must already exist and be writable. Keep it outside the public web root because it contains generated PHP template files.
