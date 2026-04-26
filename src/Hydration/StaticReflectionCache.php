@@ -90,13 +90,6 @@ final class StaticReflectionCache implements MetadataCache
 	 */
 	private function assertHydratableFactory(ReflectionClass $reflection, string $class): void
 	{
-		if (!$reflection->hasMethod('fromRow')) {
-			throw InvalidHydrationTargetException::forTarget(
-				$class,
-				reason: 'Hydratable target has no fromRow() method',
-			);
-		}
-
 		$method = $reflection->getMethod('fromRow');
 
 		if (!$method->isPublic() || !$method->isStatic() || $method->isAbstract()) {
