@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Duon\Quma\Tests;
 
+use Duon\Quma\Config;
 use Duon\Quma\Connection;
-use Duon\Quma\ConnectionConfig;
 use PDO;
 use ReflectionMethod;
 use RuntimeException;
@@ -334,16 +334,16 @@ class ConnectionTest extends TestCase
 
 	public function testReadFlatDirsReturnsEmptyArrayForEmptyConfig(): void
 	{
-		$config = new ConnectionConfig($this->getDsn(), TestCase::root() . 'sql/default');
-		$method = new ReflectionMethod(ConnectionConfig::class, 'readFlatDirs');
+		$config = new Config($this->getDsn(), TestCase::root() . 'sql/default');
+		$method = new ReflectionMethod(Config::class, 'readFlatDirs');
 
 		$this->assertSame([], $method->invoke($config, [], false));
 	}
 
 	public function testReadFlatDirsCanPreserveConfiguredOrder(): void
 	{
-		$config = new ConnectionConfig($this->getDsn(), TestCase::root() . 'sql/default');
-		$method = new ReflectionMethod(ConnectionConfig::class, 'readFlatDirs');
+		$config = new Config($this->getDsn(), TestCase::root() . 'sql/default');
+		$method = new ReflectionMethod(Config::class, 'readFlatDirs');
 
 		$dirs = $method->invoke(
 			$config,
@@ -363,8 +363,8 @@ class ConnectionTest extends TestCase
 
 	public function testReadFlatDirsSkipsUnsupportedNestedListValues(): void
 	{
-		$config = new ConnectionConfig($this->getDsn(), TestCase::root() . 'sql/default');
-		$method = new ReflectionMethod(ConnectionConfig::class, 'readFlatDirs');
+		$config = new Config($this->getDsn(), TestCase::root() . 'sql/default');
+		$method = new ReflectionMethod(Config::class, 'readFlatDirs');
 
 		$dirs = $method->invoke($config, [[123, TestCase::root() . 'sql/default']], false);
 
@@ -374,8 +374,8 @@ class ConnectionTest extends TestCase
 
 	public function testReadDirsEntrySkipsUnsupportedValues(): void
 	{
-		$config = new ConnectionConfig($this->getDsn(), TestCase::root() . 'sql/default');
-		$method = new ReflectionMethod(ConnectionConfig::class, 'readDirsEntry');
+		$config = new Config($this->getDsn(), TestCase::root() . 'sql/default');
+		$method = new ReflectionMethod(Config::class, 'readDirsEntry');
 
 		$this->assertSame([], $method->invoke($config, 123));
 		$this->assertSame([], $method->invoke($config, [123]));
@@ -383,8 +383,8 @@ class ConnectionTest extends TestCase
 
 	public function testReadNamespacedDirsSkipsInvalidNamespaceDirectoryValue(): void
 	{
-		$config = new ConnectionConfig($this->getDsn(), TestCase::root() . 'sql/default');
-		$method = new ReflectionMethod(ConnectionConfig::class, 'readNamespacedDirs');
+		$config = new Config($this->getDsn(), TestCase::root() . 'sql/default');
+		$method = new ReflectionMethod(Config::class, 'readNamespacedDirs');
 
 		$namespacedDirs = $method->invoke($config, [
 			'valid' => TestCase::root() . 'migrations',

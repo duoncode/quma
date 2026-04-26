@@ -21,7 +21,7 @@ use ValueError;
  * @psalm-type PlaceholderMap = array<non-empty-string, string>
  * @psalm-type PlaceholderConfig = array<non-empty-string, PlaceholderMap>
  */
-final class ConnectionConfig
+final class Config
 {
 	/** @psalm-var non-empty-string */
 	public readonly string $driver;
@@ -32,7 +32,7 @@ final class ConnectionConfig
 	/** @psalm-var MigrationDirs */
 	public array $migrations = [];
 
-	public ConnectionPdoConfig $pdo;
+	public PdoConfig $pdo;
 	public bool $print = false;
 	public Placeholders $placeholders;
 
@@ -50,7 +50,7 @@ final class ConnectionConfig
 	) {
 		$this->driver = $this->readDriver($this->dsn);
 		$this->sql = $this->readFlatDirs($sql);
-		$this->pdo = new ConnectionPdoConfig();
+		$this->pdo = new PdoConfig();
 		$this->placeholders = new Placeholders($this->driver, []);
 	}
 
