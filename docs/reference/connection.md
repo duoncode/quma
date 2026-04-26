@@ -105,6 +105,22 @@ Prepends more SQL directories to the existing list.
 
 This method supports the same input formats as the constructor.
 
+## Query cache methods
+
+### `cacheDir(?string $cacheDir = null): ?string`
+
+Gets or sets the cache directory for compiled `.tpql` query templates.
+
+```php
+$conn->cacheDir(__DIR__ . '/var/cache/quma');
+```
+
+The directory must already exist, must be a directory, and must be writable. Quma does not create it automatically.
+
+When configured, Quma writes compiled `.tpql` query templates to this directory and reuses them on later invocations. The cache does not apply to `.sql` files, migrations, or direct SQL passed to `Database::execute()`.
+
+Keep this directory outside the public web root. The files are generated PHP templates and can be deleted safely; Quma regenerates them when needed. Cache file names include the source file metadata, active driver, and resolved static placeholder map, so source or configuration changes create a new cache file.
+
 ## Static placeholder methods
 
 ### `placeholders(): array`
