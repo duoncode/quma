@@ -78,6 +78,22 @@ Quma applies static placeholders before it renders the PHP template. The rendere
 
 Do not put static placeholders inside PHP code blocks or generate them from PHP. This is unsupported and Quma throws a clear exception if a rendered template still contains `[::...::]` text. Move the static placeholder into the literal SQL portion of the template, or use trusted PHP configuration directly.
 
+## Cache template queries
+
+By default, Quma writes compiled template source to a temporary file for each `.tpql` query invocation and requires that file. This keeps configuration simple, but it adds filesystem work for hot template queries.
+
+For hot `.tpql` query files, configure a cache directory on `Connection`.
+
+```php
+$conn->cacheDir(__DIR__ . '/var/cache/quma');
+```
+
+The directory must already exist and be writable. Keep it outside the public web root because it contains generated PHP template files.
+
+When a cache directory is configured, Quma writes each compiled `.tpql` query template once per cache key and requires that cached file on later invocations. The cache key includes the source path, source metadata, active driver, and resolved static placeholder map. If the template source or placeholder configuration changes, Quma creates a new cache file.
+
+You can safely delete Quma cache files; they are regenerated on demand. The cache only applies to `.tpql` query files. It does not apply to migrations or direct SQL passed to `Database::execute()`.
+
 ## Unused parameters are stripped
 
 PDO rejects named parameters that are bound but not used in the SQL. Quma accounts for that by removing named parameters that do not appear as placeholders in the rendered template.

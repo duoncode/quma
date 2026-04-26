@@ -133,7 +133,7 @@ CREATE TABLE [::prefix::]users (
 
 ## Template migrations
 
-A `.tpql` migration is a PHP template that must render SQL. Quma substitutes static placeholders in the literal SQL part before rendering the PHP template.
+A `.tpql` migration is a PHP template that must render SQL. Quma substitutes static placeholders in the literal SQL part before rendering the PHP template. The query template cache configured with `Connection::cacheDir()` does not apply to migrations.
 
 Inside migration templates, Quma makes these variables available:
 
