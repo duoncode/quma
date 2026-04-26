@@ -79,10 +79,9 @@ class TestCase extends BaseTestCase
 		$dsn = $dsn ?: $this->getDsn();
 		$sql = $this->getSqlDirs($additionalDirs);
 		$migrations ??= self::root() . 'migrations';
-		$conn = new Connection($dsn, $sql, migrations: $migrations);
-		$conn->setMigrationsTable(str_starts_with($dsn, 'pgsql') ? 'public.migrations' : 'migrations');
-
-		return $conn;
+		return new Connection($dsn, $sql)
+			->migrations($migrations)
+			->migrationTable(str_starts_with($dsn, 'pgsql') ? 'public.migrations' : 'migrations');
 	}
 
 	public function getSqlDirs(bool $additionalDirs = false): array|string

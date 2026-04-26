@@ -25,7 +25,7 @@ class Database
 	public function __construct(
 		protected readonly Connection $conn,
 	) {
-		$this->print = $conn->print();
+		$this->print = $conn->printsQueries();
 	}
 
 	public function __get(string $key): Folder
@@ -35,7 +35,6 @@ class Database
 		$exists = false;
 
 		foreach ($this->conn->sql() as $path) {
-			assert(is_string($path), 'SQL directory path must be a string.');
 			$exists = is_dir($path . DIRECTORY_SEPARATOR . $key);
 
 			if ($exists) {
@@ -52,7 +51,7 @@ class Database
 
 	public function getFetchMode(): int
 	{
-		return $this->conn->fetchMode;
+		return $this->conn->fetchMode();
 	}
 
 	public function connected(): bool
@@ -62,7 +61,7 @@ class Database
 
 	public function getPdoDriver(): string
 	{
-		return $this->conn->driver;
+		return $this->conn->driver();
 	}
 
 	public function getSqlDirs(): array
@@ -129,8 +128,8 @@ class Database
 		$key = json_encode([
 			'version' => self::TEMPLATE_CACHE_VERSION,
 			'path' => $sourcePath,
-			'driver' => $this->conn->driver,
-			'placeholders' => $this->conn->placeholders(),
+			'driver' => $this->conn->driver(),
+			'placeholders' => $this->conn->placeholderValues(),
 			'modifiedAt' => $modifiedAt,
 			'size' => $size,
 		], JSON_THROW_ON_ERROR);
@@ -186,10 +185,10 @@ class Database
 		$conn = $this->conn;
 
 		$pdo = new PDO(
-			$conn->dsn,
-			$conn->username,
-			$conn->password,
-			$conn->options,
+			$conn->dsn(),
+			$conn->username(),
+			$conn->password(),
+			$conn->pdoOptions(),
 		);
 
 		// Always throw an exception when an error occures

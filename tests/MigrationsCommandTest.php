@@ -124,8 +124,7 @@ class MigrationsCommandTest extends TestCase
 		$conn = new Connection(
 			'mysql:host=localhost;dbname=quma;user=quma;password=quma',
 			$this->getSqlDirs(),
-			$dir,
-		);
+		)->migrations($dir);
 		$command = new Migrations($conn);
 		$method = new ReflectionMethod(Migrations::class, 'planMigrations');
 
@@ -172,8 +171,7 @@ class MigrationsCommandTest extends TestCase
 		$mysqlConn = new Connection(
 			'mysql:host=localhost;dbname=quma;user=quma;password=quma',
 			$this->getSqlDirs(),
-			TestCase::root() . 'migrations',
-		);
+		)->migrations(TestCase::root() . 'migrations');
 		$command = new Migrations($mysqlConn);
 		$db = new Database($mysqlConn);
 		$method = new ReflectionMethod(Migrations::class, 'finish');
@@ -209,8 +207,7 @@ class MigrationsCommandTest extends TestCase
 		$pgsqlConn = new Connection(
 			'pgsql:host=localhost;dbname=quma;user=quma;password=quma',
 			$this->getSqlDirs(),
-			TestCase::root() . 'migrations',
-		);
+		)->migrations(TestCase::root() . 'migrations');
 		$command = new Migrations($pgsqlConn);
 		$method = new ReflectionMethod(Migrations::class, 'supportsTransactions');
 
