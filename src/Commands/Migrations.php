@@ -64,8 +64,6 @@ final class Migrations extends Command
 		}
 
 		return $this->migrate(
-			$env->db,
-			$env->conn,
 			$namespace,
 			$showStacktrace,
 			$apply,
@@ -74,8 +72,6 @@ final class Migrations extends Command
 	}
 
 	protected function migrate(
-		Database $db,
-		Connection $conn,
 		string $namespace,
 		bool $showStacktrace,
 		bool $apply,
@@ -88,10 +84,8 @@ final class Migrations extends Command
 		}
 
 		return $this->runMigrations(
-			$namespace ?: 'default',
+			$namespace !== '' ? $namespace : 'default',
 			$migrations,
-			$db,
-			$conn,
 			$showStacktrace,
 			$apply,
 			$tableExists,
@@ -136,12 +130,13 @@ final class Migrations extends Command
 	protected function runMigrations(
 		string $namespace,
 		array $migrations,
-		Database $db,
-		Connection $conn,
 		bool $showStacktrace,
 		bool $apply,
 		bool $tableExists,
 	): int {
+		$db = $this->env->db;
+		$conn = $this->env->conn;
+
 		$this->begin($db);
 
 		if (!$tableExists) {
@@ -329,7 +324,7 @@ final class Migrations extends Command
 			return 1;
 		}
 
-		$namespace = $namespace ?: 'default';
+		$namespace = $namespace !== '' ? $namespace : 'default';
 		$appliedMigrations = $tableExists ? $this->getAppliedMigrations($this->env->db) : [];
 		$pendingMigrations = $this->pendingMigrations($namespace, $migrations, $appliedMigrations);
 		$numPending = count($pendingMigrations);

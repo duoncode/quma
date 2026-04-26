@@ -34,7 +34,7 @@ class MigrationsCommandTest extends TestCase
 		$handler = set_error_handler(static fn(): bool => true);
 		try {
 			ob_start();
-			$result = $method->invoke($command, 'default', [$missing], $db, $conn, false, true, true);
+			$result = $method->invoke($command, 'default', [$missing], false, true, true);
 			$output = ob_get_contents();
 			ob_end_clean();
 		} finally {
@@ -134,19 +134,7 @@ class MigrationsCommandTest extends TestCase
 			$output = ob_get_contents();
 			ob_end_clean();
 		} finally {
-			$files = glob($dir . '/*');
-
-			if (is_array($files)) {
-				foreach ($files as $file) {
-					if (is_file($file)) {
-						unlink($file);
-					}
-				}
-			}
-
-			if (is_dir($dir)) {
-				rmdir($dir);
-			}
+			$this->removeMigrationDir($dir);
 		}
 
 		$this->assertSame(0, $result);
@@ -205,5 +193,24 @@ class MigrationsCommandTest extends TestCase
 		$method = new ReflectionMethod(Migrations::class, 'supportsTransactions');
 
 		$this->assertTrue($method->invoke($command));
+	}
+
+	private function removeMigrationDir(string $dir): void
+	{
+		$files = glob($dir . '/*');
+
+		if (is_array($files)) {
+			foreach ($files as $file) {
+				if (!is_file($file)) {
+					continue;
+				}
+
+				unlink($file);
+			}
+		}
+
+		if (is_dir($dir)) {
+			rmdir($dir);
+		}
 	}
 }
