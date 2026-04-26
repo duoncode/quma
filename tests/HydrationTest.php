@@ -274,13 +274,23 @@ class HydrationTest extends TestCase
 		$hydrator = new Hydrator();
 
 		$nullable = $hydrator->hydrate(['value' => null], HydrationNullableIntValue::class, null);
+		$explicitNullable = $hydrator->hydrate(
+			['value' => null],
+			HydrationExplicitNullableIntValue::class,
+			null,
+		);
+		$multiNullable = $hydrator->hydrate(['value' => null], HydrationMultiNullableValue::class, null);
 		$intFloat = $hydrator->hydrate(['value' => '1.5'], HydrationIntFloatValue::class, null);
 		$exactFloat = $hydrator->hydrate(['value' => 1.5], HydrationIntFloatValue::class, null);
+		$boolInt = $hydrator->hydrate(['value' => true], HydrationBoolIntValue::class, null);
 		$stringInt = $hydrator->hydrate(['value' => '42'], HydrationStringIntValue::class, null);
 
 		$this->assertNull($nullable->value);
+		$this->assertNull($explicitNullable->value);
+		$this->assertNull($multiNullable->value);
 		$this->assertSame(1.5, $intFloat->value);
 		$this->assertSame(1.5, $exactFloat->value);
+		$this->assertTrue($boolInt->value);
 		$this->assertSame('42', $stringInt->value);
 	}
 
@@ -342,6 +352,20 @@ class HydrationTest extends TestCase
 		$this->expectExceptionMessage('unsupported declared type');
 
 		new TypeCoercer()->coerce('x', $type, $this->coercionContext());
+	}
+
+	public function testTypeCoercerSkipsUnsupportedExactUnionMetadata(): void
+	{
+		$type = new TypeMetadata(
+			'union',
+			false,
+			[
+				new NamedTypeMetadata('unknown', false, null, null, null, null),
+				new NamedTypeMetadata('int', true, null, 'int', null, null),
+			],
+		);
+
+		$this->assertSame(1, new TypeCoercer()->coerce(1, $type, $this->coercionContext()));
 	}
 
 	public function testTypeCoercerRejectsUnbackedEnumMetadata(): void
@@ -714,10 +738,31 @@ final readonly class HydrationNullableIntValue
 	) {}
 }
 
+final readonly class HydrationExplicitNullableIntValue
+{
+	public function __construct(
+		public ?int $value,
+	) {}
+}
+
 final readonly class HydrationIntFloatValue
 {
 	public function __construct(
 		public int|float $value,
+	) {}
+}
+
+final readonly class HydrationMultiNullableValue
+{
+	public function __construct(
+		public int|string|null $value,
+	) {}
+}
+
+final readonly class HydrationBoolIntValue
+{
+	public function __construct(
+		public bool|int $value,
 	) {}
 }
 
