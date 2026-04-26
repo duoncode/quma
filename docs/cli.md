@@ -19,10 +19,10 @@ use Duon\Cli\Runner;
 use Duon\Quma\Commands;
 use Duon\Quma\Connection;
 
-$conn = (new Connection(
+$conn = new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-))->migrations(__DIR__ . '/migrations');
+)->migrations(__DIR__ . '/migrations');
 
 $runner = new Runner(Commands::get($conn));
 exit($runner->run());

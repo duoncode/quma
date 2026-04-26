@@ -127,10 +127,10 @@ Quma uses the fetch mode from `Connection` by default. The default is `PDO::FETC
 ```php
 use PDO;
 
-$conn = (new Connection(
+$conn = new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-))->fetch(PDO::FETCH_ASSOC);
+)->fetch(PDO::FETCH_ASSOC);
 ```
 
 You can also override the fetch mode per call.
