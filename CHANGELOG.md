@@ -9,12 +9,15 @@
 - Added optional `.tpql` query template caching via `Connection::cache()`.
 - Added explicit `Database` lifecycle helpers: `connected()`, `disconnect()`, `reconnect()`, `ping()`, and `reset()`.
 - Added internal connection timestamp tracking in `Database` to support long-running PHP process integrations.
+- Added optional row hydration for `one()`, `all()`, and `lazy()` through class-string targets, resolver closures, `#[Column]`, `Hydratable`, and hydration-specific exceptions.
 
 ### Changed
 
 - Changed `Connection` to require only DSN and SQL directories in the constructor. Optional PDO, migration, placeholder, cache, fetch mode, and debug-printing settings now use fluent methods.
 - Changed MySQL migration dry runs to print a plan without mutating the database.
 - Changed non-default migration namespaces to record applied migrations as `namespace:basename`.
+- Changed the default query fetch mode from `PDO::FETCH_BOTH` to `PDO::FETCH_ASSOC`.
+- Changed query terminal method signatures so the optional hydration map is the first argument and the per-call fetch mode is the second argument or `fetchMode` named argument.
 
 ### Fixed
 

@@ -104,16 +104,45 @@ Represents a prepared query.
 
 ### Execution methods
 
-- `one(?int $fetchMode = null): ?array`
-- `all(?int $fetchMode = null): array`
-- `lazy(?int $fetchMode = null): Generator`
+- `one(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null`
+- `all(string|Closure|null $map = null, ?int $fetchMode = null): array`
+- `lazy(string|Closure|null $map = null, ?int $fetchMode = null): Generator`
 - `run(): bool`
 - `len(): int`
+
+Pass a class name or resolver closure as `$map` to hydrate rows into objects. Leave `$map` as `null` for raw arrays. The per-call fetch mode is the second argument or the `fetchMode` named argument.
 
 ### Debug helpers
 
 - `interpolate(): string` returns a best-effort interpolated SQL string for debugging
 - `__toString(): string` proxies to `interpolate()`
+
+## Row hydration types
+
+### `Duon\Quma\Column`
+
+Constructor-parameter attribute for mapping a parameter to a different row column.
+
+```php
+#[Column('email_address')]
+public string $email
+```
+
+### `Duon\Quma\Hydratable`
+
+Interface for classes that own custom row hydration.
+
+```php
+/** @param array<string, mixed> $row */
+public static function fromRow(array $row): static;
+```
+
+### Hydration exceptions
+
+- `HydrationException` is the base exception for built-in hydration failures.
+- `MissingColumnException` is thrown when a required constructor parameter has no matching row column.
+- `TypeCoercionException` is thrown when a present value cannot be converted to the declared parameter type.
+- `InvalidHydrationTargetException` is thrown for invalid targets, unsupported constructor shapes, unsupported parameter types, invalid `#[Column]` values, or invalid resolver results.
 
 ## `Duon\Quma\Environment`
 

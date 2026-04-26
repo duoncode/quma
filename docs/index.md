@@ -23,7 +23,7 @@ Quma revolves around a small set of objects:
 - `Database` opens the PDO connection and is the main entry point.
 - `Folder` maps a SQL folder such as `users/` to `$db->users`.
 - `Script` wraps a `.sql` or `.tpql` file.
-- `Query` binds parameters and executes the prepared statement.
+- `Query` binds parameters, executes the prepared statement, and can hydrate rows into typed objects.
 
 In practice, a file like `sql/users/byId.sql` becomes `$db->users->byId()`.
 
@@ -61,6 +61,7 @@ Quma currently supports:
 - PHP-rendered SQL templates in `.tpql` files
 - multiple SQL directories with driver-specific overrides
 - direct execution of ad-hoc SQL through `Database::execute()`
+- optional type-safe row hydration through `one()`, `all()`, and `lazy()`
 - explicit database lifecycle helpers such as `connected()`, `disconnect()`, `reconnect()`, `ping()`, and `reset()` for long-running PHP processes
 - migrations written in `.sql`, `.tpql`, or `.php`
 - CLI helpers for creating and applying migrations

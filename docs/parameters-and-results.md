@@ -96,6 +96,90 @@ foreach ($db->users->list()->lazy() as $user) {
 
 This is useful when you want to process rows one by one.
 
+## Map rows to objects
+
+Pass a class name as the first argument to `one()`, `all()`, or `lazy()` to hydrate rows into typed objects.
+
+```php
+final readonly class User
+{
+    public function __construct(
+        public int $id,
+        public string $email,
+        public ?string $name = null,
+    ) {}
+}
+
+$user = $db->users->byId(42)->one(User::class);
+$users = $db->users->list()->all(User::class);
+
+foreach ($db->users->list()->lazy(User::class) as $user) {
+    // $user is a User instance.
+}
+```
+
+Quma reads public constructor parameters and matches each parameter name to a row column. Missing optional columns use the constructor default. Missing required columns throw `MissingColumnException`. Extra row columns are ignored.
+
+Use `#[Column]` when the database column name differs from the constructor parameter name.
+
+```php
+use Duon\Quma\Column;
+
+final readonly class User
+{
+    public function __construct(
+        public int $id,
+        #[Column('email_address')]
+        public string $email,
+    ) {}
+}
+```
+
+Constructor hydration supports these declared types:
+
+- `int`, `float`, `bool`, and `string`
+- nullable types such as `?int` and `int|null`
+- unions of supported types, such as `int|float`
+- `DateTimeImmutable` and `DateTime` from common SQL date/time strings
+- backed enums from their backing values
+
+Unsupported constructor shapes or types throw `InvalidHydrationTargetException`. Present values that cannot be converted to the declared type throw `TypeCoercionException`. A present `null` never falls back to a default; it must be accepted by the declared type.
+
+### Custom hydration
+
+Implement `Hydratable` when a class owns its row conversion logic.
+
+```php
+use Duon\Quma\Hydratable;
+
+final readonly class User implements Hydratable
+{
+    public function __construct(public int $id, public string $email) {}
+
+    /** @param array<string, mixed> $row */
+    public static function fromRow(array $row): static
+    {
+        return new self((int) $row['id'], strtolower((string) $row['email']));
+    }
+}
+```
+
+`Hydratable::fromRow()` receives an associative row and takes precedence over constructor reflection.
+
+### Polymorphic hydration
+
+Pass a resolver closure when the target class depends on row data.
+
+```php
+$events = $db->events->list()->all(
+    static fn(array $row): string => $row['type'] === 'created'
+        ? UserCreated::class
+        : UserDeleted::class,
+);
+```
+
+The resolver runs once per hydrated row. It must return an existing class name. Returning `null`, a scalar type name, an unknown class, or a non-hydratable abstract class throws `InvalidHydrationTargetException`.
+
 ## Run write queries
 
 Use `run()` for statements where you only care whether execution succeeded.
@@ -122,7 +206,7 @@ The exact row count depends on the PDO driver. For example, SQLite may return `0
 
 ## Fetch modes
 
-Quma uses the fetch mode from `Connection` by default. The default is `PDO::FETCH_BOTH`.
+Quma uses the fetch mode from `Connection` by default. The default is `PDO::FETCH_ASSOC`.
 
 ```php
 use PDO;
@@ -130,17 +214,19 @@ use PDO;
 $conn = new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
     __DIR__ . '/sql',
-)->fetch(PDO::FETCH_ASSOC);
+)->fetch(PDO::FETCH_NUM);
 ```
 
-You can also override the fetch mode per call.
+You can also override the fetch mode per call. The fetch mode is the second argument, or the `fetchMode` named argument.
 
 ```php
 use PDO;
 
-$user = $db->users->byId(42)->one(PDO::FETCH_ASSOC);
-$users = $db->users->list()->all(PDO::FETCH_ASSOC);
+$user = $db->users->byId(42)->one(fetchMode: PDO::FETCH_ASSOC);
+$rows = $db->users->list()->all(null, PDO::FETCH_NUM);
 ```
+
+Mapped calls always fetch associative rows by default, even if the connection default is different. Passing a mapped class or resolver with an explicit non-associative fetch mode throws `InvalidArgumentException`.
 
 ## Execute direct SQL
 
