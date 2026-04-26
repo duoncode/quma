@@ -135,7 +135,7 @@ class Database
 			'size' => $size,
 		], JSON_THROW_ON_ERROR);
 
-		return $cacheDir . DIRECTORY_SEPARATOR . 'tpql-' . hash('sha256', $key) . '.php';
+		return $cacheDir . DIRECTORY_SEPARATOR . 'tpql-' . hash('xxh128', $key) . '.php';
 	}
 
 	/** @psalm-param non-empty-string $cacheDir */
