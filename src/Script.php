@@ -15,17 +15,20 @@ class Script
 	protected string $script;
 	protected bool $isTemplate;
 	protected ?string $sourcePath;
+	protected ?string $cachePath;
 
 	public function __construct(
 		Database $db,
 		string $script,
 		bool $isTemplate,
 		?string $sourcePath = null,
+		?string $cachePath = null,
 	) {
 		$this->db = $db;
 		$this->script = $script;
 		$this->isTemplate = $isTemplate;
 		$this->sourcePath = $sourcePath;
+		$this->cachePath = $cachePath;
 	}
 
 	public function __invoke(mixed ...$args): Query
