@@ -18,6 +18,7 @@ new Connection(
     array $options = [],
     int $fetchMode = PDO::FETCH_BOTH,
     bool $print = false,
+    array $placeholders = [],
 )
 ```
 
@@ -63,6 +64,24 @@ The default fetch mode for `Query::one()`, `Query::all()`, and `Query::lazy()` w
 
 Enables query printing for debugging. You can also toggle it later through `print(true)`.
 
+### `$placeholders`
+
+Defines static `[::name::]` placeholder replacements. The top-level `all` scope applies to every driver. A driver-specific scope such as `sqlite`, `mysql`, or `pgsql` overrides `all` for that driver.
+
+```php
+$conn = new Connection(
+    'mysql:host=localhost;dbname=app',
+    __DIR__ . '/sql',
+    placeholders: [
+        'all' => ['prefix' => ''],
+        'pgsql' => ['prefix' => 'cms.'],
+        'mysql' => ['prefix' => 'cms_'],
+    ],
+);
+```
+
+Placeholder names must match `[A-Za-z_][A-Za-z0-9_.:-]*`. Values must be strings and are inserted as raw SQL text. Quma does not quote or escape them.
+
 ## Public properties
 
 `Connection` exposes these readonly properties:
@@ -85,6 +104,20 @@ Returns the resolved SQL directory list.
 Prepends more SQL directories to the existing list.
 
 This method supports the same input formats as the constructor.
+
+## Static placeholder methods
+
+### `staticPlaceholders(): array`
+
+Returns the placeholder map resolved for the active driver.
+
+### `applyStaticPlaceholders(string $source, string $path, bool $isTemplate = false): string`
+
+Applies static placeholders to SQL or template source. This method is used internally by file-based queries and migrations.
+
+### `assertNoTemplateStaticPlaceholders(string $source, string $path): void`
+
+Throws when rendered template output still contains `[::...::]` text. This catches unsupported placeholders generated from PHP code blocks.
 
 ## Migration directory methods
 

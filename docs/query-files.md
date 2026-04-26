@@ -38,6 +38,38 @@ Quma looks for query files in this order:
 
 Use `.sql` for static SQL. Use `.tpql` for PHP-rendered SQL templates.
 
+## Static placeholders
+
+Use static placeholders when a query needs trusted configuration fragments such as schema names or table prefixes.
+
+```sql
+SELECT COUNT(*)
+FROM [::prefix::]nodes
+WHERE published = :published;
+```
+
+Configure replacements on `Connection` with the `placeholders` named argument.
+
+```php
+$conn = new Connection(
+    'pgsql:host=localhost;dbname=app',
+    __DIR__ . '/sql',
+    placeholders: [
+        'all' => ['prefix' => ''],
+        'pgsql' => ['prefix' => 'cms.'],
+        'mysql' => ['prefix' => 'cms_'],
+    ],
+);
+```
+
+Quma resolves placeholders from `all` and then overlays the active PDO driver. Driver-specific values override `all`, including empty strings.
+
+Static placeholders are raw SQL text. Quma does not quote or escape them. Use them only for trusted configuration, never for request or user input. Keep runtime values in PDO placeholders such as `:published` or `?`.
+
+Placeholder names must match `[A-Za-z_][A-Za-z0-9_.:-]*`, so names such as `prefix`, `schema.name`, `tenant-prefix`, and `cms:prefix` are valid. Unknown or malformed placeholders throw an exception that includes the source file, line, column, and active driver.
+
+Quma substitutes static placeholders when a file is first loaded by a `Database` instance and caches the compiled source for that instance. Direct SQL passed to `Database::execute()` is not processed.
+
 ## Configure SQL directories
 
 The second `Connection` argument defines where Quma looks for SQL folders.

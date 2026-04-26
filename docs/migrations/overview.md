@@ -41,6 +41,8 @@ Quma loads these migration types:
 - `.tpql` for PHP-rendered SQL
 - `.php` for custom migration logic
 
+Static placeholders are supported in `.sql` and `.tpql` migrations. They are not processed in `.php` migrations.
+
 ## Naming and ordering
 
 Quma sorts migrations by file name, not by full path. A timestamp prefix is the easiest way to keep the order clear.
@@ -120,10 +122,10 @@ If a migration file exists but renders or contains only whitespace, Quma skips i
 
 ## SQL migrations
 
-A `.sql` migration is executed directly.
+A `.sql` migration is executed directly after static placeholders have been substituted.
 
 ```sql
-CREATE TABLE users (
+CREATE TABLE [::prefix::]users (
     id integer primary key,
     email text not null
 );
@@ -131,7 +133,7 @@ CREATE TABLE users (
 
 ## Template migrations
 
-A `.tpql` migration is a PHP template that must render SQL.
+A `.tpql` migration is a PHP template that must render SQL. Quma substitutes static placeholders in the literal SQL part before rendering the PHP template.
 
 Inside migration templates, Quma makes these variables available:
 
@@ -148,6 +150,8 @@ ALTER TABLE users ADD COLUMN created_at timestamp with time zone;
 ALTER TABLE users ADD COLUMN created_at text;
 <?php endif ?>
 ```
+
+As with query templates, do not put static placeholders inside PHP code blocks or generate them from PHP output.
 
 ## PHP migrations
 

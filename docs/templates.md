@@ -62,6 +62,22 @@ FROM users
 WHERE active = :active
 ```
 
+## Static placeholders in templates
+
+`.tpql` files can use static `[::name::]` placeholders in the literal SQL part of the template.
+
+```php
+SELECT id, email
+FROM [::prefix::]users
+<?php if (($activeOnly ?? false) === true) : ?>
+WHERE active = :active
+<?php endif ?>
+```
+
+Quma applies static placeholders before it renders the PHP template. The rendered SQL then goes through normal PDO preparation and parameter binding.
+
+Do not put static placeholders inside PHP code blocks or generate them from PHP. This is unsupported and Quma throws a clear exception if a rendered template still contains `[::...::]` text. Move the placeholder into the literal SQL portion of the template, or use trusted PHP configuration directly.
+
 ## Unused parameters are stripped
 
 PDO rejects named parameters that are bound but not used in the SQL. Quma accounts for that by removing named parameters that do not appear as placeholders in the rendered template.
