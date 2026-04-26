@@ -70,10 +70,6 @@ final class StaticReflectionCache implements MetadataCache
 			return new ClassMetadata($class, false, true, []);
 		}
 
-		if (!$constructor->isPublic()) {
-			throw InvalidHydrationTargetException::forTarget($class, reason: 'constructor is not public');
-		}
-
 		$parameters = [];
 
 		foreach ($constructor->getParameters() as $parameter) {
