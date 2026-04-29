@@ -143,7 +143,7 @@ final class StaticReflectionCache implements MetadataCache
 
 		$columnName = $column->name;
 
-		if (trim($columnName) === '') {
+		if ($columnName === '' || trim($columnName) === '') {
 			throw InvalidHydrationTargetException::forParameter(
 				$class,
 				$parameterName,
@@ -151,7 +151,6 @@ final class StaticReflectionCache implements MetadataCache
 			);
 		}
 
-		/** @var non-empty-string $columnName */
 		return $columnName;
 	}
 

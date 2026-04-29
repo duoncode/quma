@@ -152,9 +152,9 @@ class Query
 
 			/** @var list<T> $result */
 			$result = [];
+			/** @var list<array<array-key, mixed>> $records */
 			$records = $this->stmt->fetchAll($fetchMode);
 
-			/** @var list<array<array-key, mixed>> $records */
 			foreach ($records as $record) {
 				/** @var T $object */
 				$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
@@ -188,8 +188,8 @@ class Query
 					continue;
 				}
 
-				$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
 				/** @var T $object */
+				$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
 
 				yield $object;
 			}

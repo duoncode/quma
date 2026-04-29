@@ -128,7 +128,6 @@ final class Hydrator
 			);
 		}
 
-		/** @var class-string $target */
 		return $target;
 	}
 
