@@ -35,7 +35,7 @@ final class TestMigration1 implements MigrationInterface
 
 		$result = $db->execute(
 			"SELECT id, name_{$driver} FROM genres WHERE id = 1",
-		)->all(PDO::FETCH_ASSOC);
+		)->all(fetchMode: PDO::FETCH_ASSOC);
 
 		assert(count($result) === 1, 'The migration should insert one genre row.');
 

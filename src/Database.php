@@ -318,6 +318,6 @@ class Database
 
 	public function execute(string $query, mixed ...$args): Query
 	{
-		return new Query($this, $query, new Args($args));
+		return new Query($this, $query, new Args($args), null);
 	}
 }

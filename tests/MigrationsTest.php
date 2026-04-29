@@ -429,10 +429,12 @@ class MigrationsTest extends TestCase
 			ob_end_clean();
 
 			$db = new Database($conn);
-			$rows = $db->execute('SELECT version FROM quma_migrations_custom')->all(PDO::FETCH_ASSOC);
+			$rows = $db->execute(
+				'SELECT version FROM quma_migrations_custom',
+			)->all(fetchMode: PDO::FETCH_ASSOC);
 			$defaultTable = $db->execute(
 				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='migrations';",
-			)->one(PDO::FETCH_ASSOC);
+			)->one(fetchMode: PDO::FETCH_ASSOC);
 
 			$this->assertSame(0, $result);
 			$this->assertSame([['version' => '000001-custom.sql']], $rows);
@@ -480,10 +482,10 @@ class MigrationsTest extends TestCase
 			$db = new Database($conn);
 			$sqlTable = $db->execute(
 				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='static_sql_migration';",
-			)->one(PDO::FETCH_ASSOC);
+			)->one(fetchMode: PDO::FETCH_ASSOC);
 			$tpqlTable = $db->execute(
 				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='static_tpql_migration';",
-			)->one(PDO::FETCH_ASSOC);
+			)->one(fetchMode: PDO::FETCH_ASSOC);
 			$this->assertSame(0, $result);
 			$this->assertSame(1, (int) ($sqlTable['available'] ?? 0));
 			$this->assertSame(1, (int) ($tpqlTable['available'] ?? 0));
@@ -613,10 +615,10 @@ class MigrationsTest extends TestCase
 
 			$metadataTable = $db->execute(
 				"SELECT count(*) AS available FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'migrations';",
-			)->one(PDO::FETCH_ASSOC);
+			)->one(fetchMode: PDO::FETCH_ASSOC);
 			$mutationTable = $db->execute(
 				"SELECT count(*) AS available FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'mysql_dry_run_mutation';",
-			)->one(PDO::FETCH_ASSOC);
+			)->one(fetchMode: PDO::FETCH_ASSOC);
 
 			$this->assertSame(0, $result);
 			$this->assertStringContainsString('Would apply 1 migration', $output);
@@ -660,13 +662,13 @@ class MigrationsTest extends TestCase
 			$db = new Database($conn);
 			$rows = $db->execute(
 				'SELECT migration FROM migrations ORDER BY migration',
-			)->all(PDO::FETCH_ASSOC);
+			)->all(fetchMode: PDO::FETCH_ASSOC);
 			$defaultTable = $db->execute(
 				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='ns_default';",
-			)->one(PDO::FETCH_ASSOC);
+			)->one(fetchMode: PDO::FETCH_ASSOC);
 			$featureTable = $db->execute(
 				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='ns_feature';",
-			)->one(PDO::FETCH_ASSOC);
+			)->one(fetchMode: PDO::FETCH_ASSOC);
 
 			$this->assertSame(0, $defaultResult);
 			$this->assertSame(0, $featureResult);

@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Duon\Quma\Hydration;
+
+/** @internal */
+final readonly class ParameterMetadata
+{
+	/**
+	 * @psalm-param non-empty-string $name
+	 * @psalm-param non-empty-string $column
+	 */
+	// @mago-expect lint:excessive-parameter-list Metadata mirrors the normalized constructor parameter shape.
+	public function __construct(
+		public string $name,
+		public string $column,
+		public TypeMetadata $type,
+		public bool $nullable,
+		public bool $hasDefault,
+		public mixed $defaultValue,
+		public int $position,
+	) {}
+}

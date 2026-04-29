@@ -71,6 +71,7 @@ Quma maps directories to properties and files to methods:
 - SQL-file based queries with positional or named parameters
 - static `[::name::]` placeholders for trusted driver-aware configuration fragments
 - PDO-backed execution with `one()`, `all()`, `lazy()`, `run()`, and `len()`
+- optional row hydration into typed objects
 - PHP-powered SQL templates via `.tpql` files
 - multiple SQL directories with driver-specific overrides
 - migration commands for `.sql`, `.tpql`, and `.php` migrations

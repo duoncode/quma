@@ -177,7 +177,7 @@ class Environment
                 AND tablename = '{$table}';",
 		};
 
-		if ($query && ($db->execute($query)->one(PDO::FETCH_ASSOC)['available'] ?? 0) === 1) {
+		if ($query && ($db->execute($query)->one(fetchMode: PDO::FETCH_ASSOC)['available'] ?? 0) === 1) {
 			return true;
 		}
 

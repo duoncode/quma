@@ -57,7 +57,7 @@ class Script
 			$script = $this->script;
 		}
 
-		return new Query($this->db, $script, $args);
+		return new Query($this->db, $script, $args, $this->sourcePath);
 	}
 
 	protected function evaluateTemplate(string $template, Args $args): string

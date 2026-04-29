@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Duon\Quma;
 
+use Closure;
+use Duon\Quma\Hydration\Hydrator;
 use Generator;
 use InvalidArgumentException;
 use PDO;
@@ -26,11 +28,13 @@ class Query
 
 	protected PDOStatement $stmt;
 	protected bool $executed = false;
+	protected ?Hydrator $hydrator = null;
 
 	public function __construct(
 		protected Database $db,
 		protected string $query,
 		protected Args $args,
+		protected ?string $sourcePath = null,
 	) {
 		$this->stmt = $this->db->getConn()->prepare($query);
 
@@ -60,8 +64,16 @@ class Query
 		return $this->interpolate();
 	}
 
-	public function one(?int $fetchMode = null): ?array
+	/**
+	 * @template T of object
+	 *
+	 * @psalm-param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
+	 * @psalm-return ($map is null ? array<string, mixed>|null : T|null)
+	 */
+	public function one(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null
 	{
+		[$map, $fetchMode] = $this->terminalOptions($map, $fetchMode);
+
 		$this->db->connect();
 
 		if (!$this->executed) {
@@ -69,26 +81,107 @@ class Query
 			$this->executed = true;
 		}
 
-		return $this->nullIfNot($this->stmt->fetch($fetchMode ?? $this->db->getFetchMode()));
+		/**
+		 * @mago-expect lint:inline-variable-return Psalm makes this necessary
+		 * @var array<string, mixed>|null $record
+		 */
+		$record = $this->fetchArrayRecord($fetchMode);
+
+		if ($record === null || $map === null) {
+			return $record;
+		}
+
+		/** @var T $object */
+		$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
+
+		return $object;
 	}
 
-	public function all(?int $fetchMode = null): array
+	/**
+	 * @template T of object
+	 *
+	 * @psalm-param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
+	 * @psalm-return ($map is null ? list<array<string, mixed>> : list<T>)
+	 */
+	public function all(string|Closure|null $map = null, ?int $fetchMode = null): array
 	{
+		[$map, $fetchMode] = $this->terminalOptions($map, $fetchMode);
+
 		$this->db->connect();
 		$this->stmt->execute();
 
-		return $this->stmt->fetchAll($fetchMode ?? $this->db->getFetchMode());
+		if ($map === null) {
+			/**
+			 * @mago-expect lint:inline-variable-return Psalm makes this necessary
+			 * @var list<array<string, mixed>> $records
+			 */
+			$records = $this->stmt->fetchAll($fetchMode);
+
+			return $records;
+		}
+
+		/** @var list<T> $result */
+		$result = [];
+		$records = $this->stmt->fetchAll($fetchMode);
+
+		/** @var list<array<array-key, mixed>> $records */
+		foreach ($records as $record) {
+			/** @var T $object */
+			$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
+			$result[] = $object;
+		}
+
+		return $result;
 	}
 
-	public function lazy(?int $fetchMode = null): Generator
+	/**
+	 * @template T of object
+	 *
+	 * @psalm-param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
+	 * @psalm-return ($map is null
+	 *     ? Generator<int, array<string, mixed>, mixed, void>
+	 *     : Generator<int, T, mixed, void>)
+	 */
+	public function lazy(string|Closure|null $map = null, ?int $fetchMode = null): Generator
 	{
+		[$map, $fetchMode] = $this->terminalOptions($map, $fetchMode);
+
 		$this->db->connect();
 		$this->stmt->execute();
-		$fetchMode ??= $this->db->getFetchMode();
 
 		while (($record = $this->fetchArrayRecord($fetchMode)) !== null) {
-			yield $record;
+			/** @var array<string, mixed> $record */
+
+			if ($map === null) {
+				yield $record;
+
+				continue;
+			}
+
+			$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
+			/** @var T $object */
+
+			yield $object;
 		}
+	}
+
+	/**
+	 * @return array{0: string|Closure|null, 1: int}
+	 */
+	private function terminalOptions(string|Closure|null $map, ?int $fetchMode): array
+	{
+		$mode = $fetchMode ?? ($map === null ? $this->db->getFetchMode() : PDO::FETCH_ASSOC);
+
+		if ($map !== null && $mode !== PDO::FETCH_ASSOC) {
+			throw new InvalidArgumentException('Hydration requires PDO::FETCH_ASSOC.');
+		}
+
+		return [$map, $mode];
+	}
+
+	private function hydrator(): Hydrator
+	{
+		return $this->hydrator ??= Hydrator::default();
 	}
 
 	public function run(): bool
