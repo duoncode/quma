@@ -111,8 +111,11 @@ class Query
 		$this->stmt->execute();
 
 		if ($map === null) {
+			/**
+			 * @mago-expect lint:inline-variable-return Psalm makes this necessary
+			 * @var list<array<string, mixed>> $records
+			 */
 			$records = $this->stmt->fetchAll($fetchMode);
-			/** @var list<array<string, mixed>> $records */
 
 			return $records;
 		}
@@ -120,11 +123,11 @@ class Query
 		/** @var list<T> $result */
 		$result = [];
 		$records = $this->stmt->fetchAll($fetchMode);
-		/** @var list<array<array-key, mixed>> $records */
 
+		/** @var list<array<array-key, mixed>> $records */
 		foreach ($records as $record) {
-			$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
 			/** @var T $object */
+			$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
 			$result[] = $object;
 		}
 
