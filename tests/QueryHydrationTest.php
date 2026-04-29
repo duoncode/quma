@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Duon\Quma\Tests;
 
 use Duon\Quma\Database;
+use Duon\Quma\UnexpectedResultCountException;
 use InvalidArgumentException;
 use PDO;
 
@@ -19,26 +20,40 @@ class QueryHydrationTest extends TestCase
 		self::createTestDb();
 	}
 
-	public function testAllOneAndLazyHydrateRows(): void
+	public function testAllOneFirstAndLazyHydrateRows(): void
 	{
 		$db = $this->getDb();
 
 		$members = $db->members->list()->all(QueryHydrationMember::class);
-		$first = $db->members->list()->one(QueryHydrationMember::class);
+		$one = $db
+			->execute('SELECT member, name, joined, left FROM members WHERE member = 1')
+			->one(QueryHydrationMember::class);
+		$first = $db->members->list()->first(QueryHydrationMember::class);
 		$firstLazy = $db->members->list()->lazy(QueryHydrationMember::class)->current();
 
 		$this->assertCount(DatabaseTest::NUMBER_OF_MEMBERS, $members);
 		$this->assertInstanceOf(QueryHydrationMember::class, $members[0]);
+		$this->assertInstanceOf(QueryHydrationMember::class, $one);
 		$this->assertInstanceOf(QueryHydrationMember::class, $first);
 		$this->assertInstanceOf(QueryHydrationMember::class, $firstLazy);
 	}
 
-	public function testOneReturnsNullWhenNoRowExists(): void
+	public function testOneThrowsWhenNoRowExists(): void
+	{
+		$this->expectException(UnexpectedResultCountException::class);
+
+		$this
+			->getDb()
+			->execute('SELECT member, name, joined, left FROM members WHERE member = -1')
+			->one(QueryHydrationMember::class);
+	}
+
+	public function testFirstReturnsNullWhenNoRowExists(): void
 	{
 		$result = $this
 			->getDb()
 			->execute('SELECT member, name, joined, left FROM members WHERE member = -1')
-			->one(QueryHydrationMember::class);
+			->first(QueryHydrationMember::class);
 
 		$this->assertNull($result);
 	}
@@ -69,7 +84,7 @@ class QueryHydrationTest extends TestCase
 		$conn = $this->connection()->fetch(PDO::FETCH_NUM);
 		$db = new Database($conn);
 
-		$member = $db->members->list()->one(QueryHydrationMember::class);
+		$member = $db->members->list()->first(QueryHydrationMember::class);
 
 		$this->assertInstanceOf(QueryHydrationMember::class, $member);
 		$this->assertSame('Chuck Schuldiner', $member->name);
@@ -121,7 +136,7 @@ class QueryHydrationTest extends TestCase
 		$this->assertSame(1, $calls);
 	}
 
-	public function testOneHydratesSuccessiveRowsAndStopsAtCursorEnd(): void
+	public function testFetchHydratesSuccessiveRowsAndStopsAtCursorEnd(): void
 	{
 		$query = $this
 			->getDb()
@@ -138,13 +153,13 @@ class QueryHydrationTest extends TestCase
 
 		$count = 0;
 
-		while ($query->one($resolver) instanceof QueryHydrationMember) {
+		while ($query->fetch($resolver) instanceof QueryHydrationMember) {
 			$count++;
 		}
 
 		$this->assertSame(7, $count);
 		$this->assertSame(7, $calls);
-		$this->assertNull($query->one($resolver));
+		$this->assertNull($query->fetch($resolver));
 		$this->assertSame(7, $calls);
 	}
 
