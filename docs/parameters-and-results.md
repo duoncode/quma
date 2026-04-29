@@ -52,27 +52,41 @@ Arrays are JSON-encoded before binding.
 
 If you pass any other type, Quma throws `InvalidArgumentException`.
 
-## Fetch one row
+## Fetch exactly one row
 
-Use `one()` to fetch a single row.
+Use `one()` when the query must return exactly one row.
 
 ```php
 $user = $db->users->byId(42)->one();
 ```
 
-`one()` returns either:
+`one()` returns the row. It throws `UnexpectedResultCountException` when the query returns no row or more than one row.
 
-- an array when a row exists
-- `null` when no row exists
+## Fetch the first row
 
-If you call `one()` multiple times on the same `Query` instance, Quma continues fetching from the already executed statement.
+Use `first()` when the query may return zero or more rows and you only need the first row.
+
+```php
+$user = $db->users->byEmail([
+    'email' => 'someone@example.com',
+])->first();
+```
+
+`first()` returns the first row or `null`. It executes the statement fresh on each call, so repeated calls on the same `Query` instance return the same row.
+
+## Fetch successive rows
+
+Use `fetch()` when you want cursor-style access to one row at a time.
 
 ```php
 $query = $db->users->list();
 
-$first = $query->one();
-$second = $query->one();
+while (($user = $query->fetch()) !== null) {
+    // ...
+}
 ```
+
+`fetch()` returns the next row or `null` when the cursor is exhausted.
 
 ## Fetch all rows
 
@@ -98,7 +112,7 @@ This is useful when you want to process rows one by one.
 
 ## Map rows to objects
 
-Pass a class name as the first argument to `one()`, `all()`, or `lazy()` to hydrate rows into typed objects.
+Pass a class name as the first argument to `one()`, `first()`, `fetch()`, `all()`, or `lazy()` to hydrate rows into typed objects.
 
 ```php
 final readonly class User

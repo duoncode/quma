@@ -61,7 +61,7 @@ Quma currently supports:
 - PHP-rendered SQL templates in `.tpql` files
 - multiple SQL directories with driver-specific overrides
 - direct execution of ad-hoc SQL through `Database::execute()`
-- optional type-safe row hydration through `one()`, `all()`, and `lazy()`
+- optional type-safe row hydration through `one()`, `first()`, `fetch()`, `all()`, and `lazy()`
 - explicit database lifecycle helpers such as `connected()`, `disconnect()`, `reconnect()`, `ping()`, and `reset()` for long-running PHP processes
 - migrations written in `.sql`, `.tpql`, or `.php`
 - CLI helpers for creating and applying migrations

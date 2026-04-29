@@ -88,7 +88,7 @@ Returns the configured PDO options array.
 
 ### `fetch(int $fetchMode): static`
 
-Sets the default fetch mode for unmapped `Query::one()`, `Query::all()`, and `Query::lazy()` calls when you do not pass a fetch mode explicitly.
+Sets the default fetch mode for unmapped `Query::one()`, `Query::first()`, `Query::fetch()`, `Query::all()`, and `Query::lazy()` calls when you do not pass a fetch mode explicitly.
 
 The default is `PDO::FETCH_ASSOC`. Mapped calls that hydrate rows into objects fetch associative rows by default and reject explicit non-associative fetch modes.
 

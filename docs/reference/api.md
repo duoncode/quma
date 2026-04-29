@@ -104,11 +104,13 @@ Represents a prepared query.
 
 ### Execution methods
 
-- `one(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null`
-- `all(string|Closure|null $map = null, ?int $fetchMode = null): array`
-- `lazy(string|Closure|null $map = null, ?int $fetchMode = null): Generator`
-- `run(): bool`
-- `len(): int`
+- `one(string|Closure|null $map = null, ?int $fetchMode = null): array|object` returns the only row and throws `UnexpectedResultCountException` unless exactly one row exists
+- `first(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null` returns the first row or `null`
+- `fetch(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null` returns the next row from a cursor or `null`
+- `all(string|Closure|null $map = null, ?int $fetchMode = null): array` returns every row
+- `lazy(string|Closure|null $map = null, ?int $fetchMode = null): Generator` streams rows
+- `run(): bool` executes a statement for its success value
+- `len(): int` returns `PDOStatement::rowCount()`
 
 Pass a class name or resolver closure as `$map` to hydrate rows into objects. Leave `$map` as `null` for raw arrays. The per-call fetch mode is the second argument or the `fetchMode` named argument.
 
@@ -116,6 +118,10 @@ Pass a class name or resolver closure as `$map` to hydrate rows into objects. Le
 
 - `interpolate(): string` returns a best-effort interpolated SQL string for debugging
 - `__toString(): string` proxies to `interpolate()`
+
+### Query result exceptions
+
+- `UnexpectedResultCountException` is thrown by `Query::one()` when the result has zero rows or more than one row.
 
 ## Row hydration types
 
