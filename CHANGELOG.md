@@ -9,7 +9,8 @@
 - Added optional `.tpql` query template caching via `Connection::cache()`.
 - Added explicit `Database` lifecycle helpers: `connected()`, `disconnect()`, `reconnect()`, `ping()`, and `reset()`.
 - Added internal connection timestamp tracking in `Database` to support long-running PHP process integrations.
-- Added optional row hydration for `one()`, `all()`, and `lazy()` through class-string targets, resolver closures, `#[Column]`, `Hydratable`, and hydration-specific exceptions.
+- Added `Query::first()` for stable first-row reads and `Query::fetch()` for cursor-style reads.
+- Added optional row hydration for `one()`, `first()`, `fetch()`, `all()`, and `lazy()` through class-string targets, resolver closures, `#[Column]`, `Hydratable`, and hydration-specific exceptions.
 
 ### Changed
 
@@ -18,6 +19,7 @@
 - Changed non-default migration namespaces to record applied migrations as `namespace:basename`.
 - Changed the default query fetch mode from `PDO::FETCH_BOTH` to `PDO::FETCH_ASSOC`.
 - Changed query terminal method signatures so the optional hydration map is the first argument and the per-call fetch mode is the second argument or `fetchMode` named argument.
+- Changed `Query::one()` to require exactly one result and throw `UnexpectedResultCountException` for empty or multi-row results.
 
 ### Fixed
 
