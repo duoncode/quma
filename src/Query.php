@@ -68,70 +68,103 @@ class Query
 	 * @template T of object
 	 *
 	 * @param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
-	 * @return ($map is null ? array<string, mixed>|null : T|null)
+	 * @return ($map is null ? array<array-key, mixed> : T)
 	 */
-	public function one(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null
+	public function one(string|Closure|null $map = null, ?int $fetchMode = null): array|object
 	{
 		[$map, $fetchMode] = $this->terminalOptions($map, $fetchMode);
+		$this->executeFresh();
 
-		$this->db->connect();
+		try {
+			$record = $this->fetchArrayRecord($fetchMode);
 
-		if (!$this->executed) {
-			$this->stmt->execute();
-			$this->executed = true;
+			if ($record === null) {
+				throw UnexpectedResultCountException::none();
+			}
+
+			if ($this->fetchArrayRecord($fetchMode) !== null) {
+				throw UnexpectedResultCountException::multiple();
+			}
+
+			return $this->hydrateRecord($record, $map);
+		} finally {
+			$this->stmt->closeCursor();
 		}
-
-		/**
-		 * @mago-expect lint:inline-variable-return Psalm makes this necessary
-		 * @var array<string, mixed>|null $record
-		 */
-		$record = $this->fetchArrayRecord($fetchMode);
-
-		if ($record === null || $map === null) {
-			return $record;
-		}
-
-		/** @var T $object */
-		$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
-
-		return $object;
 	}
 
 	/**
 	 * @template T of object
 	 *
 	 * @param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
-	 * @return ($map is null ? list<array<string, mixed>> : list<T>)
+	 * @return ($map is null ? array<array-key, mixed>|null : T|null)
+	 */
+	public function first(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null
+	{
+		[$map, $fetchMode] = $this->terminalOptions($map, $fetchMode);
+		$this->executeFresh();
+
+		try {
+			$record = $this->fetchArrayRecord($fetchMode);
+
+			return $record === null ? null : $this->hydrateRecord($record, $map);
+		} finally {
+			$this->stmt->closeCursor();
+		}
+	}
+
+	/**
+	 * @template T of object
+	 *
+	 * @param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
+	 * @return ($map is null ? array<array-key, mixed>|null : T|null)
+	 */
+	public function fetch(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null
+	{
+		[$map, $fetchMode] = $this->terminalOptions($map, $fetchMode);
+		$this->executeForFetch();
+
+		$record = $this->fetchArrayRecord($fetchMode);
+
+		return $record === null ? null : $this->hydrateRecord($record, $map);
+	}
+
+	/**
+	 * @template T of object
+	 *
+	 * @param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
+	 * @return ($map is null ? list<array<array-key, mixed>> : list<T>)
 	 */
 	public function all(string|Closure|null $map = null, ?int $fetchMode = null): array
 	{
 		[$map, $fetchMode] = $this->terminalOptions($map, $fetchMode);
+		$this->executeFresh();
 
-		$this->db->connect();
-		$this->stmt->execute();
+		try {
+			if ($map === null) {
+				/**
+				 * @mago-expect lint:inline-variable-return Psalm makes this necessary
+				 * @var list<array<array-key, mixed>> $records
+				 */
+				$records = $this->stmt->fetchAll($fetchMode);
 
-		if ($map === null) {
-			/**
-			 * @mago-expect lint:inline-variable-return Psalm makes this necessary
-			 * @var list<array<string, mixed>> $records
-			 */
+				return $records;
+			}
+
+			/** @var list<T> $result */
+			$result = [];
 			$records = $this->stmt->fetchAll($fetchMode);
 
-			return $records;
+			/** @var list<array<array-key, mixed>> $records */
+			foreach ($records as $record) {
+				/** @var T $object */
+				$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
+				$result[] = $object;
+			}
+
+			return $result;
+		} finally {
+			$this->stmt->closeCursor();
 		}
-
-		/** @var list<T> $result */
-		$result = [];
-		$records = $this->stmt->fetchAll($fetchMode);
-
-		/** @var list<array<array-key, mixed>> $records */
-		foreach ($records as $record) {
-			/** @var T $object */
-			$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
-			$result[] = $object;
-		}
-
-		return $result;
 	}
 
 	/**
@@ -139,29 +172,29 @@ class Query
 	 *
 	 * @param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
 	 * @return ($map is null
-	 *     ? Generator<int, array<string, mixed>, mixed, void>
+	 *     ? Generator<int, array<array-key, mixed>, mixed, void>
 	 *     : Generator<int, T, mixed, void>)
 	 */
 	public function lazy(string|Closure|null $map = null, ?int $fetchMode = null): Generator
 	{
 		[$map, $fetchMode] = $this->terminalOptions($map, $fetchMode);
+		$this->executeFresh();
 
-		$this->db->connect();
-		$this->stmt->execute();
+		try {
+			while (($record = $this->fetchArrayRecord($fetchMode)) !== null) {
+				if ($map === null) {
+					yield $record;
 
-		while (($record = $this->fetchArrayRecord($fetchMode)) !== null) {
-			/** @var array<string, mixed> $record */
+					continue;
+				}
 
-			if ($map === null) {
-				yield $record;
+				$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
+				/** @var T $object */
 
-				continue;
+				yield $object;
 			}
-
-			$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
-			/** @var T $object */
-
-			yield $object;
+		} finally {
+			$this->stmt->closeCursor();
 		}
 	}
 
@@ -179,6 +212,47 @@ class Query
 		return [$map, $mode];
 	}
 
+	private function executeFresh(): void
+	{
+		$this->db->connect();
+		$this->stmt->closeCursor();
+		$this->stmt->execute();
+		$this->executed = false;
+	}
+
+	private function executeForFetch(): void
+	{
+		$this->db->connect();
+
+		if (!$this->executed) {
+			$this->stmt->closeCursor();
+			$this->stmt->execute();
+			$this->executed = true;
+		}
+	}
+
+	/**
+	 * @template T of object
+	 *
+	 * @param array<array-key, mixed> $record
+	 * @param string|Closure(array<string, mixed>):class-string<T>|null $map
+	 * @return ($map is null ? array<array-key, mixed> : T)
+	 */
+	private function hydrateRecord(array $record, string|Closure|null $map): array|object
+	{
+		if ($map === null) {
+			return $record;
+		}
+
+		/**
+		 * @mago-expect lint:inline-variable-return Psalm makes this necessary
+		 * @var T $object
+		 */
+		$object = $this->hydrator()->hydrate($record, $map, $this->sourcePath);
+
+		return $object;
+	}
+
 	private function hydrator(): Hydrator
 	{
 		return $this->hydrator ??= Hydrator::default();
@@ -187,16 +261,21 @@ class Query
 	public function run(): bool
 	{
 		$this->db->connect();
+		$this->stmt->closeCursor();
+		$this->executed = false;
 
 		return $this->stmt->execute();
 	}
 
 	public function len(): int
 	{
-		$this->db->connect();
-		$this->stmt->execute();
+		$this->executeFresh();
 
-		return $this->stmt->rowCount();
+		try {
+			return $this->stmt->rowCount();
+		} finally {
+			$this->stmt->closeCursor();
+		}
 	}
 
 	/**

@@ -6,6 +6,7 @@ namespace Duon\Quma\Tests;
 
 use Duon\Quma\Database;
 use Duon\Quma\Tests\Util\InspectableDatabase;
+use Duon\Quma\UnexpectedResultCountException;
 use InvalidArgumentException;
 use PDO;
 use PDOStatement;
@@ -213,14 +214,39 @@ class DatabaseTest extends TestCase
 		$this->assertSame(0, $result);
 	}
 
-	public function testFetchOneQueryOne(): void
+	public function testOneReturnsTheOnlyResult(): void
 	{
 		$db = $this->getDb();
-		$result = $db->members->list()->one();
+		$result = $db->members->byId(2)->one();
 
-		$this->assertIsArray($result);
-		$this->assertArrayHasKey('name', $result);
-		$this->assertNotEmpty($result['name']);
+		$this->assertSame('Rick Rozz', $result['name']);
+	}
+
+	public function testOneThrowsWhenNoResultExists(): void
+	{
+		$this->expectException(UnexpectedResultCountException::class);
+		$this->expectExceptionMessage('Expected exactly one result, got none.');
+
+		$this->getDb()->execute('SELECT name FROM members WHERE member = -1')->one();
+	}
+
+	public function testOneThrowsWhenMultipleResultsExist(): void
+	{
+		$this->expectException(UnexpectedResultCountException::class);
+		$this->expectExceptionMessage('Expected exactly one result, got more than one.');
+
+		$this->getDb()->members->list()->one();
+	}
+
+	public function testFirstReturnsFirstResultWithoutAdvancing(): void
+	{
+		$query = $this->getDb()->members->list();
+		$first = $query->first();
+		$again = $query->first();
+
+		$this->assertSame('Chuck Schuldiner', $first['name']);
+		$this->assertSame($first, $again);
+		$this->assertNull($this->getDb()->execute('SELECT name FROM members WHERE member = -1')->first());
 	}
 
 	public function testRunOnlyQueriesQueryRun(): void
@@ -328,20 +354,20 @@ class DatabaseTest extends TestCase
 	{
 		$db = $this->getDb();
 
-		$result = $db->members->joined(['year' => 1983])->one(fetchMode: PDO::FETCH_ASSOC);
+		$result = $db->members->joined(['year' => 1983])->first(fetchMode: PDO::FETCH_ASSOC);
 		$this->assertCount(4, $result);
 
 		$result = $db->members->joined([
 			'year' => 1983,
 			'interestedInNames' => true,
-		])->one(fetchMode: PDO::FETCH_ASSOC);
+		])->first(fetchMode: PDO::FETCH_ASSOC);
 		$this->assertCount(5, $result);
 	}
 
 	public function testPdoDriverIsHandedToTemplateQuery(): void
 	{
 		$db = $this->getDb();
-		$result = $db->members->joined(['year' => 1983])->one();
+		$result = $db->members->joined(['year' => 1983])->first();
 
 		// The PDO driver is handed to the template
 		$this->assertSame('sqlite', $result['driver']);
@@ -393,7 +419,7 @@ class DatabaseTest extends TestCase
 			'year' => 1997,
 			'testPrinting' => true,
 			'interestedInNames' => true,
-		])->one();
+		])->first();
 		$output = ob_get_contents();
 		ob_end_clean();
 
@@ -411,7 +437,7 @@ class DatabaseTest extends TestCase
 		$db->print(true);
 
 		ob_start();
-		$result = $db->members->left(2001)->one();
+		$result = $db->members->left(2001)->first();
 		$output = ob_get_contents();
 		ob_end_clean();
 
@@ -439,7 +465,7 @@ class DatabaseTest extends TestCase
 		$this->assertCount(7, $result);
 	}
 
-	public function testMultipleQueryOneCalls(): void
+	public function testFetchReturnsSuccessiveRows(): void
 	{
 		$db = new Database($this->connection());
 		$query = $db->members->activeFromTo([
@@ -448,14 +474,15 @@ class DatabaseTest extends TestCase
 		]);
 
 		$i = 0;
-		$result = $query->one();
+		$result = $query->fetch();
 
 		while ($result) {
 			$i++;
-			$result = $query->one();
+			$result = $query->fetch();
 		}
 
 		$this->assertSame(7, $i);
+		$this->assertNull($query->fetch());
 	}
 
 	public function testLoadScriptThrowsWhenFileIsMissing(): void
@@ -491,17 +518,17 @@ class DatabaseTest extends TestCase
 
 		$this->assertSame(
 			'Sean Reinert',
-			$db->execute($queryQmark, [1991, 1992])->one()['name'],
+			$db->execute($queryQmark, [1991, 1992])->first()['name'],
 		);
 
 		$this->assertSame(
 			'Sean Reinert',
-			$db->execute($queryQmark, 1991, 1992)->one()['name'],
+			$db->execute($queryQmark, 1991, 1992)->first()['name'],
 		);
 
 		$this->assertSame(
 			'Sean Reinert',
-			$db->execute($queryNamed, ['left' => 1992, 'joined' => 1991])->one()['name'],
+			$db->execute($queryNamed, ['left' => 1992, 'joined' => 1991])->first()['name'],
 		);
 	}
 

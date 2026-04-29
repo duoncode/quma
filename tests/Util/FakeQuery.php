@@ -13,7 +13,17 @@ final class FakeQuery extends Query
 		private readonly int $available,
 	) {}
 
-	public function one(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null
+	public function one(string|Closure|null $map = null, ?int $fetchMode = null): array|object
+	{
+		return ['available' => $this->available];
+	}
+
+	public function first(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null
+	{
+		return ['available' => $this->available];
+	}
+
+	public function fetch(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null
 	{
 		return ['available' => $this->available];
 	}
