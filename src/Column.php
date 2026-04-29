@@ -6,7 +6,7 @@ namespace Duon\Quma;
 
 use Attribute;
 
-/** @psalm-api */
+/** @api */
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final class Column
 {

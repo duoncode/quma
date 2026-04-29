@@ -6,7 +6,7 @@ namespace Duon\Quma;
 
 use Throwable;
 
-/** @psalm-api */
+/** @api */
 final class InvalidHydrationTargetException extends HydrationException
 {
 	/** @param list<string> $rowKeys */
@@ -31,8 +31,8 @@ final class InvalidHydrationTargetException extends HydrationException
 	}
 
 	/**
-	 * @psalm-param class-string $class
-	 * @psalm-param non-empty-string $parameter
+	 * @param class-string $class
+	 * @param non-empty-string $parameter
 	 */
 	public static function forParameter(
 		string $class,

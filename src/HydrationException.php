@@ -7,11 +7,11 @@ namespace Duon\Quma;
 use RuntimeException;
 use Throwable;
 
-/** @psalm-api */
+/** @api */
 class HydrationException extends RuntimeException
 {
 	/**
-	 * @psalm-param class-string $class
+	 * @param class-string $class
 	 * @param list<string> $rowKeys
 	 */
 	public static function fromHydratableFailure(
@@ -31,7 +31,7 @@ class HydrationException extends RuntimeException
 		);
 	}
 
-	/** @psalm-param class-string $class */
+	/** @param class-string $class */
 	protected static function message(string $class, ?string $sourcePath, string $detail): string
 	{
 		return "Could not hydrate {$class} from " . self::source($sourcePath) . ": {$detail}";

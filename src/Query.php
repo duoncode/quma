@@ -11,7 +11,7 @@ use InvalidArgumentException;
 use PDO;
 use PDOStatement;
 
-/** @psalm-api */
+/** @api */
 class Query
 {
 	// Matches multi line single and double quotes and handles \' \" escapes
@@ -67,8 +67,8 @@ class Query
 	/**
 	 * @template T of object
 	 *
-	 * @psalm-param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
-	 * @psalm-return ($map is null ? array<string, mixed>|null : T|null)
+	 * @param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
+	 * @return ($map is null ? array<string, mixed>|null : T|null)
 	 */
 	public function one(string|Closure|null $map = null, ?int $fetchMode = null): array|object|null
 	{
@@ -100,8 +100,8 @@ class Query
 	/**
 	 * @template T of object
 	 *
-	 * @psalm-param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
-	 * @psalm-return ($map is null ? list<array<string, mixed>> : list<T>)
+	 * @param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
+	 * @return ($map is null ? list<array<string, mixed>> : list<T>)
 	 */
 	public function all(string|Closure|null $map = null, ?int $fetchMode = null): array
 	{
@@ -137,8 +137,8 @@ class Query
 	/**
 	 * @template T of object
 	 *
-	 * @psalm-param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
-	 * @psalm-return ($map is null
+	 * @param class-string<T>|Closure(array<string, mixed>):class-string<T>|null $map
+	 * @return ($map is null
 	 *     ? Generator<int, array<string, mixed>, mixed, void>
 	 *     : Generator<int, T, mixed, void>)
 	 */
@@ -355,7 +355,7 @@ class Query
 		return $query;
 	}
 
-	/** @psalm-param array<array-key, mixed> $args */
+	/** @param array<array-key, mixed> $args */
 	protected function interpolateNamed(string $query, array $args): string
 	{
 		$map = [];

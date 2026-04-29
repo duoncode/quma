@@ -23,7 +23,7 @@ final class StaticReflectionCache implements MetadataCache
 	/** @var array<class-string, ClassMetadata> */
 	private static array $entries = [];
 
-	/** @psalm-param class-string $class */
+	/** @param class-string $class */
 	#[\Override]
 	public function metadata(string $class): ClassMetadata
 	{
@@ -40,7 +40,7 @@ final class StaticReflectionCache implements MetadataCache
 		self::$entries = [];
 	}
 
-	/** @psalm-param class-string $class */
+	/** @param class-string $class */
 	private function build(string $class): ClassMetadata
 	{
 		if ($this->isBuiltinTypeName($class) || !class_exists($class)) {
@@ -80,7 +80,7 @@ final class StaticReflectionCache implements MetadataCache
 		return new ClassMetadata($class, false, true, $parameters);
 	}
 
-	/** @psalm-param class-string $class */
+	/** @param class-string $class */
 	private function parameterMetadata(
 		string $class,
 		ReflectionParameter $parameter,
@@ -116,9 +116,9 @@ final class StaticReflectionCache implements MetadataCache
 	}
 
 	/**
-	 * @psalm-param class-string $class
-	 * @psalm-param non-empty-string $parameterName
-	 * @psalm-return non-empty-string
+	 * @param class-string $class
+	 * @param non-empty-string $parameterName
+	 * @return non-empty-string
 	 */
 	private function columnName(
 		string $class,
@@ -156,8 +156,8 @@ final class StaticReflectionCache implements MetadataCache
 	}
 
 	/**
-	 * @psalm-param class-string $class
-	 * @psalm-param non-empty-string $parameterName
+	 * @param class-string $class
+	 * @param non-empty-string $parameterName
 	 */
 	private function typeMetadata(
 		string $class,
@@ -206,8 +206,8 @@ final class StaticReflectionCache implements MetadataCache
 	}
 
 	/**
-	 * @psalm-param class-string $class
-	 * @psalm-param non-empty-string $parameterName
+	 * @param class-string $class
+	 * @param non-empty-string $parameterName
 	 */
 	private function namedTypeMetadata(
 		string $class,

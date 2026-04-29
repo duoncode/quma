@@ -8,9 +8,9 @@ namespace Duon\Quma\Hydration;
 final readonly class HydrationContext
 {
 	/**
-	 * @psalm-param class-string $class
-	 * @psalm-param non-empty-string $parameter
-	 * @psalm-param non-empty-string $column
+	 * @param class-string $class
+	 * @param non-empty-string $parameter
+	 * @param non-empty-string $column
 	 * @param list<string> $rowKeys
 	 */
 	public function __construct(

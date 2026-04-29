@@ -27,7 +27,7 @@ final class Migrations extends Command
 	protected string $prefix = 'db';
 	protected string $description = 'Apply missing database migrations';
 
-	/** @psalm-param array<non-empty-string, Connection>|Connection $conn */
+	/** @param array<non-empty-string, Connection>|Connection $conn */
 	public function __construct(array|Connection $conn, array $options = [])
 	{
 		if (is_array($conn)) {

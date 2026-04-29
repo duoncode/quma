@@ -7,7 +7,7 @@ namespace Duon\Quma;
 use Duon\Quma\Hydration\HydrationContext;
 use Throwable;
 
-/** @psalm-api */
+/** @api */
 final class TypeCoercionException extends HydrationException
 {
 	/** @internal */
@@ -31,7 +31,7 @@ final class TypeCoercionException extends HydrationException
 	}
 
 	/**
-	 * @psalm-param class-string $class
+	 * @param class-string $class
 	 * @param list<string> $rowKeys
 	 */
 	public static function constructorFailure(

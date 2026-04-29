@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
-/** @psalm-api */
+/** @api */
 class Script
 {
 	protected Database $db;

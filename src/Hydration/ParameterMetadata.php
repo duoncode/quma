@@ -8,8 +8,8 @@ namespace Duon\Quma\Hydration;
 final readonly class ParameterMetadata
 {
 	/**
-	 * @psalm-param non-empty-string $name
-	 * @psalm-param non-empty-string $column
+	 * @param non-empty-string $name
+	 * @param non-empty-string $column
 	 */
 	// @mago-expect lint:excessive-parameter-list Metadata mirrors the normalized constructor parameter shape.
 	public function __construct(

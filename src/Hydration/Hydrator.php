@@ -32,7 +32,7 @@ final class Hydrator
 
 	/**
 	 * @param array<array-key, mixed> $record
-	 * @psalm-param string|Closure $map
+	 * @param string|Closure $map
 	 */
 	public function hydrate(array $record, string|Closure $map, ?string $sourcePath): object
 	{
@@ -82,8 +82,8 @@ final class Hydrator
 	/**
 	 * @param array<string, mixed> $row
 	 * @param list<string> $rowKeys
-	 * @psalm-param string|Closure $map
-	 * @psalm-return class-string
+	 * @param string|Closure $map
+	 * @return class-string
 	 */
 	private function resolveClass(
 		string|Closure $map,
@@ -106,7 +106,7 @@ final class Hydrator
 
 	/**
 	 * @param list<string> $rowKeys
-	 * @psalm-return class-string
+	 * @return class-string
 	 */
 	private function validateClass(string $target, ?string $sourcePath, array $rowKeys): string
 	{
@@ -135,7 +135,7 @@ final class Hydrator
 	/**
 	 * @param array<string, mixed> $row
 	 * @param list<string> $rowKeys
-	 * @psalm-param class-string $class
+	 * @param class-string $class
 	 */
 	private function hydrateViaFactory(
 		string $class,

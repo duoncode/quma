@@ -8,8 +8,8 @@ namespace Duon\Quma\Hydration;
 final readonly class ClassMetadata
 {
 	/**
-	 * @psalm-param class-string $class
-	 * @psalm-param list<ParameterMetadata>|null $parameters
+	 * @param class-string $class
+	 * @param list<ParameterMetadata>|null $parameters
 	 */
 	public function __construct(
 		public string $class,

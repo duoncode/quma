@@ -9,10 +9,10 @@ use Duon\Quma\Commands\Add;
 use Duon\Quma\Commands\CreateMigrationsTable;
 use Duon\Quma\Commands\Migrations;
 
-/** @psalm-api */
+/** @api */
 class Commands
 {
-	/** @psalm-param array<non-empty-string, Connection>|Connection $conn */
+	/** @param array<non-empty-string, Connection>|Connection $conn */
 	public static function get(
 		array|Connection $conn,
 		array $options = [],

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Quma;
 
-/** @psalm-api */
+/** @api */
 interface Hydratable
 {
 	/** @param array<string, mixed> $row */

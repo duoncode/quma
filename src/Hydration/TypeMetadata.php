@@ -8,8 +8,8 @@ namespace Duon\Quma\Hydration;
 final readonly class TypeMetadata
 {
 	/**
-	 * @psalm-param 'named'|'union' $kind
-	 * @psalm-param non-empty-list<NamedTypeMetadata> $names
+	 * @param 'named'|'union' $kind
+	 * @param non-empty-list<NamedTypeMetadata> $names
 	 */
 	public function __construct(
 		public string $kind,

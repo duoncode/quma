@@ -8,7 +8,7 @@ use PDO;
 use RuntimeException;
 use Throwable;
 
-/** @psalm-api */
+/** @api */
 class Database
 {
 	use GetsSetsPrint;
@@ -115,7 +115,7 @@ class Database
 		return $cachePath;
 	}
 
-	/** @psalm-param non-empty-string $cacheDir */
+	/** @param non-empty-string $cacheDir */
 	protected function templateCachePath(string $sourcePath, string $cacheDir): string
 	{
 		$modifiedAt = filemtime($sourcePath);
@@ -139,7 +139,7 @@ class Database
 
 	/**
 	 * @codeCoverageIgnore
-	 * @psalm-param non-empty-string $cacheDir
+	 * @param non-empty-string $cacheDir
 	 **/
 	protected function writeTemplateCache(
 		string $sourcePath,

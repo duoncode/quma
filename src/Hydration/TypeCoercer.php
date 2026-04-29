@@ -249,7 +249,7 @@ final class TypeCoercer
 		$this->fail($value, $context, $description, 'unsupported date/time format');
 	}
 
-	/** @psalm-param class-string<BackedEnum> $enum */
+	/** @param class-string<BackedEnum> $enum */
 	private function coerceEnum(
 		mixed $value,
 		string $enum,

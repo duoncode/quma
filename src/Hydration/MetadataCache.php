@@ -7,6 +7,6 @@ namespace Duon\Quma\Hydration;
 /** @internal */
 interface MetadataCache
 {
-	/** @psalm-param class-string $class */
+	/** @param class-string $class */
 	public function metadata(string $class): ClassMetadata;
 }

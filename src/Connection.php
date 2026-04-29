@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Duon\Quma;
 
 /**
- * @psalm-api
+ * @api
  *
  * @psalm-import-type SqlConfig from Config
  * @psalm-import-type MigrationDirs from Config
@@ -26,7 +26,7 @@ class Connection
 		return $this->config->dsn;
 	}
 
-	/** @psalm-return non-empty-string */
+	/** @return non-empty-string */
 	public function driver(): string
 	{
 		return $this->config->driver;
@@ -183,7 +183,7 @@ class Connection
 		return $this;
 	}
 
-	/** @psalm-param non-empty-string $migrations */
+	/** @param non-empty-string $migrations */
 	public function addMigration(string $migrations): static
 	{
 		$this->config->addMigrationDir($migrations);
@@ -212,7 +212,7 @@ class Connection
 		return $this;
 	}
 
-	/** @psalm-return list<non-empty-string> */
+	/** @return list<non-empty-string> */
 	public function sql(): array
 	{
 		return $this->config->sql;

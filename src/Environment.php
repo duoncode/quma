@@ -9,7 +9,7 @@ use PDO;
 use RuntimeException;
 
 /**
- * @psalm-api
+ * @api
  */
 class Environment
 {
@@ -21,7 +21,7 @@ class Environment
 	public readonly string $columnApplied;
 	public readonly Database $db;
 
-	/** @psalm-param array<non-empty-string, Connection> $connections */
+	/** @param array<non-empty-string, Connection> $connections */
 	public function __construct(
 		array $connections,
 		public readonly array $options,

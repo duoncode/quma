@@ -6,7 +6,7 @@ namespace Duon\Quma;
 
 use RuntimeException;
 
-/** @psalm-api */
+/** @api */
 class Folder
 {
 	protected Database $db;

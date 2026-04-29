@@ -23,7 +23,7 @@ use ValueError;
  */
 final class Config
 {
-	/** @psalm-var non-empty-string */
+	/** @var non-empty-string */
 	public readonly string $driver;
 
 	/** @psalm-var SqlDirs */
@@ -101,7 +101,7 @@ final class Config
 		$this->migrations = $this->readMigrationDirs($migrations);
 	}
 
-	/** @psalm-param non-empty-string $migrations */
+	/** @param non-empty-string $migrations */
 	public function addMigrationDir(string $migrations): void
 	{
 		if (!array_is_list($this->migrations)) {
@@ -164,7 +164,7 @@ final class Config
 		return $this->getColumnName($this->migrationsColumnApplied);
 	}
 
-	/** @psalm-return non-empty-string */
+	/** @return non-empty-string */
 	private function preparePath(string $path): string
 	{
 		$result = realpath($path);
@@ -176,7 +176,7 @@ final class Config
 		throw new ValueError("Path does not exist: {$path}");
 	}
 
-	/** @psalm-return non-empty-string */
+	/** @return non-empty-string */
 	private function readDriver(string $dsn): string
 	{
 		$driver = explode(':', $dsn)[0];
@@ -195,7 +195,7 @@ final class Config
 	 *
 	 * @psalm-param SqlConfig $config
 	 *
-	 * @psalm-return list<non-empty-string>
+	 * @return list<non-empty-string>
 	 */
 	private function readFlatDirs(string|array $config, bool $preserveOrder = false): array
 	{
@@ -253,9 +253,9 @@ final class Config
 	/**
 	 * Reads directories from an associative array config.
 	 *
-	 * @psalm-param array<array-key, mixed> $entry
+	 * @param array<array-key, mixed> $entry
 	 *
-	 * @psalm-return list<non-empty-string>
+	 * @return list<non-empty-string>
 	 */
 	private function readAssocDirs(array $entry): array
 	{
@@ -274,7 +274,7 @@ final class Config
 		return $dirs;
 	}
 
-	/** @psalm-return list<non-empty-string> */
+	/** @return list<non-empty-string> */
 	private function readDirsEntry(mixed $entry): array
 	{
 		if (is_string($entry)) {
@@ -348,7 +348,7 @@ final class Config
 		return $this->readFlatDirs($config);
 	}
 
-	/** @psalm-param array<array-key, mixed> $config */
+	/** @param array<array-key, mixed> $config */
 	private function isDriverConfig(array $config): bool
 	{
 		return array_key_exists($this->driver, $config) || array_key_exists('all', $config);
@@ -357,7 +357,7 @@ final class Config
 	/**
 	 * Reads namespaced migration directories.
 	 *
-	 * @psalm-param array<array-key, mixed> $config
+	 * @param array<array-key, mixed> $config
 	 *
 	 * @psalm-return MigrationDirsNamespaced
 	 */

@@ -10,11 +10,11 @@ use BackedEnum;
 final readonly class NamedTypeMetadata
 {
 	/**
-	 * @psalm-param non-empty-string $name
-	 * @psalm-param class-string|null $class
-	 * @psalm-param 'int'|'float'|'bool'|'string'|null $scalar
-	 * @psalm-param 'immutable'|'mutable'|null $date
-	 * @psalm-param class-string<BackedEnum>|null $enum
+	 * @param non-empty-string $name
+	 * @param class-string|null $class
+	 * @param 'int'|'float'|'bool'|'string'|null $scalar
+	 * @param 'immutable'|'mutable'|null $date
+	 * @param class-string<BackedEnum>|null $enum
 	 */
 	// @mago-expect lint:excessive-parameter-list Metadata mirrors the normalized named type shape.
 	public function __construct(
