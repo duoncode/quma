@@ -28,8 +28,9 @@
 	"require": {
 		"php": "^8.5",
 		"ext-json": "*",
-		"ext-readline": "*",
 		"ext-pdo": "*",
+		"ext-readline": "*",
+		"ext-tokenizer": "*",
 		"duon/cli": "^0.1"
 	},
 	"require-dev": {
