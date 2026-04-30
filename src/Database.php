@@ -129,6 +129,7 @@ class Database
 			'version' => self::TEMPLATE_CACHE_VERSION,
 			'path' => $sourcePath,
 			'driver' => $this->conn->driver(),
+			'delimiters' => $this->conn->placeholderDelimiters()->values(),
 			'placeholders' => $this->conn->placeholderValues(),
 			'modifiedAt' => $modifiedAt,
 			'size' => $size,

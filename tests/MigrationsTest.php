@@ -16,6 +16,7 @@ namespace Duon\Quma\Tests;
 use Duon\Cli\Runner;
 use Duon\Quma\Connection;
 use Duon\Quma\Database;
+use Duon\Quma\Delimiters;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Depends;
@@ -485,6 +486,57 @@ class MigrationsTest extends TestCase
 			)->one(fetchMode: PDO::FETCH_ASSOC);
 			$tpqlTable = $db->execute(
 				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='static_tpql_migration';",
+			)->one(fetchMode: PDO::FETCH_ASSOC);
+			$this->assertSame(0, $result);
+			$this->assertSame(1, (int) ($sqlTable['available'] ?? 0));
+			$this->assertSame(1, (int) ($tpqlTable['available'] ?? 0));
+		} finally {
+			$this->removeMigrationDir($dir);
+		}
+	}
+
+	public function testRunMigrationsUsesCustomPlaceholderDelimiters(): void
+	{
+		$dir = $this->createMigrationDir('custom-delimiters');
+		file_put_contents(
+			$dir . '/000001-custom-delimiters.sql',
+			'CREATE TABLE [[table.sql]] (id integer);',
+		);
+		file_put_contents(
+			$dir . '/000002-custom-delimiters.tpql',
+			<<<'TPQL'
+				<?php if ($driver === 'sqlite') : ?>
+				CREATE TABLE [[table-tpql]] (id integer);
+				<?php endif ?>
+				TPQL,
+		);
+
+		$conn = new Connection(
+			$this->getDsn(),
+			TestCase::root() . 'sql/default',
+		)
+			->migrations($dir)
+			->delimiters(new Delimiters('[[', ']]'))
+			->placeholders([
+				'all' => [
+					'table.sql' => 'custom_delimiter_sql_migration',
+					'table-tpql' => 'custom_delimiter_tpql_migration',
+				],
+			]);
+
+		try {
+			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
+
+			ob_start();
+			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			ob_end_clean();
+
+			$db = new Database($conn);
+			$sqlTable = $db->execute(
+				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='custom_delimiter_sql_migration';",
+			)->one(fetchMode: PDO::FETCH_ASSOC);
+			$tpqlTable = $db->execute(
+				"SELECT count(*) AS available FROM sqlite_master WHERE type='table' AND name='custom_delimiter_tpql_migration';",
 			)->one(fetchMode: PDO::FETCH_ASSOC);
 			$this->assertSame(0, $result);
 			$this->assertSame(1, (int) ($sqlTable['available'] ?? 0));

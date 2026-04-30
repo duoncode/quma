@@ -106,6 +106,18 @@ class Connection
 		return $this;
 	}
 
+	public function delimiters(Delimiters $delimiters): static
+	{
+		$this->config->setDelimiters($delimiters);
+
+		return $this;
+	}
+
+	public function placeholderDelimiters(): Delimiters
+	{
+		return $this->config->placeholders->delimiters();
+	}
+
 	/** @return array<string, string> */
 	public function placeholderValues(): array
 	{

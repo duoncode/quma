@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Quma\Tests;
 
+use Duon\Quma\Delimiters;
 use Duon\Quma\Placeholders;
 use InvalidArgumentException;
 use RuntimeException;
@@ -55,6 +56,31 @@ class PlaceholdersTest extends TestCase
 				'query.sql',
 			),
 		);
+	}
+
+	public function testUsesCustomDelimiters(): void
+	{
+		$placeholders = new Placeholders(
+			'sqlite',
+			['all' => ['table' => 'members']],
+			new Delimiters('[[', ']]'),
+		);
+
+		$this->assertSame(
+			'SELECT * FROM members',
+			$placeholders->compileSql('SELECT * FROM [[table]]', 'query.sql'),
+		);
+	}
+
+	public function testCustomDelimiterErrorsUseConfiguredSyntax(): void
+	{
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('Malformed static placeholder in query.sql:1:15');
+		$this->expectExceptionMessage('Expected [[name]]');
+		$this->expectExceptionMessage('[[tenant-prefix]]');
+
+		$placeholders = new Placeholders('sqlite', [], new Delimiters('[[', ']]'));
+		$placeholders->compileSql('SELECT * FROM [[table name]]', 'query.sql');
 	}
 
 	public function testTemplateCompilationSkipsPhpBlocks(): void
@@ -130,6 +156,22 @@ class PlaceholdersTest extends TestCase
 		new Placeholders('sqlite', [
 			'default' => ['prefix' => 'cms_'],
 		]);
+	}
+
+	public function testEmptyOpeningDelimiterIsRejected(): void
+	{
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('opening delimiter must not be empty');
+
+		new Delimiters('', ']]');
+	}
+
+	public function testNulClosingDelimiterIsRejected(): void
+	{
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('closing delimiter must not contain NUL bytes');
+
+		new Delimiters('[[', "]]\0]");
 	}
 
 	public function testEmptyScopeIsRejected(): void

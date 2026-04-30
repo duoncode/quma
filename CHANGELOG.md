@@ -5,6 +5,7 @@
 ### Added
 
 - Added driver-aware static placeholders with `[::name::]` syntax for trusted SQL configuration fragments such as table prefixes and schema names.
+- Added configurable static placeholder delimiters via `Delimiters` and `Connection::delimiters()`.
 - Added static placeholder support to `.sql` queries, `.tpql` query templates, `.sql` migrations, and `.tpql` migrations.
 - Added optional `.tpql` query template caching via `Connection::cache()`.
 - Added explicit `Database` lifecycle helpers: `connected()`, `disconnect()`, `reconnect()`, `ping()`, and `reset()`.

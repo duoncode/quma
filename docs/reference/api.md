@@ -8,7 +8,7 @@ This page summarizes the main public types that application code works with dire
 
 ## `Duon\Quma\Connection`
 
-Stores DSN, SQL directory, migration, placeholder, PDO, cache, and debug-printing configuration.
+Stores DSN, SQL directory, migration, placeholder, delimiter, PDO, cache, and debug-printing configuration.
 
 ### Constructor
 
@@ -28,12 +28,23 @@ new Connection(string $dsn, string|array $sql)
 - `migrationTable(string $table): static` sets the migration metadata table
 - `migrationColumns(string $migration, string $applied = 'applied'): static` sets migration metadata columns
 - `placeholders(array $placeholders): static` sets static placeholder replacements
+- `delimiters(Delimiters $delimiters): static` sets static placeholder delimiters
 - `cache(string $cacheDir): static` sets the `.tpql` query template cache directory
 - `noCache(): static` clears the query template cache directory
 - `addSql(array|string $sql): static` prepends SQL directories
 - `print(bool $print): static` enables query printing for later `Database` instances
 
 See [Connection reference](connection.md) for all accessors and configuration formats.
+
+## `Duon\Quma\Delimiters`
+
+Configures static placeholder delimiters. The default is `[::name::]`.
+
+```php
+new Delimiters(string $open = '[::', string $close = '::]')
+```
+
+Delimiter strings must not be empty and must not contain NUL bytes.
 
 ## `Duon\Quma\Database`
 

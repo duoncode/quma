@@ -63,11 +63,21 @@ $conn = new Connection(
 
 Quma resolves static placeholders from `all` and then overlays the active PDO driver. Driver-specific values override `all`, including empty strings.
 
+The default delimiters are `[::` and `::]`. Configure different delimiters with `Delimiters` when the default syntax conflicts with your tooling.
+
+```php
+use Duon\Quma\Delimiters;
+
+$conn->delimiters(new Delimiters('[[', ']]'));
+```
+
+With this configuration, write `[[prefix]]nodes` instead of `[::prefix::]nodes`. Delimiter strings must not be empty and must not contain NUL bytes. Choose delimiters that do not collide with SQL syntax, PDO parameters, or your template code.
+
 Static placeholders are raw SQL text. Quma does not quote or escape them. Use them only for trusted configuration, never for request or user input. Keep runtime values in PDO placeholders such as `:published` or `?`.
 
 Static placeholder names must match `[A-Za-z_][A-Za-z0-9_.:-]*`, so names such as `prefix`, `schema.name`, `tenant-prefix`, and `cms:prefix` are valid. Unknown or malformed static placeholders throw an exception that includes the source file, line, column, and active driver.
 
-Quma substitutes static placeholders when a file is first loaded by a `Database` instance and caches the compiled source for that instance. Direct SQL passed to `Database::execute()` is not processed. For hot `.tpql` query files, you can also configure a persistent template cache with `Connection::cache()`.
+Quma substitutes static placeholders when a file is first loaded by a `Database` instance and caches the compiled source for that instance. Direct SQL passed to `Database::execute()` is not processed. For hot `.tpql` query files, you can also configure a persistent template cache with `Connection::cache()`. The persistent cache key includes the configured delimiters.
 
 ## Configure SQL directories
 

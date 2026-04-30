@@ -6,6 +6,7 @@ namespace Duon\Quma\Tests;
 
 use Duon\Quma\Config;
 use Duon\Quma\Connection;
+use Duon\Quma\Delimiters;
 use PDO;
 use ReflectionMethod;
 use RuntimeException;
@@ -83,6 +84,32 @@ class ConnectionTest extends TestCase
 		$this->assertSame(
 			'SELECT * FROM sqlite_nodes',
 			$conn->applyPlaceholders('SELECT * FROM [::prefix::]nodes', 'query.sql'),
+		);
+	}
+
+	public function testPlaceholderDelimitersCanBeConfiguredBeforePlaceholders(): void
+	{
+		$delimiters = new Delimiters('[[', ']]');
+		$conn = new Connection($this->getDsn(), TestCase::root() . 'sql/default')
+			->delimiters($delimiters)
+			->placeholders(['all' => ['prefix' => 'custom_']]);
+
+		$this->assertSame($delimiters, $conn->placeholderDelimiters());
+		$this->assertSame(
+			'SELECT * FROM custom_nodes',
+			$conn->applyPlaceholders('SELECT * FROM [[prefix]]nodes', 'query.sql'),
+		);
+	}
+
+	public function testPlaceholderDelimitersCanBeConfiguredAfterPlaceholders(): void
+	{
+		$conn = new Connection($this->getDsn(), TestCase::root() . 'sql/default')
+			->placeholders(['all' => ['prefix' => 'custom_']])
+			->delimiters(new Delimiters('[[', ']]'));
+
+		$this->assertSame(
+			'SELECT * FROM custom_nodes',
+			$conn->applyPlaceholders('SELECT * FROM [[prefix]]nodes', 'query.sql'),
 		);
 	}
 

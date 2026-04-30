@@ -11,8 +11,14 @@ final class Placeholders
 {
 	public const string NAME_PATTERN = '[A-Za-z_][A-Za-z0-9_.:-]*';
 
-	private const string TOKEN_PATTERN = '/\[::(' . self::NAME_PATTERN . ')::\]/';
-	private const string TOKEN_START_PATTERN = '/^\[::(' . self::NAME_PATTERN . ')::\]/';
+	/** @var non-empty-string */
+	private readonly string $tokenPattern;
+
+	/** @var non-empty-string */
+	private readonly string $tokenStartPattern;
+
+	/** @var array<string, array<string, string>> */
+	private readonly array $config;
 
 	/** @var array<string, string> */
 	private readonly array $values;
@@ -21,12 +27,29 @@ final class Placeholders
 	public function __construct(
 		private readonly string $driver,
 		array $config,
+		private readonly Delimiters $delimiters = new Delimiters(),
 	) {
-		$config = $this->normalizeConfig($config);
+		$open = preg_quote($this->delimiters->open, '/');
+		$close = preg_quote($this->delimiters->close, '/');
+		$this->tokenPattern = '/' . $open . '(' . self::NAME_PATTERN . ')' . $close . '/';
+		$this->tokenStartPattern = '/^' . $open . '(' . self::NAME_PATTERN . ')' . $close . '/';
+
+		$this->config = $this->normalizeConfig($config);
 		$this->values = array_replace(
-			$config['all'] ?? [],
-			$config[$this->driver] ?? [],
+			$this->config['all'] ?? [],
+			$this->config[$this->driver] ?? [],
 		);
+	}
+
+	/** @return array<string, array<string, string>> */
+	public function config(): array
+	{
+		return $this->config;
+	}
+
+	public function delimiters(): Delimiters
+	{
+		return $this->delimiters;
 	}
 
 	/** @return array<string, string> */
@@ -72,13 +95,13 @@ final class Placeholders
 
 	public function assertNoTemplatePlaceholders(string $source, string $path): void
 	{
-		if (!str_contains($source, '[::')) {
+		if (!str_contains($source, $this->delimiters->open)) {
 			return;
 		}
 
 		$matches = [];
 
-		if (preg_match(self::TOKEN_PATTERN, $source, $matches, PREG_OFFSET_CAPTURE) !== 1) {
+		if (preg_match($this->tokenPattern, $source, $matches, PREG_OFFSET_CAPTURE) !== 1) {
 			return;
 		}
 
@@ -153,7 +176,7 @@ final class Placeholders
 				);
 			}
 
-			if (str_contains($value, '[::')) {
+			if (str_contains($value, $this->delimiters->open)) {
 				throw new InvalidArgumentException(
 					"Static placeholder '{$name}' in scope '{$scope}' must not contain another static placeholder.",
 				);
@@ -175,7 +198,7 @@ final class Placeholders
 
 		$matches = [];
 		$result = preg_match_all(
-			self::TOKEN_PATTERN,
+			$this->tokenPattern,
 			$fragment,
 			$matches,
 			PREG_SET_ORDER | PREG_OFFSET_CAPTURE,
@@ -214,11 +237,11 @@ final class Placeholders
 	): void {
 		$offset = 0;
 
-		while (($position = strpos($fragment, '[::', $offset)) !== false) {
+		while (($position = strpos($fragment, $this->delimiters->open, $offset)) !== false) {
 			$matches = [];
 			$tail = substr($fragment, $position);
 
-			if (preg_match(self::TOKEN_START_PATTERN, $tail, $matches) !== 1) {
+			if (preg_match($this->tokenStartPattern, $tail, $matches) !== 1) {
 				throw $this->malformedPlaceholder($path, $source, $baseOffset + $position);
 			}
 
@@ -249,10 +272,20 @@ final class Placeholders
 
 		return new RuntimeException(
 			"Malformed static placeholder in {$path}:{$line}:{$column}.\n"
-			. 'Expected [::name::] where name matches: '
+			. 'Expected '
+			. $this->delimiters->token('name')
+			. ' where name matches: '
 			. self::NAME_PATTERN
 			. ".\n"
-			. 'Examples: [::prefix::], [::schema.name::], [::tenant-prefix::], [::cms:prefix::].',
+			. 'Examples: '
+			. $this->delimiters->token('prefix')
+			. ', '
+			. $this->delimiters->token('schema.name')
+			. ', '
+			. $this->delimiters->token('tenant-prefix')
+			. ', '
+			. $this->delimiters->token('cms:prefix')
+			. '.',
 		);
 	}
 

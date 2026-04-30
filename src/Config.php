@@ -57,7 +57,14 @@ final class Config
 	/** @psalm-param PlaceholderConfig $placeholders */
 	public function setPlaceholders(array $placeholders): void
 	{
-		$this->placeholders = new Placeholders($this->driver, $placeholders);
+		$compiled = new Placeholders($this->driver, $placeholders, $this->placeholders->delimiters());
+		$this->placeholders = $compiled;
+	}
+
+	public function setDelimiters(Delimiters $delimiters): void
+	{
+		$compiled = new Placeholders($this->driver, $this->placeholders->config(), $delimiters);
+		$this->placeholders = $compiled;
 	}
 
 	public function setCacheDir(string $cacheDir): void

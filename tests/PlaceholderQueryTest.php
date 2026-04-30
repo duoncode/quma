@@ -6,6 +6,7 @@ namespace Duon\Quma\Tests;
 
 use Duon\Quma\Connection;
 use Duon\Quma\Database;
+use Duon\Quma\Delimiters;
 use PDO;
 use RuntimeException;
 
@@ -47,6 +48,25 @@ class PlaceholderQueryTest extends TestCase
 		]));
 
 		$result = $db->music->byMember(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
+
+		$this->assertSame('Chuck Schuldiner', $result['name']);
+	}
+
+	public function testSqlFileUsesCustomDelimiters(): void
+	{
+		$dir = $this->createSqlDir();
+		file_put_contents(
+			$dir . '/music/byMemberCustom.sql',
+			'SELECT name FROM [[table]] WHERE member = :member;',
+		);
+
+		$db = new Database(
+			new Connection($this->getDsn(), $dir)
+				->delimiters(new Delimiters('[[', ']]'))
+				->placeholders(['all' => ['table' => 'members']]),
+		);
+
+		$result = $db->music->byMemberCustom(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
 
 		$this->assertSame('Chuck Schuldiner', $result['name']);
 	}
@@ -97,6 +117,29 @@ class PlaceholderQueryTest extends TestCase
 			'member' => 1,
 			'joinedAfter' => 1980,
 		])->one(fetchMode: PDO::FETCH_ASSOC);
+
+		$this->assertSame('Chuck Schuldiner', $result['name']);
+	}
+
+	public function testTemplateFileUsesCustomDelimitersBeforeRendering(): void
+	{
+		$dir = $this->createSqlDir();
+		file_put_contents(
+			$dir . '/music/custom.tpql',
+			<<<'TPQL'
+				SELECT name
+				FROM [[table]]
+				WHERE member = :member
+				TPQL,
+		);
+
+		$db = new Database(
+			new Connection($this->getDsn(), $dir)
+				->delimiters(new Delimiters('[[', ']]'))
+				->placeholders(['all' => ['table' => 'members']]),
+		);
+
+		$result = $db->music->custom(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
 
 		$this->assertSame('Chuck Schuldiner', $result['name']);
 	}
@@ -205,6 +248,41 @@ class PlaceholderQueryTest extends TestCase
 		$this->assertCount(2, $cacheFiles);
 	}
 
+	public function testTemplateCacheKeyChangesWithDelimiters(): void
+	{
+		$dir = $this->createSqlDir();
+		$cacheDir = $this->createTempDir('quma-cache-');
+		file_put_contents(
+			$dir . '/music/cached.tpql',
+			"SELECT '[[value]]' AS value;",
+		);
+
+		$conn = new Connection($this->getDsn(), $dir)
+			->placeholders(['all' => ['value' => 'cached']])
+			->cache($cacheDir);
+		$this->assertSame(
+			'[[value]]',
+			new Database($conn)->music->cached([
+				'unused' => true,
+			])->one(fetchMode: PDO::FETCH_ASSOC)['value'],
+		);
+
+		$conn = new Connection($this->getDsn(), $dir)
+			->delimiters(new Delimiters('[[', ']]'))
+			->placeholders(['all' => ['value' => 'cached']])
+			->cache($cacheDir);
+		$this->assertSame(
+			'cached',
+			new Database($conn)->music->cached([
+				'unused' => true,
+			])->one(fetchMode: PDO::FETCH_ASSOC)['value'],
+		);
+
+		$cacheFiles = glob($cacheDir . '/tpql-*.php');
+		$this->assertIsArray($cacheFiles);
+		$this->assertCount(2, $cacheFiles);
+	}
+
 	public function testTemplateGeneratedPlaceholdersThrowClearException(): void
 	{
 		$this->expectException(RuntimeException::class);
@@ -223,6 +301,28 @@ class PlaceholderQueryTest extends TestCase
 		);
 
 		$db->music->bad(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
+	}
+
+	public function testTemplateGeneratedCustomPlaceholdersThrowClearException(): void
+	{
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage(
+			'Static placeholders inside PHP blocks or generated template output are not supported',
+		);
+
+		$dir = $this->createSqlDir();
+		file_put_contents(
+			$dir . '/music/bad-custom.tpql',
+			"SELECT name FROM <?= '[[table]]' ?> WHERE member = :member;",
+		);
+
+		$db = new Database(
+			new Connection($this->getDsn(), $dir)
+				->delimiters(new Delimiters('[[', ']]'))
+				->placeholders(['all' => ['table' => 'members']]),
+		);
+
+		$db->music->{'bad-custom'}(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
 	}
 
 	private function createSqlDir(): string
