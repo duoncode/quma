@@ -64,6 +64,7 @@ Quma currently supports:
 - optional type-safe row hydration through `one()`, `first()`, `fetch()`, `all()`, and `lazy()`
 - explicit database lifecycle helpers such as `connected()`, `disconnect()`, `reconnect()`, `ping()`, and `reset()` for long-running PHP processes
 - migrations written in `.sql`, `.tpql`, or `.php`
+- environment-controlled debug output for translated and interpolated SQL
 - CLI helpers for creating and applying migrations
 
 ## Suggested reading order

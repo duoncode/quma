@@ -11,8 +11,6 @@ use Throwable;
 /** @api */
 class Database
 {
-	use GetsSetsPrint;
-
 	protected const int TEMPLATE_CACHE_VERSION = 1;
 
 	protected ?PDO $pdo = null;
@@ -24,9 +22,7 @@ class Database
 
 	public function __construct(
 		protected readonly Connection $conn,
-	) {
-		$this->print = $conn->prints();
-	}
+	) {}
 
 	public function __get(string $key): Folder
 	{
@@ -84,6 +80,7 @@ class Database
 		}
 
 		$compiled = $this->conn->applyPlaceholders($source, $path, $isTemplate);
+		Debug::writeTranslatedQuery($this->conn->driver(), $path, $this->conn->sql(), $compiled);
 		$cachePath = $isTemplate ? $this->cacheTemplate($path, $compiled) : null;
 		$script = new LoadedScript($compiled, $path, $cachePath);
 		$this->compiledScripts[$key] = $script;

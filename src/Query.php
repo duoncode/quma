@@ -42,19 +42,23 @@ class Query
 			$this->bindArgs($args->get(), $args->type());
 		}
 
-		if ($db->print()) {
-			$msg =
-				"\n\n-----------------------------------------------\n\n"
-				. $this->interpolate()
-				. "\n------------------------------------------------\n";
+		$print = Debug::prints();
+		$writeInterpolated = Debug::writesInterpolated();
 
-			if (($_SERVER['SERVER_SOFTWARE'] ?? null) !== null) {
-				// @codeCoverageIgnoreStart
-				error_log($msg);
+		if ($print || $writeInterpolated) {
+			$interpolated = $this->interpolate();
 
-				// @codeCoverageIgnoreEnd
-			} else {
-				echo $msg;
+			if ($print) {
+				$this->printQuery($interpolated);
+			}
+
+			if ($writeInterpolated) {
+				Debug::writeInterpolated(
+					$this->db->getPdoDriver(),
+					$this->sourcePath,
+					$this->db->getSqlDirs(),
+					$interpolated,
+				);
 			}
 		}
 	}
@@ -62,6 +66,23 @@ class Query
 	public function __toString(): string
 	{
 		return $this->interpolate();
+	}
+
+	private function printQuery(string $query): void
+	{
+		$msg =
+			"\n\n-----------------------------------------------\n\n"
+			. $query
+			. "\n------------------------------------------------\n";
+
+		if (($_SERVER['SERVER_SOFTWARE'] ?? null) !== null) {
+			// @codeCoverageIgnoreStart
+			error_log($msg);
+
+			// @codeCoverageIgnoreEnd
+		} else {
+			echo $msg;
+		}
 	}
 
 	/**

@@ -168,13 +168,22 @@ class DatabaseTest extends TestCase
 		$db->getConn();
 	}
 
-	public function testSetWhetherItShouldPrintSqlToStdout(): void
+	public function testDebugPrintEnvPrintsSqlToStdout(): void
 	{
-		$db = $this->getDb();
+		$output = '';
 
-		$this->assertFalse($db->print());
-		$db->print(true);
-		$this->assertTrue($db->print());
+		$this->withEnv('QUMA_DEBUG_PRINT', '1', function () use (&$output): void {
+			ob_start();
+
+			try {
+				$this->getDb()->execute('SELECT name FROM members WHERE member = ?', 1);
+			} finally {
+				$buffer = ob_get_clean();
+				$output = is_string($buffer) ? $buffer : '';
+			}
+		});
+
+		$this->assertStringContainsString('SELECT name FROM members WHERE member = 1', $output);
 	}
 
 	public function testPdoQuote(): void
@@ -412,17 +421,25 @@ class DatabaseTest extends TestCase
 	public function testQueryPrintingNamedParameters(): void
 	{
 		$db = $this->getDb();
-		$db->print(true);
+		$result = null;
+		$output = '';
 
-		ob_start();
-		$result = $db->members->joined([
-			'year' => 1997,
-			'testPrinting' => true,
-			'interestedInNames' => true,
-		])->first();
-		$output = ob_get_contents();
-		ob_end_clean();
+		$this->withEnv('QUMA_DEBUG_PRINT', '1', static function () use ($db, &$result, &$output): void {
+			ob_start();
 
+			try {
+				$result = $db->members->joined([
+					'year' => 1997,
+					'testPrinting' => true,
+					'interestedInNames' => true,
+				])->first();
+			} finally {
+				$buffer = ob_get_clean();
+				$output = is_string($buffer) ? $buffer : '';
+			}
+		});
+
+		$this->assertIsArray($result);
 		$this->assertSame('Shannon Hamm', $result['name']);
 		$this->assertStringContainsString('Emotions :year', $output);
 		$this->assertStringContainsString('mantas, -- :year', $output);
@@ -434,13 +451,21 @@ class DatabaseTest extends TestCase
 	public function testQueryPrintingPositionalParameters(): void
 	{
 		$db = $this->getDb();
-		$db->print(true);
+		$result = null;
+		$output = '';
 
-		ob_start();
-		$result = $db->members->left(2001)->first();
-		$output = ob_get_contents();
-		ob_end_clean();
+		$this->withEnv('QUMA_DEBUG_PRINT', '1', static function () use ($db, &$result, &$output): void {
+			ob_start();
 
+			try {
+				$result = $db->members->left(2001)->first();
+			} finally {
+				$buffer = ob_get_clean();
+				$output = is_string($buffer) ? $buffer : '';
+			}
+		});
+
+		$this->assertIsArray($result);
 		$this->assertSame('Shannon Hamm', $result['name']);
 		$this->assertStringContainsString('Emotions ?', $output);
 		$this->assertStringContainsString('mantas, -- ?', $output);

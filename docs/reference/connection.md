@@ -48,7 +48,7 @@ $conn = new Connection(
     ]);
 ```
 
-Configure a connection before you create or connect a `Database`. PDO settings are read when `Database` opens the PDO connection. Query printing is copied from `Connection` when you construct `Database`; use `Database::print()` to change printing on an existing database handle.
+Configure a connection before you create or connect a `Database`. PDO settings are read when `Database` opens the PDO connection. Debug output is controlled by environment variables, so you can enable it without changing connection code.
 
 ## Basic accessors
 
@@ -242,16 +242,20 @@ Returns the validated applied-at column.
 
 Quma uses these names when it creates the metadata table, checks applied migrations, and records newly applied migrations. For PostgreSQL, a schema-qualified table name such as `public.migrations` is supported.
 
-## Query printing
+## Debug output
 
-### `print(bool $print): static`
+Quma debug output is controlled through environment variables instead of connection methods.
 
-Enables or disables query printing for `Database` instances created after this call.
-
-```php
-$conn->print(true);
+```bash
+QUMA_DEBUG_PRINT=1 php app.php
+QUMA_DEBUG_TRANSLATED=/tmp/quma/translated php app.php
+QUMA_DEBUG_INTERPOLATED=/tmp/quma/interpolated php app.php
 ```
 
-### `prints(): bool`
+- `QUMA_DEBUG_PRINT=1` prints interpolated SQL when a query is created.
+- `QUMA_DEBUG_TRANSLATED` writes `.sql` and `.tpql` query and migration files after static placeholder replacement.
+- `QUMA_DEBUG_INTERPOLATED` writes runtime SQL after template rendering and parameter interpolation.
 
-Returns whether query printing is enabled on the connection.
+Debug directories must already exist and be writable. Translated files are written below `<dir>/<driver>/translated/...`; interpolated files are written below `<dir>/<driver>/interpolated/...`.
+
+Interpolated SQL can contain secrets or user data. Use these options only for local debugging, keep the directories outside the public web root, and do not commit their contents. Parameter interpolation is a best-effort debug representation; PDO still executes prepared statements with bound parameters.

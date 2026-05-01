@@ -106,6 +106,52 @@ class TestCase extends BaseTestCase
 		return new Database($this->connection(additionalDirs: $additionalDirs));
 	}
 
+	/**
+	 * @template T
+	 *
+	 * @param callable(): T $callback
+	 * @return T
+	 */
+	protected function withEnv(string $name, ?string $value, callable $callback): mixed
+	{
+		$previous = getenv($name);
+		$hadEnv = array_key_exists($name, $_ENV);
+		$envValue = $_ENV[$name] ?? null;
+		$hadServer = array_key_exists($name, $_SERVER);
+		$serverValue = $_SERVER[$name] ?? null;
+
+		if ($value === null) {
+			putenv($name);
+			unset($_ENV[$name], $_SERVER[$name]);
+		} else {
+			putenv($name . '=' . $value);
+			$_ENV[$name] = $value;
+			$_SERVER[$name] = $value;
+		}
+
+		try {
+			return $callback();
+		} finally {
+			if ($previous === false) {
+				putenv($name);
+			} else {
+				putenv($name . '=' . $previous);
+			}
+
+			if ($hadEnv) {
+				$_ENV[$name] = $envValue;
+			} else {
+				unset($_ENV[$name]);
+			}
+
+			if ($hadServer) {
+				$_SERVER[$name] = $serverValue;
+			} else {
+				unset($_SERVER[$name]);
+			}
+		}
+	}
+
 	public static function createTestDb(): void
 	{
 		$dbfile = self::getDbFile();

@@ -8,7 +8,7 @@ This page summarizes the main public types that application code works with dire
 
 ## `Duon\Quma\Connection`
 
-Stores DSN, SQL directory, migration, placeholder, delimiter, PDO, cache, and debug-printing configuration.
+Stores DSN, SQL directory, migration, placeholder, delimiter, PDO, and cache configuration.
 
 ### Constructor
 
@@ -32,7 +32,6 @@ new Connection(string $dsn, string|array $sql)
 - `cache(string $cacheDir): static` sets the `.tpql` query template cache directory
 - `noCache(): static` clears the query template cache directory
 - `addSql(array|string $sql): static` prepends SQL directories
-- `print(bool $print): static` enables query printing for later `Database` instances
 
 See [Connection reference](connection.md) for all accessors and configuration formats.
 
@@ -73,7 +72,6 @@ new Database(Connection $conn)
 - `getFetchMode(): int` returns the configured default fetch mode
 - `getPdoDriver(): string` returns the active PDO driver name
 - `getSqlDirs(): array` returns the resolved SQL directory list
-- `print(bool $print = false): bool` gets or sets debug printing
 
 These lifecycle methods are especially useful when you keep one `Database` instance alive in a long-running PHP process and need explicit control over the underlying PDO handle.
 
@@ -133,6 +131,16 @@ Pass a class name or resolver closure as `$map` to hydrate rows into objects. Le
 ### Query result exceptions
 
 - `UnexpectedResultCountException` is thrown by `Query::one()` when the result has zero rows or more than one row.
+
+## Debug environment variables
+
+Quma debug output is controlled through environment variables, not connection code.
+
+- `QUMA_DEBUG_PRINT=1` prints interpolated SQL when a query is created.
+- `QUMA_DEBUG_TRANSLATED=/path/to/dir` writes query and migration files after static placeholder replacement.
+- `QUMA_DEBUG_INTERPOLATED=/path/to/dir` writes runtime SQL after template rendering and parameter interpolation.
+
+Debug directories must already exist and be writable. Keep them outside the public web root and do not commit their contents.
 
 ## Row hydration types
 

@@ -71,6 +71,52 @@ class PlaceholderQueryTest extends TestCase
 		$this->assertSame('Chuck Schuldiner', $result['name']);
 	}
 
+	public function testDebugTranslatedWritesCompiledQueryFile(): void
+	{
+		$dir = $this->createSqlDir();
+		$debugDir = $this->createTempDir('quma-translated-');
+		file_put_contents(
+			$dir . '/music/debug.sql',
+			'SELECT name FROM [::table::] WHERE member = :member;',
+		);
+
+		$db = new Database(
+			new Connection($this->getDsn(), $dir)->placeholders(['all' => ['table' => 'members']]),
+		);
+
+		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, static function () use ($db): void {
+			$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
+		});
+
+		$path = $debugDir . '/sqlite/translated/queries/music/debug.sql';
+		$this->assertFileExists($path);
+		$this->assertSame('SELECT name FROM members WHERE member = :member;', file_get_contents($path));
+	}
+
+	public function testDebugInterpolatedWritesRuntimeQueryFile(): void
+	{
+		$dir = $this->createSqlDir();
+		$debugDir = $this->createTempDir('quma-interpolated-');
+		file_put_contents(
+			$dir . '/music/debug.sql',
+			'SELECT name FROM members WHERE member = :member;',
+		);
+
+		$db = new Database(new Connection($this->getDsn(), $dir));
+
+		$this->withEnv('QUMA_DEBUG_INTERPOLATED', $debugDir, static function () use ($db): void {
+			$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
+		});
+
+		$files = glob($debugDir . '/sqlite/interpolated/music/debug-*.sql');
+		$this->assertIsArray($files);
+		$this->assertCount(1, $files);
+		$this->assertStringContainsString(
+			'SELECT name FROM members WHERE member = 1;',
+			(string) file_get_contents($files[0]),
+		);
+	}
+
 	public function testSqlFilesAreCompiledOncePerDatabaseInstance(): void
 	{
 		$dir = $this->createSqlDir();

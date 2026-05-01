@@ -75,7 +75,7 @@ Quma maps directories to properties and files to methods:
 - PHP-powered SQL templates via `.tpql` files
 - multiple SQL directories with driver-specific overrides
 - migration commands for `.sql`, `.tpql`, and `.php` migrations
-- optional query printing for debugging
+- environment-controlled debug output for translated and interpolated SQL
 
 ## Documentation
 

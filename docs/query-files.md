@@ -77,7 +77,7 @@ Static placeholders are raw SQL text. Quma does not quote or escape them. Use th
 
 Static placeholder names must match `[A-Za-z_][A-Za-z0-9_.:-]*`, so names such as `prefix`, `schema.name`, `tenant-prefix`, and `cms:prefix` are valid. Unknown or malformed static placeholders throw an exception that includes the source file, line, column, and active driver.
 
-Quma substitutes static placeholders when a file is first loaded by a `Database` instance and caches the compiled source for that instance. Direct SQL passed to `Database::execute()` is not processed. For hot `.tpql` query files, you can also configure a persistent template cache with `Connection::cache()`. The persistent cache key includes the configured delimiters.
+Quma substitutes static placeholders when a file is first loaded by a `Database` instance and caches the compiled source for that instance. Direct SQL passed to `Database::execute()` is not processed. Set `QUMA_DEBUG_TRANSLATED` to a writable directory to materialize translated query files for debugging. For hot `.tpql` query files, you can also configure a persistent template cache with `Connection::cache()`. The persistent cache key includes the configured delimiters.
 
 ## Configure SQL directories
 
