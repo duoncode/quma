@@ -15,6 +15,44 @@ final class Debug
 
 	private static int $counter = 0;
 
+	public static function query(Database $db, string $query, Args $args, ?string $sourcePath): void
+	{
+		$print = self::prints();
+		$writeInterpolated = self::writesInterpolated();
+
+		if (!$print && !$writeInterpolated) {
+			return;
+		}
+
+		$interpolated = self::interpolate($query, $args);
+
+		if ($print) {
+			self::printQuery($interpolated);
+		}
+
+		if ($writeInterpolated) {
+			self::writeInterpolated(
+				$db->getPdoDriver(),
+				$sourcePath,
+				$db->getSqlDirs(),
+				$interpolated,
+			);
+		}
+	}
+
+	public static function interpolate(string $query, Args $args): string
+	{
+		$prep = self::prepareQuery($query);
+
+		if ($args->type() === ArgType::Named) {
+			$interpolated = self::interpolateNamed($prep->query, $args->getNamed());
+		} else {
+			$interpolated = self::interpolatePositional($prep->query, $args->get());
+		}
+
+		return self::restoreQuery($interpolated, $prep);
+	}
+
 	public static function prints(): bool
 	{
 		$value = self::env(self::ENV_PRINT);
@@ -94,6 +132,124 @@ final class Debug
 			self::interpolatedPath($sourcePath, $roots, $source),
 			$source,
 		);
+	}
+
+	private static function printQuery(string $query): void
+	{
+		$msg =
+			"\n\n-----------------------------------------------\n\n"
+			. $query
+			. "\n------------------------------------------------\n";
+
+		if (($_SERVER['SERVER_SOFTWARE'] ?? null) !== null) {
+			// @codeCoverageIgnoreStart
+			error_log($msg);
+
+			// @codeCoverageIgnoreEnd
+		} else {
+			echo $msg;
+		}
+	}
+
+	private static function value(mixed $value): string
+	{
+		if (is_string($value)) {
+			return "'" . $value . "'";
+		}
+
+		if (is_array($value)) {
+			$encoded = json_encode($value);
+
+			return "'" . ($encoded !== false ? $encoded : '[]') . "'";
+		}
+
+		if (is_null($value)) {
+			return 'NULL';
+		}
+
+		if (is_bool($value)) {
+			return $value ? 'true' : 'false';
+		}
+
+		return (string) $value;
+	}
+
+	private static function prepareQuery(string $query): PreparedQuery
+	{
+		$patterns = [
+			Query::PATTERN_BLOCK,
+			Query::PATTERN_STRING,
+			Query::PATTERN_COMMENT_MULTI,
+			Query::PATTERN_COMMENT_SINGLE,
+		];
+
+		$swaps = [];
+		$i = 0;
+
+		do {
+			$found = false;
+
+			foreach ($patterns as $pattern) {
+				$matches = [];
+
+				if (preg_match($pattern, $query, $matches) === 1) {
+					$match = $matches[0];
+					$replacement = "___CHUCK_REPLACE_{$i}___";
+					assert($match !== '', 'Query placeholder match must not be empty.');
+					$swaps[$replacement] = $match;
+
+					$query = preg_replace($pattern, $replacement, $query, limit: 1) ?? $query;
+					$found = true;
+					$i++;
+
+					break;
+				}
+			}
+		} while ($found);
+
+		return new PreparedQuery($query, $swaps);
+	}
+
+	private static function restoreQuery(string $query, PreparedQuery $prep): string
+	{
+		foreach ($prep->swaps as $swap => $replacement) {
+			$query = str_replace($swap, $replacement, $query);
+		}
+
+		return $query;
+	}
+
+	/** @param array<array-key, mixed> $args */
+	private static function interpolateNamed(string $query, array $args): string
+	{
+		$map = [];
+
+		array_walk(
+			$args,
+			static function (mixed $value, int|string $key) use (&$map): void {
+				if (is_string($key) && $key !== '') {
+					$map[':' . $key] = self::value($value);
+				}
+			},
+		);
+
+		return strtr($query, $map);
+	}
+
+	/** @param array<array-key, mixed> $args */
+	private static function interpolatePositional(string $query, array $args): string
+	{
+		$result = $query;
+
+		array_walk(
+			$args,
+			static function (mixed $value) use (&$result): void {
+				$replaced = preg_replace('/\\?/', self::value($value), $result, 1);
+				$result = $replaced ?? $result;
+			},
+		);
+
+		return $result;
 	}
 
 	private static function env(string $name): ?string
