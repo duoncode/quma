@@ -71,7 +71,7 @@ class PlaceholderQueryTest extends TestCase
 		$this->assertSame('Chuck Schuldiner', $result['name']);
 	}
 
-	public function testDebugTranslatedWritesCompiledQueryFile(): void
+	public function testDebugTranslatedWritesRuntimeQueryFile(): void
 	{
 		$dir = $this->createSqlDir();
 		$debugDir = $this->createTempDir('quma-translated-');
@@ -88,9 +88,54 @@ class PlaceholderQueryTest extends TestCase
 			$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
 		});
 
-		$path = $debugDir . '/queries/music/debug.sql';
-		$this->assertFileExists($path);
-		$this->assertSame('SELECT name FROM members WHERE member = :member;', file_get_contents($path));
+		$files = glob($debugDir . '/*/????--music--debug.sql');
+		$this->assertIsArray($files);
+		$this->assertCount(1, $files);
+		$this->assertMatchesRegularExpression(
+			'/\/\d{8}-\d{6}-\d{6}\/\d{4}--music--debug\.sql$/',
+			$files[0],
+		);
+		$this->assertSame(
+			'SELECT name FROM members WHERE member = :member;',
+			file_get_contents($files[0]),
+		);
+	}
+
+	public function testDebugTranslatedWritesRenderedTemplatePerInvocation(): void
+	{
+		$dir = $this->createSqlDir();
+		$debugDir = $this->createTempDir('quma-translated-');
+		file_put_contents(
+			$dir . '/music/dynamic.tpql',
+			<<<'TPQL'
+				SELECT name
+				FROM members
+				WHERE member = :member
+				<?php if (($joinedAfter ?? null) !== null) : ?>
+				AND joined > :joinedAfter
+				<?php endif ?>
+				TPQL,
+		);
+
+		$db = new Database(new Connection($this->getDsn(), $dir));
+
+		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, static function () use ($db): void {
+			$db->music->dynamic(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
+			$db->music->dynamic(['member' => 1, 'joinedAfter' => 1980])->one(fetchMode: PDO::FETCH_ASSOC);
+		});
+
+		$files = glob($debugDir . '/*/????--music--dynamic.sql');
+		$this->assertIsArray($files);
+		sort($files);
+		$this->assertCount(2, $files);
+		$this->assertStringNotContainsString(
+			'AND joined > :joinedAfter',
+			(string) file_get_contents($files[0]),
+		);
+		$this->assertStringContainsString(
+			'AND joined > :joinedAfter',
+			(string) file_get_contents($files[1]),
+		);
 	}
 
 	public function testDebugInterpolatedWritesRuntimeQueryFile(): void

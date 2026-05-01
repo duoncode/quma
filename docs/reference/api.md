@@ -137,7 +137,7 @@ Pass a class name or resolver closure as `$map` to hydrate rows into objects. Le
 Quma debug output is controlled through environment variables, not connection code.
 
 - `QUMA_DEBUG_PRINT=1` prints interpolated SQL when a query is created.
-- `QUMA_DEBUG_TRANSLATED=/path/to/dir` writes query and migration files after static placeholder replacement.
+- `QUMA_DEBUG_TRANSLATED=/path/to/dir` writes runtime SQL before parameter interpolation. For `.tpql` files, this is after template rendering with the current input.
 - `QUMA_DEBUG_INTERPOLATED=/path/to/dir` writes runtime SQL after template rendering and parameter interpolation.
 
 Debug directories must already exist and be writable. Keep them outside the public web root and do not commit their contents.

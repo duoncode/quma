@@ -8,7 +8,6 @@ use Duon\Cli\Command;
 use Duon\Cli\Opts;
 use Duon\Quma\Connection;
 use Duon\Quma\Database;
-use Duon\Quma\Debug;
 use Duon\Quma\Environment;
 use Duon\Quma\MigrationInterface;
 use Override;
@@ -419,15 +418,10 @@ final class Migrations extends Command
 		string $migration,
 		string $script,
 		bool $showStacktrace,
-		bool $writeTranslated = true,
 	): string {
 		try {
 			$db = $this->env->db;
 			$script = $this->env->conn->applyPlaceholders($script, $migration);
-
-			if ($writeTranslated) {
-				Debug::writeTranslatedMigration($namespace, $migration, $script);
-			}
 
 			if (trim($script) === '') {
 				$this->showEmptyMessage($migration);
@@ -482,7 +476,6 @@ final class Migrations extends Command
 			}
 
 			$template = $conn->applyPlaceholders($template, $migration, true);
-			Debug::writeTranslatedMigration($namespace, $migration, $template);
 			$templatePath = $this->writeTemplateCache($template);
 
 			ob_start();
@@ -507,7 +500,7 @@ final class Migrations extends Command
 
 			$conn->assertNoTemplatePlaceholders($script, $migration);
 
-			return $this->migrateSQL($namespace, $migration, $script, $showStacktrace, false);
+			return $this->migrateSQL($namespace, $migration, $script, $showStacktrace);
 		} catch (Throwable $e) {
 			$this->showMessage($migration, $e, $showStacktrace);
 

@@ -20,7 +20,20 @@ final class Debug
 	public static function query(Database $db, string $query, Args $args, ?string $sourcePath): void
 	{
 		$print = self::prints();
+		$writeTranslated = self::writesTranslated();
 		$writeInterpolated = self::writesInterpolated();
+
+		if (!$print && !$writeTranslated && !$writeInterpolated) {
+			return;
+		}
+
+		$path = $writeTranslated || $writeInterpolated
+			? self::sessionPath($sourcePath, $db->getSqlDirs())
+			: null;
+
+		if ($writeTranslated) {
+			self::writeEnv(self::ENV_TRANSLATED, $path, $query);
+		}
 
 		if (!$print && !$writeInterpolated) {
 			return;
@@ -33,7 +46,7 @@ final class Debug
 		}
 
 		if ($writeInterpolated) {
-			self::writeInterpolated($sourcePath, $db->getSqlDirs(), $interpolated);
+			self::writeEnv(self::ENV_INTERPOLATED, $path, $interpolated);
 		}
 	}
 
@@ -61,65 +74,14 @@ final class Debug
 		return !in_array(strtolower($value), ['0', 'false', 'no', 'off'], true);
 	}
 
+	public static function writesTranslated(): bool
+	{
+		return self::env(self::ENV_TRANSLATED) !== null;
+	}
+
 	public static function writesInterpolated(): bool
 	{
 		return self::env(self::ENV_INTERPOLATED) !== null;
-	}
-
-	/** @param array<array-key, mixed> $roots */
-	public static function writeTranslatedQuery(
-		string $sourcePath,
-		array $roots,
-		string $source,
-	): void {
-		$dir = self::dir(self::ENV_TRANSLATED);
-
-		if ($dir === null) {
-			return;
-		}
-
-		self::write(
-			$dir,
-			'queries' . DIRECTORY_SEPARATOR . self::relativeToRoots($sourcePath, $roots),
-			$source,
-		);
-	}
-
-	public static function writeTranslatedMigration(
-		string $namespace,
-		string $sourcePath,
-		string $source,
-	): void {
-		$dir = self::dir(self::ENV_TRANSLATED);
-
-		if ($dir === null) {
-			return;
-		}
-
-		self::write(
-			$dir,
-			'migrations' . DIRECTORY_SEPARATOR . $namespace . DIRECTORY_SEPARATOR . basename($sourcePath),
-			$source,
-		);
-	}
-
-	/** @param array<array-key, mixed> $roots */
-	public static function writeInterpolated(
-		?string $sourcePath,
-		array $roots,
-		string $source,
-	): void {
-		$dir = self::dir(self::ENV_INTERPOLATED);
-
-		if ($dir === null) {
-			return;
-		}
-
-		self::write(
-			$dir,
-			self::interpolatedPath($sourcePath, $roots),
-			$source,
-		);
 	}
 
 	private static function printQuery(string $query): void
@@ -283,6 +245,21 @@ final class Debug
 		return $path;
 	}
 
+	private static function writeEnv(string $name, ?string $relative, string $source): void
+	{
+		if ($relative === null) {
+			return;
+		}
+
+		$dir = self::dir($name);
+
+		if ($dir === null) {
+			return;
+		}
+
+		self::write($dir, $relative, $source);
+	}
+
 	private static function write(
 		string $dir,
 		string $relative,
@@ -326,21 +303,29 @@ final class Debug
 	}
 
 	/** @param array<array-key, mixed> $roots */
-	private static function interpolatedPath(?string $sourcePath, array $roots): string
+	private static function sessionPath(?string $sourcePath, array $roots): string
 	{
-		$session = self::session();
-		$counter = self::counter();
+		return self::session()
+		. DIRECTORY_SEPARATOR
+		. self::counter()
+		. '--'
+		. self::sourceName($sourcePath, $roots);
+	}
 
+	/** @param array<array-key, mixed> $roots */
+	private static function sourceName(?string $sourcePath, array $roots): string
+	{
 		if ($sourcePath === null) {
-			return (
-				'execute' . DIRECTORY_SEPARATOR . $session . DIRECTORY_SEPARATOR . $counter . '--execute.sql'
-			);
+			return 'execute.sql';
 		}
 
 		$relative = self::relativeToRoots($sourcePath, $roots);
-		$name = preg_replace('/[\\/]+/', '--', $relative) ?? 'query.sql';
+		$dir = dirname($relative);
+		$name = pathinfo($relative, PATHINFO_FILENAME);
+		$name = $name !== '' ? $name : 'query';
+		$path = ($dir === '.' ? '' : $dir . DIRECTORY_SEPARATOR) . $name . '.sql';
 
-		return $session . DIRECTORY_SEPARATOR . $counter . '--' . $name;
+		return preg_replace('/[\\/]+/', '--', $path) ?? 'query.sql';
 	}
 
 	private static function session(): string
