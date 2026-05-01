@@ -186,6 +186,31 @@ class DatabaseTest extends TestCase
 		$this->assertStringContainsString('SELECT name FROM members WHERE member = 1', $output);
 	}
 
+	public function testDebugCanBeToggledOnDatabase(): void
+	{
+		$db = $this->getDb();
+
+		$this->assertSame($db, $db->debug(true));
+		$this->assertTrue($db->debugging());
+		$this->assertSame($db, $db->debug(false));
+		$this->assertFalse($db->debugging());
+	}
+
+	public function testDebugReadsEnvironmentLazily(): void
+	{
+		$disabled = $this->getDb();
+		$this->withEnv('QUMA_DEBUG', '0', function () use ($disabled): void {
+			$this->withEnv('QUMA_DEBUG_PRINT', '1', function () use ($disabled): void {
+				$this->assertFalse($disabled->debugging());
+			});
+		});
+
+		$enabled = $this->getDb();
+		$this->withEnv('QUMA_DEBUG', '1', function () use ($enabled): void {
+			$this->assertTrue($enabled->debugging());
+		});
+	}
+
 	public function testPdoQuote(): void
 	{
 		$db = $this->getDb();
@@ -420,7 +445,7 @@ class DatabaseTest extends TestCase
 
 	public function testQueryPrintingNamedParameters(): void
 	{
-		$db = $this->getDb();
+		$db = $this->getDb()->debug(true);
 		$result = null;
 		$output = '';
 
@@ -450,7 +475,7 @@ class DatabaseTest extends TestCase
 
 	public function testQueryPrintingPositionalParameters(): void
 	{
-		$db = $this->getDb();
+		$db = $this->getDb()->debug(true);
 		$result = null;
 		$output = '';
 

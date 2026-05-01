@@ -16,7 +16,7 @@ class Database
 	protected ?PDO $pdo = null;
 	protected ?int $connectedAt = null;
 	protected ?int $lastUsedAt = null;
-
+	protected ?bool $debug = null;
 	/** @var array<string, LoadedScript> */
 	protected array $compiledScripts = [];
 
@@ -53,6 +53,18 @@ class Database
 	public function connected(): bool
 	{
 		return $this->pdo !== null;
+	}
+
+	public function debug(bool $debug): static
+	{
+		$this->debug = $debug;
+
+		return $this;
+	}
+
+	public function debugging(): bool
+	{
+		return $this->debug ??= Debug::enabled();
 	}
 
 	public function getPdoDriver(): string

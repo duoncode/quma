@@ -82,7 +82,7 @@ class PlaceholderQueryTest extends TestCase
 
 		$db = new Database(
 			new Connection($this->getDsn(), $dir)->placeholders(['all' => ['table' => 'members']]),
-		);
+		)->debug(true);
 
 		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, static function () use ($db): void {
 			$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
@@ -117,7 +117,7 @@ class PlaceholderQueryTest extends TestCase
 				TPQL,
 		);
 
-		$db = new Database(new Connection($this->getDsn(), $dir));
+		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
 
 		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, static function () use ($db): void {
 			$db->music->dynamic(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
@@ -147,7 +147,7 @@ class PlaceholderQueryTest extends TestCase
 			'SELECT name FROM members WHERE member = :member;',
 		);
 
-		$db = new Database(new Connection($this->getDsn(), $dir));
+		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
 
 		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, function () use ($db): void {
 			$this->withServer(
@@ -189,7 +189,7 @@ class PlaceholderQueryTest extends TestCase
 			'SELECT name FROM members WHERE member = :member;',
 		);
 
-		$db = new Database(new Connection($this->getDsn(), $dir));
+		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
 
 		$this->withEnv('QUMA_DEBUG_INTERPOLATED', $debugDir, static function () use ($db): void {
 			$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);

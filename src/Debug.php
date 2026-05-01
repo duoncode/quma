@@ -10,6 +10,7 @@ use RuntimeException;
 /** @internal */
 final class Debug
 {
+	public const string ENV_DEBUG = 'QUMA_DEBUG';
 	public const string ENV_PRINT = 'QUMA_DEBUG_PRINT';
 	public const string ENV_TRANSLATED = 'QUMA_DEBUG_TRANSLATED';
 	public const string ENV_INTERPOLATED = 'QUMA_DEBUG_INTERPOLATED';
@@ -65,15 +66,22 @@ final class Debug
 		return self::restoreQuery($interpolated, $prep);
 	}
 
+	public static function enabled(): bool
+	{
+		$value = self::env(self::ENV_DEBUG);
+
+		if ($value !== null) {
+			return self::flag($value);
+		}
+
+		return self::prints() || self::writesTranslated() || self::writesInterpolated();
+	}
+
 	public static function prints(): bool
 	{
 		$value = self::env(self::ENV_PRINT);
 
-		if ($value === null) {
-			return false;
-		}
-
-		return !in_array(strtolower($value), ['0', 'false', 'no', 'off'], true);
+		return $value !== null && self::flag($value);
 	}
 
 	public static function writesTranslated(): bool
@@ -202,6 +210,11 @@ final class Debug
 		);
 
 		return $result;
+	}
+
+	private static function flag(string $value): bool
+	{
+		return !in_array(strtolower($value), ['0', 'false', 'no', 'off'], true);
 	}
 
 	private static function env(string $name): ?string
