@@ -80,7 +80,7 @@ class Database
 		}
 
 		$compiled = $this->conn->applyPlaceholders($source, $path, $isTemplate);
-		Debug::writeTranslatedQuery($this->conn->driver(), $path, $this->conn->sql(), $compiled);
+		Debug::writeTranslatedQuery($path, $this->conn->sql(), $compiled);
 		$cachePath = $isTemplate ? $this->cacheTemplate($path, $compiled) : null;
 		$script = new LoadedScript($compiled, $path, $cachePath);
 		$this->compiledScripts[$key] = $script;

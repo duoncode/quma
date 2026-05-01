@@ -88,7 +88,7 @@ class PlaceholderQueryTest extends TestCase
 			$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
 		});
 
-		$path = $debugDir . '/sqlite/translated/queries/music/debug.sql';
+		$path = $debugDir . '/queries/music/debug.sql';
 		$this->assertFileExists($path);
 		$this->assertSame('SELECT name FROM members WHERE member = :member;', file_get_contents($path));
 	}
@@ -108,7 +108,7 @@ class PlaceholderQueryTest extends TestCase
 			$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
 		});
 
-		$files = glob($debugDir . '/sqlite/interpolated/*/????--music--debug.sql');
+		$files = glob($debugDir . '/*/????--music--debug.sql');
 		$this->assertIsArray($files);
 		$this->assertCount(1, $files);
 		$this->assertMatchesRegularExpression(

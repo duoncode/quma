@@ -33,12 +33,7 @@ final class Debug
 		}
 
 		if ($writeInterpolated) {
-			self::writeInterpolated(
-				$db->getPdoDriver(),
-				$sourcePath,
-				$db->getSqlDirs(),
-				$interpolated,
-			);
+			self::writeInterpolated($sourcePath, $db->getSqlDirs(), $interpolated);
 		}
 	}
 
@@ -73,7 +68,6 @@ final class Debug
 
 	/** @param array<array-key, mixed> $roots */
 	public static function writeTranslatedQuery(
-		string $driver,
 		string $sourcePath,
 		array $roots,
 		string $source,
@@ -86,15 +80,12 @@ final class Debug
 
 		self::write(
 			$dir,
-			$driver,
-			'translated',
 			'queries' . DIRECTORY_SEPARATOR . self::relativeToRoots($sourcePath, $roots),
 			$source,
 		);
 	}
 
 	public static function writeTranslatedMigration(
-		string $driver,
 		string $namespace,
 		string $sourcePath,
 		string $source,
@@ -107,8 +98,6 @@ final class Debug
 
 		self::write(
 			$dir,
-			$driver,
-			'translated',
 			'migrations' . DIRECTORY_SEPARATOR . $namespace . DIRECTORY_SEPARATOR . basename($sourcePath),
 			$source,
 		);
@@ -116,7 +105,6 @@ final class Debug
 
 	/** @param array<array-key, mixed> $roots */
 	public static function writeInterpolated(
-		string $driver,
 		?string $sourcePath,
 		array $roots,
 		string $source,
@@ -129,8 +117,6 @@ final class Debug
 
 		self::write(
 			$dir,
-			$driver,
-			'interpolated',
 			self::interpolatedPath($sourcePath, $roots),
 			$source,
 		);
@@ -299,19 +285,10 @@ final class Debug
 
 	private static function write(
 		string $dir,
-		string $driver,
-		string $group,
 		string $relative,
 		string $source,
 	): void {
-		$path =
-			$dir
-			. DIRECTORY_SEPARATOR
-			. self::safeSegment($driver)
-			. DIRECTORY_SEPARATOR
-			. $group
-			. DIRECTORY_SEPARATOR
-			. self::safeRelativePath($relative);
+		$path = $dir . DIRECTORY_SEPARATOR . self::safeRelativePath($relative);
 		$targetDir = dirname($path);
 
 		if (!is_dir($targetDir) && !mkdir($targetDir, 0o775, true) && !is_dir($targetDir)) {

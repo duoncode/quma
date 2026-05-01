@@ -256,6 +256,6 @@ QUMA_DEBUG_INTERPOLATED=/tmp/quma/interpolated php app.php
 - `QUMA_DEBUG_TRANSLATED` writes `.sql` and `.tpql` query and migration files after static placeholder replacement.
 - `QUMA_DEBUG_INTERPOLATED` writes runtime SQL after template rendering and parameter interpolation.
 
-Debug directories must already exist and be writable. Translated files are written below `<dir>/<driver>/translated/...`; interpolated files are written below `<dir>/<driver>/interpolated/<session>/0001--...`. The session directory includes microseconds and the four-digit counter preserves query order inside the session.
+Debug directories must already exist and be writable. Translated files are written below `<dir>/queries/...` and `<dir>/migrations/...`; interpolated files are written below `<dir>/<session>/0001--...`. Add driver or output-type directories to the environment variable value if you want them. The session directory includes microseconds and the four-digit counter preserves query order inside the session.
 
 Interpolated SQL can contain secrets or user data. Use these options only for local debugging, keep the directories outside the public web root, and do not commit their contents. Parameter interpolation is a best-effort debug representation; PDO still executes prepared statements with bound parameters.

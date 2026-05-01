@@ -426,7 +426,7 @@ final class Migrations extends Command
 			$script = $this->env->conn->applyPlaceholders($script, $migration);
 
 			if ($writeTranslated) {
-				Debug::writeTranslatedMigration($this->env->driver, $namespace, $migration, $script);
+				Debug::writeTranslatedMigration($namespace, $migration, $script);
 			}
 
 			if (trim($script) === '') {
@@ -482,7 +482,7 @@ final class Migrations extends Command
 			}
 
 			$template = $conn->applyPlaceholders($template, $migration, true);
-			Debug::writeTranslatedMigration($this->env->driver, $namespace, $migration, $template);
+			Debug::writeTranslatedMigration($namespace, $migration, $template);
 			$templatePath = $this->writeTemplateCache($template);
 
 			ob_start();
