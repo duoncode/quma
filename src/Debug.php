@@ -14,7 +14,9 @@ final class Debug
 	public const string ENV_TRANSLATED = 'QUMA_DEBUG_TRANSLATED';
 	public const string ENV_INTERPOLATED = 'QUMA_DEBUG_INTERPOLATED';
 
-	private static ?string $time = null;
+	private static ?string $sessionKey = null;
+	private static ?string $session = null;
+	private static ?string $fallbackTime = null;
 	private static int $counter = 0;
 
 	public static function query(Database $db, string $query, Args $args, ?string $sourcePath): void
@@ -330,7 +332,110 @@ final class Debug
 
 	private static function session(): string
 	{
-		return self::$time ??= new DateTimeImmutable()->format('Ymd-His-u');
+		[$key, $session] = self::sessionInfo();
+
+		if (self::$sessionKey !== $key) {
+			self::$sessionKey = $key;
+			self::$session = $session;
+			self::$counter = 0;
+		}
+
+		return self::$session ?? $session;
+	}
+
+	/** @return array{0: string, 1: string} */
+	private static function sessionInfo(): array
+	{
+		$explicit = self::env('QUMA_DEBUG_SESSION');
+
+		if ($explicit !== null) {
+			return ['env:' . $explicit, self::sessionLabel($explicit)];
+		}
+
+		$method = self::server('REQUEST_METHOD');
+		$requestUri = self::server('REQUEST_URI');
+
+		if ($method !== null || $requestUri !== null) {
+			$method = strtoupper($method ?? 'HTTP');
+			$uri = $requestUri ?? self::server('SCRIPT_NAME') ?? self::server('PHP_SELF') ?? '/';
+			$time = self::requestTime();
+			$label = self::uriLabel($uri);
+			$hash = self::hash([$time, $method, $uri, (string) getmypid()]);
+
+			return ["http:{$time}:{$method}:{$uri}", "{$time}--{$method}--{$label}--{$hash}"];
+		}
+
+		$time = self::requestTime();
+		$hash = self::hash([$time, (string) getmypid(), self::argv()]);
+
+		return ["cli:{$time}", "{$time}--cli--{$hash}"];
+	}
+
+	private static function requestTime(): string
+	{
+		$time = self::server('REQUEST_TIME_FLOAT');
+
+		if ($time !== null && is_numeric($time)) {
+			$date = DateTimeImmutable::createFromFormat('U.u', sprintf('%.6F', (float) $time));
+
+			if ($date instanceof DateTimeImmutable) {
+				return $date->format('Ymd-His-u');
+			}
+		}
+
+		$time = self::server('REQUEST_TIME');
+
+		if ($time !== null && ctype_digit($time)) {
+			return new DateTimeImmutable('@' . $time)->format('Ymd-His') . '-000000';
+		}
+
+		return self::$fallbackTime ??= new DateTimeImmutable()->format('Ymd-His-u');
+	}
+
+	private static function argv(): string
+	{
+		return implode(' ', $_SERVER['argv'] ?? []);
+	}
+
+	private static function sessionLabel(string $value): string
+	{
+		$label = self::safeSegment($value);
+
+		return strlen($label) <= 96 ? $label : substr($label, 0, 96);
+	}
+
+	private static function uriLabel(string $uri): string
+	{
+		$path = parse_url($uri, PHP_URL_PATH);
+		$path = is_string($path) && $path !== '' ? $path : '/';
+		$label = trim($path, '/');
+
+		if ($label === '') {
+			return 'root';
+		}
+
+		$label = preg_replace('/[^A-Za-z0-9._:-]+/', '-', $label) ?? 'request';
+		$label = trim($label, '-.');
+		$label = $label !== '' ? $label : 'request';
+
+		return strlen($label) <= 64 ? $label : substr($label, 0, 64);
+	}
+
+	/** @param list<string> $parts */
+	private static function hash(array $parts): string
+	{
+		return substr(hash('xxh128', implode("\0", $parts)), 0, 8);
+	}
+
+	private static function server(string $name): ?string
+	{
+		$value = $_SERVER[$name] ?? null;
+
+		if (is_float($value) || is_int($value)) {
+			return (string) $value;
+		}
+
+		return is_string($value) && $value !== '' ? $value : null;
 	}
 
 	private static function counter(): string

@@ -152,6 +152,40 @@ class TestCase extends BaseTestCase
 		}
 	}
 
+	/**
+	 * @template T
+	 *
+	 * @param array<string, string|int|float|null> $values
+	 * @param callable(): T $callback
+	 * @return T
+	 */
+	protected function withServer(array $values, callable $callback): mixed
+	{
+		$previous = [];
+
+		foreach ($values as $name => $value) {
+			$previous[$name] = array_key_exists($name, $_SERVER) ? $_SERVER[$name] : null;
+
+			if ($value === null) {
+				unset($_SERVER[$name]);
+			} else {
+				$_SERVER[$name] = $value;
+			}
+		}
+
+		try {
+			return $callback();
+		} finally {
+			foreach ($previous as $name => $value) {
+				if ($value === null) {
+					unset($_SERVER[$name]);
+				} else {
+					$_SERVER[$name] = $value;
+				}
+			}
+		}
+	}
+
 	public static function createTestDb(): void
 	{
 		$dbfile = self::getDbFile();

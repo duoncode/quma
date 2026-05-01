@@ -92,7 +92,7 @@ class PlaceholderQueryTest extends TestCase
 		$this->assertIsArray($files);
 		$this->assertCount(1, $files);
 		$this->assertMatchesRegularExpression(
-			'/\/\d{8}-\d{6}-\d{6}\/\d{4}--music--debug\.sql$/',
+			'/\/\d{8}-\d{6}-\d{6}--cli--[a-f0-9]{8}\/\d{4}--music--debug\.sql$/',
 			$files[0],
 		);
 		$this->assertSame(
@@ -138,6 +138,48 @@ class PlaceholderQueryTest extends TestCase
 		);
 	}
 
+	public function testDebugSessionUsesHttpRequestInfo(): void
+	{
+		$dir = $this->createSqlDir();
+		$debugDir = $this->createTempDir('quma-http-debug-');
+		file_put_contents(
+			$dir . '/music/debug.sql',
+			'SELECT name FROM members WHERE member = :member;',
+		);
+
+		$db = new Database(new Connection($this->getDsn(), $dir));
+
+		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, function () use ($db): void {
+			$this->withServer(
+				[
+					'REQUEST_METHOD' => 'GET',
+					'REQUEST_URI' => '/admin/users?token=secret',
+					'REQUEST_TIME_FLOAT' => '1800000000.123456',
+				],
+				static function () use ($db): void {
+					$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
+				},
+			);
+			$this->withServer(
+				[
+					'REQUEST_METHOD' => 'GET',
+					'REQUEST_URI' => '/admin/users?token=secret',
+					'REQUEST_TIME_FLOAT' => '1800000001.654321',
+				],
+				static function () use ($db): void {
+					$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
+				},
+			);
+		});
+
+		$files = glob($debugDir . '/*--GET--admin-users--*/0001--music--debug.sql');
+		$this->assertIsArray($files);
+		sort($files);
+		$this->assertCount(2, $files);
+		$this->assertStringNotContainsString('secret', $files[0]);
+		$this->assertStringNotContainsString('secret', $files[1]);
+	}
+
 	public function testDebugInterpolatedWritesRuntimeQueryFile(): void
 	{
 		$dir = $this->createSqlDir();
@@ -157,7 +199,7 @@ class PlaceholderQueryTest extends TestCase
 		$this->assertIsArray($files);
 		$this->assertCount(1, $files);
 		$this->assertMatchesRegularExpression(
-			'/\/\d{8}-\d{6}-\d{6}\/\d{4}--music--debug\.sql$/',
+			'/\/\d{8}-\d{6}-\d{6}--cli--[a-f0-9]{8}\/\d{4}--music--debug\.sql$/',
 			$files[0],
 		);
 		$this->assertStringContainsString(

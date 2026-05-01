@@ -272,6 +272,6 @@ QUMA_DEBUG_PRINT=1 php app.php
 QUMA_DEBUG_INTERPOLATED=/tmp/quma/interpolated php app.php
 ```
 
-`QUMA_DEBUG_PRINT` prints interpolated SQL when a query is created. `QUMA_DEBUG_TRANSLATED` writes runtime SQL before parameter interpolation, and `QUMA_DEBUG_INTERPOLATED` writes interpolated SQL. Debug files are written below `<dir>/<session>/0001--...`. Add driver or output-type directories to the environment variable value if you want them. The session directory includes microseconds and the four-digit counter preserves query order inside the session.
+`QUMA_DEBUG_PRINT` prints interpolated SQL when a query is created. `QUMA_DEBUG_TRANSLATED` writes runtime SQL before parameter interpolation, and `QUMA_DEBUG_INTERPOLATED` writes interpolated SQL. Debug files are written below `<dir>/<session>/0001--...`. Add driver or output-type directories to the environment variable value if you want them. HTTP sessions include request time, method, a sanitized URI path, and a short hash. CLI sessions include process start time and a short hash. The four-digit counter preserves query order inside the session.
 
 This interpolation is intended for debugging, not for constructing executable SQL. It can contain secrets or user data, so keep output outside the public web root and do not commit it.
