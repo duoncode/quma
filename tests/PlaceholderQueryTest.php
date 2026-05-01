@@ -101,6 +101,43 @@ class PlaceholderQueryTest extends TestCase
 		);
 	}
 
+	public function testDebugTranslatedRejectsMissingDirectory(): void
+	{
+		$dir = $this->createSqlDir();
+		$debugDir = $this->createTempDir('quma-missing-debug-') . '/missing';
+		file_put_contents(
+			$dir . '/music/debug.sql',
+			'SELECT name FROM members WHERE member = :member;',
+		);
+
+		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage(
+			'Quma debug directory does not exist for QUMA_DEBUG_TRANSLATED: ' . $debugDir,
+		);
+
+		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, static function () use ($db): void {
+			$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
+		});
+	}
+
+	public function testDebugWithoutOutputChannelsIsNoOp(): void
+	{
+		$db = $this->getDb()->debug(true);
+
+		$this->withEnv('QUMA_DEBUG_PRINT', null, function () use ($db): void {
+			$this->withEnv('QUMA_DEBUG_TRANSLATED', null, function () use ($db): void {
+				$this->withEnv('QUMA_DEBUG_INTERPOLATED', null, static function () use ($db): void {
+					$result = $db->execute('SELECT name FROM members WHERE member = ?', 1)
+						->one(fetchMode: PDO::FETCH_ASSOC);
+
+					self::assertSame('Chuck Schuldiner', $result['name']);
+				});
+			});
+		});
+	}
+
 	public function testDebugTranslatedWritesRenderedTemplatePerInvocation(): void
 	{
 		$dir = $this->createSqlDir();
@@ -178,6 +215,117 @@ class PlaceholderQueryTest extends TestCase
 		$this->assertCount(2, $files);
 		$this->assertStringNotContainsString('secret', $files[0]);
 		$this->assertStringNotContainsString('secret', $files[1]);
+	}
+
+	public function testDebugSessionCanBeOverriddenForAdHocQueries(): void
+	{
+		$debugDir = $this->createTempDir('quma-session-debug-');
+		$db = $this->getDb()->debug(true);
+
+		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, function () use ($db): void {
+			$this->withEnv('QUMA_DEBUG_SESSION', 'manual/session id!', static function () use ($db): void {
+				$db->execute('SELECT name FROM members WHERE member = ?', 1)->one(fetchMode: PDO::FETCH_ASSOC);
+			});
+		});
+
+		$files = glob($debugDir . '/manual_session_id_/????--execute.sql');
+		$this->assertIsArray($files);
+		$this->assertCount(1, $files);
+		$this->assertSame(
+			'SELECT name FROM members WHERE member = ?',
+			file_get_contents($files[0]),
+		);
+	}
+
+	public function testDebugSessionUsesRootHttpRequestInfo(): void
+	{
+		$dir = $this->createSqlDir();
+		$debugDir = $this->createTempDir('quma-root-http-debug-');
+		file_put_contents(
+			$dir . '/music/debug.sql',
+			'SELECT name FROM members WHERE member = :member;',
+		);
+
+		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
+
+		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, function () use ($db): void {
+			$this->withServer(
+				[
+					'REQUEST_METHOD' => 'POST',
+					'REQUEST_URI' => '/',
+					'REQUEST_TIME_FLOAT' => '1800000002.000000',
+				],
+				static function () use ($db): void {
+					$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
+				},
+			);
+		});
+
+		$files = glob($debugDir . '/*--POST--root--*/0001--music--debug.sql');
+		$this->assertIsArray($files);
+		$this->assertCount(1, $files);
+	}
+
+	public function testDebugSessionUsesRequestTimeWhenFloatIsUnavailable(): void
+	{
+		$dir = $this->createSqlDir();
+		$debugDir = $this->createTempDir('quma-request-time-debug-');
+		file_put_contents(
+			$dir . '/music/debug.sql',
+			'SELECT name FROM members WHERE member = :member;',
+		);
+
+		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
+
+		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, function () use ($db): void {
+			$this->withServer(
+				[
+					'REQUEST_METHOD' => 'GET',
+					'REQUEST_URI' => '/legacy',
+					'REQUEST_TIME_FLOAT' => null,
+					'REQUEST_TIME' => 1_800_000_000,
+				],
+				static function () use ($db): void {
+					$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
+				},
+			);
+		});
+
+		$files = glob($debugDir . '/????????-??????-000000--GET--legacy--*/0001--music--debug.sql');
+		$this->assertIsArray($files);
+		$this->assertCount(1, $files);
+	}
+
+	public function testDebugSessionFallsBackToCurrentCliTime(): void
+	{
+		$dir = $this->createSqlDir();
+		$debugDir = $this->createTempDir('quma-cli-time-debug-');
+		file_put_contents(
+			$dir . '/music/debug.sql',
+			'SELECT name FROM members WHERE member = :member;',
+		);
+
+		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
+
+		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, function () use ($db): void {
+			$this->withServer(
+				[
+					'REQUEST_METHOD' => null,
+					'REQUEST_URI' => null,
+					'REQUEST_TIME_FLOAT' => null,
+					'REQUEST_TIME' => null,
+					'SCRIPT_NAME' => null,
+					'PHP_SELF' => null,
+				],
+				static function () use ($db): void {
+					$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
+				},
+			);
+		});
+
+		$files = glob($debugDir . '/????????-??????-??????--cli--*/????--music--debug.sql');
+		$this->assertIsArray($files);
+		$this->assertCount(1, $files);
 	}
 
 	public function testDebugInterpolatedWritesRuntimeQueryFile(): void
