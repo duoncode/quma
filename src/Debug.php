@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Quma;
 
+use DateTimeImmutable;
 use RuntimeException;
 
 /** @internal */
@@ -13,6 +14,7 @@ final class Debug
 	public const string ENV_TRANSLATED = 'QUMA_DEBUG_TRANSLATED';
 	public const string ENV_INTERPOLATED = 'QUMA_DEBUG_INTERPOLATED';
 
+	private static ?string $time = null;
 	private static int $counter = 0;
 
 	public static function query(Database $db, string $query, Args $args, ?string $sourcePath): void
@@ -129,7 +131,7 @@ final class Debug
 			$dir,
 			$driver,
 			'interpolated',
-			self::interpolatedPath($sourcePath, $roots, $source),
+			self::interpolatedPath($sourcePath, $roots),
 			$source,
 		);
 	}
@@ -347,38 +349,33 @@ final class Debug
 	}
 
 	/** @param array<array-key, mixed> $roots */
-	private static function interpolatedPath(?string $sourcePath, array $roots, string $source): string
+	private static function interpolatedPath(?string $sourcePath, array $roots): string
 	{
-		$suffix = self::suffix($source);
+		$session = self::session();
+		$counter = self::counter();
 
 		if ($sourcePath === null) {
-			return 'execute' . DIRECTORY_SEPARATOR . $suffix . '.sql';
+			return (
+				'execute' . DIRECTORY_SEPARATOR . $session . DIRECTORY_SEPARATOR . $counter . '--execute.sql'
+			);
 		}
 
 		$relative = self::relativeToRoots($sourcePath, $roots);
-		$dir = dirname($relative);
-		$name = pathinfo($relative, PATHINFO_FILENAME);
-		$name = $name !== '' ? $name : 'query';
-		$file = $name . '-' . $suffix . '.sql';
+		$name = preg_replace('/[\\/]+/', '--', $relative) ?? 'query.sql';
 
-		return $dir === '.' ? $file : $dir . DIRECTORY_SEPARATOR . $file;
+		return $session . DIRECTORY_SEPARATOR . $counter . '--' . $name;
 	}
 
-	private static function suffix(string $source): string
+	private static function session(): string
+	{
+		return self::$time ??= new DateTimeImmutable()->format('Ymd-His-u');
+	}
+
+	private static function counter(): string
 	{
 		self::$counter++;
-		$pid = getmypid();
-		$pid = is_int($pid) ? (string) $pid : '0';
 
-		return (
-			date('Ymd-His')
-			. '-'
-			. $pid
-			. '-'
-			. self::$counter
-			. '-'
-			. substr(hash('xxh128', $source), 0, 12)
-		);
+		return str_pad((string) self::$counter, 4, '0', STR_PAD_LEFT);
 	}
 
 	private static function safeRelativePath(string $path): string

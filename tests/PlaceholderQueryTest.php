@@ -108,9 +108,13 @@ class PlaceholderQueryTest extends TestCase
 			$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
 		});
 
-		$files = glob($debugDir . '/sqlite/interpolated/music/debug-*.sql');
+		$files = glob($debugDir . '/sqlite/interpolated/*/????--music--debug.sql');
 		$this->assertIsArray($files);
 		$this->assertCount(1, $files);
+		$this->assertMatchesRegularExpression(
+			'/\/\d{8}-\d{6}-\d{6}\/\d{4}--music--debug\.sql$/',
+			$files[0],
+		);
 		$this->assertStringContainsString(
 			'SELECT name FROM members WHERE member = 1;',
 			(string) file_get_contents($files[0]),
