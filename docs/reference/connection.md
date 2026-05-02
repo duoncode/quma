@@ -244,6 +244,12 @@ Quma uses these names when it creates the metadata table, checks applied migrati
 
 ## Debug output
 
+> **⚠ Warning — Development only.** Never enable debug output in production.
+> `QUMA_DEBUG_INTERPOLATED` writes real query data (secrets, credentials,
+> tokens, PII) to disk, and `QUMA_DEBUG_PRINT` prints it to stdout or error
+> log. There is no built-in production guard — the debug system activates
+> solely from environment variables.
+
 Quma debug output is controlled through environment variables instead of connection methods. Set `QUMA_DEBUG` to a true flag value before creating the `Database` instance, then choose one or more output channels.
 
 ```bash
