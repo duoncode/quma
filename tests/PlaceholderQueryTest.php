@@ -80,9 +80,9 @@ class PlaceholderQueryTest extends TestCase
 			'SELECT name FROM [::table::] WHERE member = :member;',
 		);
 
-		$db = new Database(
+		$db = $this->debugDb(
 			new Connection($this->getDsn(), $dir)->placeholders(['all' => ['table' => 'members']]),
-		)->debug(true);
+		);
 
 		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, static function () use ($db): void {
 			$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
@@ -110,7 +110,7 @@ class PlaceholderQueryTest extends TestCase
 			'SELECT name FROM members WHERE member = :member;',
 		);
 
-		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
+		$db = $this->debugDb(new Connection($this->getDsn(), $dir));
 
 		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessage(
@@ -124,7 +124,7 @@ class PlaceholderQueryTest extends TestCase
 
 	public function testDebugWithoutOutputChannelsIsNoOp(): void
 	{
-		$db = $this->getDb()->debug(true);
+		$db = $this->debugDb($this->connection());
 
 		$this->withEnv('QUMA_DEBUG_PRINT', null, function () use ($db): void {
 			$this->withEnv('QUMA_DEBUG_TRANSLATED', null, function () use ($db): void {
@@ -154,7 +154,7 @@ class PlaceholderQueryTest extends TestCase
 				TPQL,
 		);
 
-		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
+		$db = $this->debugDb(new Connection($this->getDsn(), $dir));
 
 		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, static function () use ($db): void {
 			$db->music->dynamic(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
@@ -184,7 +184,7 @@ class PlaceholderQueryTest extends TestCase
 			'SELECT name FROM members WHERE member = :member;',
 		);
 
-		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
+		$db = $this->debugDb(new Connection($this->getDsn(), $dir));
 
 		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, function () use ($db): void {
 			$this->withServer(
@@ -220,7 +220,7 @@ class PlaceholderQueryTest extends TestCase
 	public function testDebugSessionCanBeOverriddenForAdHocQueries(): void
 	{
 		$debugDir = $this->createTempDir('quma-session-debug-');
-		$db = $this->getDb()->debug(true);
+		$db = $this->debugDb($this->connection());
 
 		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, function () use ($db): void {
 			$this->withEnv('QUMA_DEBUG_SESSION', 'manual/session id!', static function () use ($db): void {
@@ -246,7 +246,7 @@ class PlaceholderQueryTest extends TestCase
 			'SELECT name FROM members WHERE member = :member;',
 		);
 
-		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
+		$db = $this->debugDb(new Connection($this->getDsn(), $dir));
 
 		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, function () use ($db): void {
 			$this->withServer(
@@ -275,7 +275,7 @@ class PlaceholderQueryTest extends TestCase
 			'SELECT name FROM members WHERE member = :member;',
 		);
 
-		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
+		$db = $this->debugDb(new Connection($this->getDsn(), $dir));
 
 		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, function () use ($db): void {
 			$this->withServer(
@@ -305,7 +305,7 @@ class PlaceholderQueryTest extends TestCase
 			'SELECT name FROM members WHERE member = :member;',
 		);
 
-		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
+		$db = $this->debugDb(new Connection($this->getDsn(), $dir));
 
 		$this->withEnv('QUMA_DEBUG_TRANSLATED', $debugDir, function () use ($db): void {
 			$this->withServer(
@@ -337,7 +337,7 @@ class PlaceholderQueryTest extends TestCase
 			'SELECT name FROM members WHERE member = :member;',
 		);
 
-		$db = new Database(new Connection($this->getDsn(), $dir))->debug(true);
+		$db = $this->debugDb(new Connection($this->getDsn(), $dir));
 
 		$this->withEnv('QUMA_DEBUG_INTERPOLATED', $debugDir, static function () use ($db): void {
 			$db->music->debug(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
@@ -608,6 +608,11 @@ class PlaceholderQueryTest extends TestCase
 		);
 
 		$db->music->{'bad-custom'}(['member' => 1])->one(fetchMode: PDO::FETCH_ASSOC);
+	}
+
+	private function debugDb(Connection $conn): Database
+	{
+		return $this->withEnv('QUMA_DEBUG', '1', static fn(): Database => new Database($conn));
 	}
 
 	private function createSqlDir(): string

@@ -75,11 +75,7 @@ final class Debug
 	{
 		$value = self::env(self::ENV_DEBUG);
 
-		if ($value !== null) {
-			return self::flag($value);
-		}
-
-		return self::prints() || self::writesTranslated() || self::writesInterpolated();
+		return $value !== null && self::flag($value);
 	}
 
 	public static function prints(): bool
@@ -219,7 +215,10 @@ final class Debug
 
 	private static function flag(string $value): bool
 	{
-		return !in_array(strtolower($value), ['0', 'false', 'no', 'off'], true);
+		return match (strtolower($value)) {
+			'1', 'true', 'yes', 'on' => true,
+			default => false,
+		};
 	}
 
 	private static function env(string $name): ?string

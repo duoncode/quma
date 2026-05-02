@@ -13,16 +13,18 @@ class Database
 {
 	protected const int TEMPLATE_CACHE_VERSION = 1;
 
+	public readonly bool $debug;
 	protected ?PDO $pdo = null;
 	protected ?int $connectedAt = null;
 	protected ?int $lastUsedAt = null;
-	protected ?bool $debug = null;
 	/** @var array<string, LoadedScript> */
 	protected array $compiledScripts = [];
 
 	public function __construct(
 		protected readonly Connection $conn,
-	) {}
+	) {
+		$this->debug = Debug::enabled();
+	}
 
 	public function __get(string $key): Folder
 	{
@@ -53,18 +55,6 @@ class Database
 	public function connected(): bool
 	{
 		return $this->pdo !== null;
-	}
-
-	public function debug(bool $debug): static
-	{
-		$this->debug = $debug;
-
-		return $this;
-	}
-
-	public function debugging(): bool
-	{
-		return $this->debug ??= Debug::enabled();
 	}
 
 	public function getPdoDriver(): string

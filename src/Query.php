@@ -42,7 +42,7 @@ class Query
 			$this->bindArgs($args->get(), $args->type());
 		}
 
-		if ($this->db->debugging()) {
+		if ($this->db->debug) {
 			Debug::query($this->db, $this->query, $this->args, $this->sourcePath);
 		}
 	}

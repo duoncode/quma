@@ -69,13 +69,15 @@ new Database(Connection $conn)
 - `commit(): bool` commits the current transaction
 - `rollback(): bool` rolls back the current transaction
 - `execute(string $query, mixed ...$args): Query` runs ad-hoc SQL through the same query pipeline as file-based queries
-- `debug(bool $debug): static` toggles debug output for this database handle
-- `debugging(): bool` returns whether debug output is enabled for this database handle
 - `getFetchMode(): int` returns the configured default fetch mode
 - `getPdoDriver(): string` returns the active PDO driver name
 - `getSqlDirs(): array` returns the resolved SQL directory list
 
 These lifecycle methods are especially useful when you keep one `Database` instance alive in a long-running PHP process and need explicit control over the underlying PDO handle.
+
+### Properties
+
+- `readonly bool $debug` reports whether debug handling was enabled when this `Database` instance was created
 
 ### Dynamic access
 
@@ -136,11 +138,10 @@ Pass a class name or resolver closure as `$map` to hydrate rows into objects. Le
 
 ## Debug environment variables
 
-Quma debug output is controlled through environment variables, not connection code.
+Quma debug output is controlled through environment variables, not connection code. Set `QUMA_DEBUG` to a true flag value before creating the `Database` instance, then choose one or more output channels.
 
-- `QUMA_DEBUG=1` enables debug handling for new `Database` instances.
-- `QUMA_DEBUG=0` disables debug handling even when other debug variables are set.
-- `QUMA_DEBUG_PRINT=1` prints interpolated SQL when a query is created.
+- `QUMA_DEBUG` enables debug handling for new `Database` instances when set to `1`, `true`, `yes`, or `on` case-insensitively. Any other value disables it.
+- `QUMA_DEBUG_PRINT` prints interpolated SQL when set to a true flag value.
 - `QUMA_DEBUG_TRANSLATED=/path/to/dir` writes runtime SQL before parameter interpolation. For `.tpql` files, this is after template rendering with the current input.
 - `QUMA_DEBUG_INTERPOLATED=/path/to/dir` writes runtime SQL after template rendering and parameter interpolation.
 - `QUMA_DEBUG_SESSION=name` overrides automatic session naming.

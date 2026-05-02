@@ -8,9 +8,9 @@
 - Added configurable static placeholder delimiters via `Delimiters` and `Connection::delimiters()`.
 - Added static placeholder support to `.sql` queries, `.tpql` query templates, `.sql` migrations, and `.tpql` migrations.
 - Added optional `.tpql` query template caching via `Connection::cache()`.
-- Added `QUMA_DEBUG`, `QUMA_DEBUG_PRINT`, `QUMA_DEBUG_TRANSLATED`, and `QUMA_DEBUG_INTERPOLATED` for environment-controlled SQL debugging.
+- Added `QUMA_DEBUG`, `QUMA_DEBUG_PRINT`, `QUMA_DEBUG_TRANSLATED`, and `QUMA_DEBUG_INTERPOLATED` for environment-controlled SQL debugging. Boolean debug flags accept `1`, `true`, `yes`, and `on` case-insensitively.
 - Added explicit `Database` lifecycle helpers: `connected()`, `disconnect()`, `reconnect()`, `ping()`, and `reset()`.
-- Added `Database::debug()` and `Database::debugging()` to toggle SQL debug output per database handle.
+- Added `Database::$debug` to expose whether debug handling was enabled when a database handle was created.
 - Added internal connection timestamp tracking in `Database` to support long-running PHP process integrations.
 - Added `Query::first()` for stable first-row reads and `Query::fetch()` for cursor-style reads.
 - Added optional row hydration for `one()`, `first()`, `fetch()`, `all()`, and `lazy()` through class-string targets, resolver closures, `#[Column]`, `Hydratable`, and hydration-specific exceptions.

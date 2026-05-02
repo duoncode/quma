@@ -168,47 +168,56 @@ class DatabaseTest extends TestCase
 		$db->getConn();
 	}
 
-	public function testDebugPrintEnvPrintsSqlToStdout(): void
+	#[DataProvider('debugFlagProvider')]
+	public function testDebugPrintEnvUsesPositiveFlagValues(string $flag, bool $prints): void
 	{
 		$output = '';
 
-		$this->withEnv('QUMA_DEBUG_PRINT', '1', function () use (&$output): void {
-			ob_start();
+		$this->withEnv('QUMA_DEBUG', '1', function () use ($flag, &$output): void {
+			$this->withEnv('QUMA_DEBUG_PRINT', $flag, function () use (&$output): void {
+				ob_start();
 
-			try {
-				$this->getDb()->execute('SELECT name FROM members WHERE member = ?', 1);
-			} finally {
-				$buffer = ob_get_clean();
-				$output = is_string($buffer) ? $buffer : '';
-			}
-		});
-
-		$this->assertStringContainsString('SELECT name FROM members WHERE member = 1', $output);
-	}
-
-	public function testDebugCanBeToggledOnDatabase(): void
-	{
-		$db = $this->getDb();
-
-		$this->assertSame($db, $db->debug(true));
-		$this->assertTrue($db->debugging());
-		$this->assertSame($db, $db->debug(false));
-		$this->assertFalse($db->debugging());
-	}
-
-	public function testDebugReadsEnvironmentLazily(): void
-	{
-		$disabled = $this->getDb();
-		$this->withEnv('QUMA_DEBUG', '0', function () use ($disabled): void {
-			$this->withEnv('QUMA_DEBUG_PRINT', '1', function () use ($disabled): void {
-				$this->assertFalse($disabled->debugging());
+				try {
+					$this->getDb()->execute('SELECT name FROM members WHERE member = ?', 1);
+				} finally {
+					$buffer = ob_get_clean();
+					$output = is_string($buffer) ? $buffer : '';
+				}
 			});
 		});
 
-		$enabled = $this->getDb();
-		$this->withEnv('QUMA_DEBUG', '1', function () use ($enabled): void {
-			$this->assertTrue($enabled->debugging());
-		});
+		if ($prints) {
+			$this->assertStringContainsString('SELECT name FROM members WHERE member = 1', $output);
+		} else {
+			$this->assertSame('', $output);
+		}
+	}
+
+	public static function debugFlagProvider(): array
+	{
+		return [
+			'one' => ['1', true],
+			'true' => ['true', true],
+			'yes' => ['yes', true],
+			'on' => ['on', true],
+			'uppercase' => ['YES', true],
+			'padded' => [' on ', true],
+			'zero' => ['0', false],
+			'false' => ['false', false],
+			'no' => ['no', false],
+			'off' => ['off', false],
+			'unknown' => ['foo', false],
+		];
+	}
+
+	#[DataProvider('debugFlagProvider')]
+	public function testDebugFlagReadsEnvironmentWhenDatabaseIsCreated(string $flag, bool $debug): void
+	{
+		$disabled = $this->getDb();
+		$this->assertFalse($disabled->debug);
+
+		$enabled = $this->withEnv('QUMA_DEBUG', $flag, $this->getDb(...));
+		$this->assertSame($debug, $enabled->debug);
 	}
 
 	public function testPdoQuote(): void
@@ -445,7 +454,7 @@ class DatabaseTest extends TestCase
 
 	public function testQueryPrintingNamedParameters(): void
 	{
-		$db = $this->getDb()->debug(true);
+		$db = $this->withEnv('QUMA_DEBUG', '1', $this->getDb(...));
 		$result = null;
 		$output = '';
 
@@ -475,7 +484,7 @@ class DatabaseTest extends TestCase
 
 	public function testQueryPrintingPositionalParameters(): void
 	{
-		$db = $this->getDb()->debug(true);
+		$db = $this->withEnv('QUMA_DEBUG', '1', $this->getDb(...));
 		$result = null;
 		$output = '';
 

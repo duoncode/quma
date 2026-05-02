@@ -244,23 +244,21 @@ Quma uses these names when it creates the metadata table, checks applied migrati
 
 ## Debug output
 
-Quma debug output is controlled through environment variables instead of connection methods.
+Quma debug output is controlled through environment variables instead of connection methods. Set `QUMA_DEBUG` to a true flag value before creating the `Database` instance, then choose one or more output channels.
 
 ```bash
-QUMA_DEBUG=1 php app.php
-QUMA_DEBUG_PRINT=1 php app.php
-QUMA_DEBUG_TRANSLATED=/tmp/quma/translated php app.php
-QUMA_DEBUG_INTERPOLATED=/tmp/quma/interpolated php app.php
-QUMA_DEBUG_SESSION=manual-session-id php app.php
+QUMA_DEBUG=1 QUMA_DEBUG_PRINT=1 php app.php
+QUMA_DEBUG=1 QUMA_DEBUG_TRANSLATED=/tmp/quma/translated php app.php
+QUMA_DEBUG=1 QUMA_DEBUG_INTERPOLATED=/tmp/quma/interpolated php app.php
+QUMA_DEBUG=1 QUMA_DEBUG_SESSION=manual-session-id QUMA_DEBUG_PRINT=1 php app.php
 ```
 
-- `QUMA_DEBUG=1` enables debug handling for new `Database` instances.
-- `QUMA_DEBUG=0` disables debug handling even when other debug variables are set.
-- `QUMA_DEBUG_PRINT=1` prints interpolated SQL when a query is created.
+- `QUMA_DEBUG` enables debug handling for new `Database` instances when set to `1`, `true`, `yes`, or `on` case-insensitively. Any other value disables it.
+- `QUMA_DEBUG_PRINT` prints interpolated SQL when set to a true flag value.
 - `QUMA_DEBUG_TRANSLATED` writes runtime SQL before parameter interpolation. For `.tpql` files, this is after template rendering with the current input.
 - `QUMA_DEBUG_INTERPOLATED` writes runtime SQL after template rendering and parameter interpolation.
 - `QUMA_DEBUG_SESSION` overrides automatic session naming.
 
-Debug directories must already exist and be writable. Translated and interpolated files are written below `<dir>/<session>/0001--...`. Add driver or output-type directories to the environment variable value if you want them. In HTTP contexts, the session directory includes request time, method, a sanitized URI path, and a short hash. In CLI contexts, it includes process start time and a short hash. The four-digit counter preserves query order inside the session. You can also toggle debug output on an existing database handle with `Database::debug()`.
+Debug directories must already exist and be writable. Translated and interpolated files are written below `<dir>/<session>/0001--...`. Add driver or output-type directories to the environment variable value if you want them. In HTTP contexts, the session directory includes request time, method, a sanitized URI path, and a short hash. In CLI contexts, it includes process start time and a short hash. The four-digit counter preserves query order inside the session.
 
 Interpolated SQL can contain secrets or user data. Use these options only for local debugging, keep the directories outside the public web root, and do not commit their contents. Parameter interpolation is a best-effort debug representation; PDO still executes prepared statements with bound parameters.
