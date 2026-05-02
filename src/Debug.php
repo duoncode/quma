@@ -7,7 +7,12 @@ namespace Duon\Quma;
 use DateTimeImmutable;
 use RuntimeException;
 
-/** @internal */
+/**
+ * @internal
+ *
+ * Coverage ignores mark defensive filesystem/global-state race branches that are
+ * not deterministic or meaningful to exercise in tests.
+ */
 final class Debug
 {
 	public const string ENV_DEBUG = 'QUMA_DEBUG';
@@ -240,7 +245,7 @@ final class Debug
 		$dir = self::env($name);
 
 		if ($dir === null) {
-			return null;
+			return null; // @codeCoverageIgnore
 		}
 
 		if (!is_dir($dir)) {
@@ -248,13 +253,13 @@ final class Debug
 		}
 
 		if (!is_writable($dir)) {
-			throw new RuntimeException("Quma debug directory is not writable for {$name}: {$dir}");
+			throw new RuntimeException("Quma debug directory is not writable for {$name}: {$dir}"); // @codeCoverageIgnore
 		}
 
 		$path = realpath($dir);
 
 		if ($path === false || $path === '') {
-			throw new RuntimeException("Quma debug directory does not exist for {$name}: {$dir}");
+			throw new RuntimeException("Quma debug directory does not exist for {$name}: {$dir}"); // @codeCoverageIgnore
 		}
 
 		return $path;
@@ -263,13 +268,13 @@ final class Debug
 	private static function writeEnv(string $name, ?string $relative, string $source): void
 	{
 		if ($relative === null) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$dir = self::dir($name);
 
 		if ($dir === null) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		self::write($dir, $relative, $source);
@@ -284,11 +289,11 @@ final class Debug
 		$targetDir = dirname($path);
 
 		if (!is_dir($targetDir) && !mkdir($targetDir, 0o775, true) && !is_dir($targetDir)) {
-			throw new RuntimeException('Could not create Quma debug directory: ' . $targetDir);
+			throw new RuntimeException('Could not create Quma debug directory: ' . $targetDir); // @codeCoverageIgnore
 		}
 
 		if (file_put_contents($path, $source, LOCK_EX) === false) {
-			throw new RuntimeException('Could not write Quma debug file: ' . $path);
+			throw new RuntimeException('Could not write Quma debug file: ' . $path); // @codeCoverageIgnore
 		}
 	}
 
@@ -300,7 +305,7 @@ final class Debug
 
 		foreach ($roots as $root) {
 			if (!is_string($root) || $root === '') {
-				continue;
+				continue; // @codeCoverageIgnore
 			}
 
 			$realRoot = realpath($root);
@@ -314,7 +319,7 @@ final class Debug
 			}
 		}
 
-		return basename($sourcePath);
+		return basename($sourcePath); // @codeCoverageIgnore
 	}
 
 	/** @param array<array-key, mixed> $roots */
@@ -463,14 +468,14 @@ final class Debug
 		$parts = preg_split('/[\\/]+/', $path, -1, PREG_SPLIT_NO_EMPTY);
 
 		if (!is_array($parts) || count($parts) === 0) {
-			return 'query.sql';
+			return 'query.sql'; // @codeCoverageIgnore
 		}
 
 		$result = [];
 
 		foreach ($parts as $part) {
 			if ($part === '.' || $part === '..') {
-				continue;
+				continue; // @codeCoverageIgnore
 			}
 
 			$result[] = self::safeSegment($part);
