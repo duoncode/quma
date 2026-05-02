@@ -33,7 +33,6 @@ final class Config
 	public array $migrations = [];
 
 	public PdoConfig $pdo;
-	public bool $print = false;
 	public Placeholders $placeholders;
 
 	/** @var non-empty-string|null */

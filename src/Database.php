@@ -11,21 +11,19 @@ use Throwable;
 /** @api */
 class Database
 {
-	use GetsSetsPrint;
-
 	protected const int TEMPLATE_CACHE_VERSION = 1;
 
+	public readonly bool $debug;
 	protected ?PDO $pdo = null;
 	protected ?int $connectedAt = null;
 	protected ?int $lastUsedAt = null;
-
 	/** @var array<string, LoadedScript> */
 	protected array $compiledScripts = [];
 
 	public function __construct(
 		protected readonly Connection $conn,
 	) {
-		$this->print = $conn->prints();
+		$this->debug = Debug::enabled();
 	}
 
 	public function __get(string $key): Folder

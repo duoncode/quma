@@ -42,20 +42,8 @@ class Query
 			$this->bindArgs($args->get(), $args->type());
 		}
 
-		if ($db->print()) {
-			$msg =
-				"\n\n-----------------------------------------------\n\n"
-				. $this->interpolate()
-				. "\n------------------------------------------------\n";
-
-			if (($_SERVER['SERVER_SOFTWARE'] ?? null) !== null) {
-				// @codeCoverageIgnoreStart
-				error_log($msg);
-
-				// @codeCoverageIgnoreEnd
-			} else {
-				echo $msg;
-			}
+		if ($this->db->debug) {
+			Debug::query($this->db, $this->query, $this->args, $this->sourcePath);
 		}
 	}
 
@@ -288,16 +276,7 @@ class Query
 	 */
 	public function interpolate(): string
 	{
-		$prep = $this->prepareQuery($this->query);
-		$argsArray = $this->args->get();
-
-		if ($this->args->type() === ArgType::Named) {
-			$interpolated = $this->interpolateNamed($prep->query, $this->args->getNamed());
-		} else {
-			$interpolated = $this->interpolatePositional($prep->query, $argsArray);
-		}
-
-		return $this->restoreQuery($interpolated, $prep);
+		return Debug::interpolate($this->query, $this->args);
 	}
 
 	protected function bindArgs(array $args, ArgType $argType): void
@@ -363,106 +342,5 @@ class Query
 		}
 
 		return null;
-	}
-
-	protected function convertValue(mixed $value): string
-	{
-		if (is_string($value)) {
-			return "'" . $value . "'";
-		}
-
-		if (is_array($value)) {
-			$encoded = json_encode($value);
-
-			return "'" . ($encoded !== false ? $encoded : '[]') . "'";
-		}
-
-		if (is_null($value)) {
-			return 'NULL';
-		}
-
-		if (is_bool($value)) {
-			return $value ? 'true' : 'false';
-		}
-
-		return (string) $value;
-	}
-
-	protected function prepareQuery(string $query): PreparedQuery
-	{
-		$patterns = [
-			self::PATTERN_BLOCK,
-			self::PATTERN_STRING,
-			self::PATTERN_COMMENT_MULTI,
-			self::PATTERN_COMMENT_SINGLE,
-		];
-
-		$swaps = [];
-
-		$i = 0;
-
-		do {
-			$found = false;
-
-			foreach ($patterns as $pattern) {
-				$matches = [];
-
-				if ($query !== null && preg_match($pattern, $query, $matches)) {
-					$match = $matches[0];
-					$replacement = "___CHUCK_REPLACE_{$i}___";
-					assert($match !== '', 'Query placeholder match must not be empty.');
-					$swaps[$replacement] = $match;
-
-					$query = preg_replace($pattern, $replacement, $query, limit: 1);
-					$found = true;
-					$i++;
-
-					break;
-				}
-			}
-		} while ($found);
-
-		return new PreparedQuery($query ?? '', $swaps);
-	}
-
-	protected function restoreQuery(string $query, PreparedQuery $prep): string
-	{
-		foreach ($prep->swaps as $swap => $replacement) {
-			$query = str_replace($swap, $replacement, $query);
-		}
-
-		return $query;
-	}
-
-	/** @param array<array-key, mixed> $args */
-	protected function interpolateNamed(string $query, array $args): string
-	{
-		$map = [];
-
-		array_walk(
-			$args,
-			function (mixed $value, int|string $key) use (&$map): void {
-				if (is_string($key) && $key !== '') {
-					$map[':' . $key] = $this->convertValue($value);
-				}
-			},
-		);
-
-		return strtr($query, $map);
-	}
-
-	protected function interpolatePositional(string $query, array $args): string
-	{
-		$result = $query;
-
-		array_walk(
-			$args,
-			function (mixed $value) use (&$result): void {
-				$replaced = preg_replace('/\\?/', $this->convertValue($value), $result, 1);
-				$result = $replaced ?? $result;
-			},
-		);
-
-		return $result;
 	}
 }

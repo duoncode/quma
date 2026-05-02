@@ -86,18 +86,6 @@ class Connection
 		return $this;
 	}
 
-	public function print(bool $print): static
-	{
-		$this->config->print = $print;
-
-		return $this;
-	}
-
-	public function prints(): bool
-	{
-		return $this->config->print;
-	}
-
 	/** @psalm-param PlaceholderConfig $placeholders */
 	public function placeholders(array $placeholders): static
 	{

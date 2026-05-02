@@ -185,7 +185,7 @@ final class Migrations extends Command
 			}
 
 			$result = match (pathinfo($migration, PATHINFO_EXTENSION)) {
-				'sql' => $this->migrateSQL($db, $namespace, $migration, $script, $showStacktrace),
+				'sql' => $this->migrateSQL($namespace, $migration, $script, $showStacktrace),
 				'tpql' => $this->migrateTPQL($db, $conn, $namespace, $migration, $showStacktrace),
 				'php' => $this->migratePHP($db, $namespace, $migration, $showStacktrace),
 			};
@@ -414,13 +414,13 @@ final class Migrations extends Command
 	}
 
 	protected function migrateSQL(
-		Database $db,
 		string $namespace,
 		string $migration,
 		string $script,
 		bool $showStacktrace,
 	): string {
 		try {
+			$db = $this->env->db;
 			$script = $this->env->conn->applyPlaceholders($script, $migration);
 
 			if (trim($script) === '') {
@@ -500,7 +500,7 @@ final class Migrations extends Command
 
 			$conn->assertNoTemplatePlaceholders($script, $migration);
 
-			return $this->migrateSQL($db, $namespace, $migration, $script, $showStacktrace);
+			return $this->migrateSQL($namespace, $migration, $script, $showStacktrace);
 		} catch (Throwable $e) {
 			$this->showMessage($migration, $e, $showStacktrace);
 
