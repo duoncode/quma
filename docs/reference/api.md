@@ -6,7 +6,7 @@ title: API reference
 
 This page summarizes the main public types that application code works with directly.
 
-## `Duon\Quma\Connection`
+## `Celemas\Quma\Connection`
 
 Stores DSN, SQL directory, migration, placeholder, delimiter, PDO, and cache configuration.
 
@@ -35,7 +35,7 @@ new Connection(string $dsn, string|array $sql)
 
 See [Connection reference](connection.md) for all accessors and configuration formats.
 
-## `Duon\Quma\Delimiters`
+## `Celemas\Quma\Delimiters`
 
 Configures static placeholder delimiters. The default is `[::name::]`.
 
@@ -45,7 +45,7 @@ new Delimiters(string $open = '[::', string $close = '::]')
 
 Delimiter strings must not be empty and must not contain NUL bytes.
 
-## `Duon\Quma\Database`
+## `Celemas\Quma\Database`
 
 The main entry point for query execution.
 
@@ -89,7 +89,7 @@ $db->users;
 
 This returns a `Folder` instance for the `users` SQL directory.
 
-## `Duon\Quma\Folder`
+## `Celemas\Quma\Folder`
 
 Represents one SQL folder.
 
@@ -100,7 +100,7 @@ Represents one SQL folder.
 
 If the script file does not exist, `Folder` throws `RuntimeException`.
 
-## `Duon\Quma\Script`
+## `Celemas\Quma\Script`
 
 Wraps a static `.sql` file or a template `.tpql` file.
 
@@ -111,7 +111,7 @@ Wraps a static `.sql` file or a template `.tpql` file.
 
 Most application code uses a `Script` implicitly through `$db->folder->queryName(...)`.
 
-## `Duon\Quma\Query`
+## `Celemas\Quma\Query`
 
 Represents a prepared query.
 
@@ -156,7 +156,7 @@ Debug directories must already exist and be writable. Keep them outside the publ
 
 ## Row hydration types
 
-### `Duon\Quma\Column`
+### `Celemas\Quma\Column`
 
 Constructor-parameter attribute for mapping a parameter to a different row column.
 
@@ -165,7 +165,7 @@ Constructor-parameter attribute for mapping a parameter to a different row colum
 public string $email
 ```
 
-### `Duon\Quma\Hydratable`
+### `Celemas\Quma\Hydratable`
 
 Interface for classes that own custom row hydration.
 
@@ -181,7 +181,7 @@ public static function fromRow(array $row): static;
 - `TypeCoercionException` is thrown when a present value cannot be converted to the declared parameter type.
 - `InvalidHydrationTargetException` is thrown for invalid targets, unsupported constructor shapes, unsupported parameter types, invalid `#[Column]` values, or invalid resolver results.
 
-## `Duon\Quma\Environment`
+## `Celemas\Quma\Environment`
 
 Provides the runtime context for migration commands and PHP migrations.
 
@@ -202,7 +202,7 @@ Provides the runtime context for migration commands and PHP migrations.
 - `checkIfMigrationsTableExists(Database $db): bool`
 - `getMigrationsTableDDL(): string|false`
 
-## `Duon\Quma\MigrationInterface`
+## `Celemas\Quma\MigrationInterface`
 
 Implemented by PHP migrations.
 
@@ -213,14 +213,14 @@ interface MigrationInterface
 }
 ```
 
-## `Duon\Quma\Commands`
+## `Celemas\Quma\Commands`
 
 Factory for the bundled CLI commands.
 
 ### Static factory
 
 ```php
-Commands::get(array|Connection $conn, array $options = []): Duon\Cli\Commands
+Commands::get(array|Connection $conn, array $options = []): Celemas\Cli\Commands
 ```
 
 Pass either one `Connection` or an array of named connections.

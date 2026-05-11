@@ -8,7 +8,7 @@ Use a PHP migration when SQL alone is not enough. A PHP migration can branch on 
 
 ## Contract
 
-A PHP migration file must return an object that implements `Duon\Quma\MigrationInterface`.
+A PHP migration file must return an object that implements `Celemas\Quma\MigrationInterface`.
 
 The interface is:
 
@@ -17,7 +17,7 @@ The interface is:
 
 declare(strict_types=1);
 
-namespace Duon\Quma;
+namespace Celemas\Quma;
 
 interface MigrationInterface
 {
@@ -32,8 +32,8 @@ interface MigrationInterface
 
 declare(strict_types=1);
 
-use Duon\Quma\Environment;
-use Duon\Quma\MigrationInterface;
+use Celemas\Quma\Environment;
+use Celemas\Quma\MigrationInterface;
 
 return new class () implements MigrationInterface {
     public function run(Environment $env): void
@@ -69,8 +69,8 @@ A PHP migration can branch on the current driver.
 
 declare(strict_types=1);
 
-use Duon\Quma\Environment;
-use Duon\Quma\MigrationInterface;
+use Celemas\Quma\Environment;
+use Celemas\Quma\MigrationInterface;
 
 return new class () implements MigrationInterface {
     public function run(Environment $env): void

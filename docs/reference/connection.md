@@ -32,7 +32,7 @@ All configured paths must already exist. Otherwise Quma throws `ValueError`.
 ## Example
 
 ```php
-use Duon\Quma\Connection;
+use Celemas\Quma\Connection;
 use PDO;
 
 $conn = new Connection(
@@ -153,7 +153,7 @@ Static placeholder names must match `[A-Za-z_][A-Za-z0-9_.:-]*`. Values must be 
 Sets the delimiters used to find static placeholders. The default delimiters are `[::` and `::]`.
 
 ```php
-use Duon\Quma\Delimiters;
+use Celemas\Quma\Delimiters;
 
 $conn->delimiters(new Delimiters('[[', ']]'));
 ```

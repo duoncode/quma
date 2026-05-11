@@ -66,7 +66,7 @@ Quma resolves static placeholders from `all` and then overlays the active PDO dr
 The default delimiters are `[::` and `::]`. Configure different delimiters with `Delimiters` when the default syntax conflicts with your tooling.
 
 ```php
-use Duon\Quma\Delimiters;
+use Celemas\Quma\Delimiters;
 
 $conn->delimiters(new Delimiters('[[', ']]'));
 ```

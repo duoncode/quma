@@ -4,20 +4,20 @@ title: CLI
 
 # CLI
 
-Quma ships with migration-related commands that plug into `duon/cli`.
+Quma ships with migration-related commands that plug into `celemas/cli`.
 
 ## Register the commands
 
-Use `Duon\Quma\Commands::get()` to build the command set.
+Use `Celemas\Quma\Commands::get()` to build the command set.
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-use Duon\Cli\Runner;
-use Duon\Quma\Commands;
-use Duon\Quma\Connection;
+use Celemas\Cli\Runner;
+use Celemas\Quma\Commands;
+use Celemas\Quma\Connection;
 
 $conn = new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',

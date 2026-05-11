@@ -137,7 +137,7 @@ Quma reads public constructor parameters and matches each parameter name to a ro
 Use `#[Column]` when the database column name differs from the constructor parameter name.
 
 ```php
-use Duon\Quma\Column;
+use Celemas\Quma\Column;
 
 final readonly class User
 {
@@ -164,7 +164,7 @@ Unsupported constructor shapes or types throw `InvalidHydrationTargetException`.
 Implement `Hydratable` when a class owns its row conversion logic.
 
 ```php
-use Duon\Quma\Hydratable;
+use Celemas\Quma\Hydratable;
 
 final readonly class User implements Hydratable
 {

@@ -9,7 +9,7 @@ This guide shows the smallest useful Quma setup: one connection, one SQL directo
 ## Install the package
 
 ```bash
-composer require duon/quma
+composer require celemas/quma
 ```
 
 Quma requires PHP 8.5 or newer with `ext-json`, `ext-pdo`, and `ext-readline` enabled.
@@ -54,7 +54,7 @@ Create a `Connection` with a PDO DSN and at least one SQL directory.
 
 declare(strict_types=1);
 
-use Duon\Quma\Connection;
+use Celemas\Quma\Connection;
 
 $conn = new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
@@ -73,7 +73,7 @@ Wrap the connection in `Database`.
 
 declare(strict_types=1);
 
-use Duon\Quma\Database;
+use Celemas\Quma\Database;
 
 $db = new Database($conn);
 ```

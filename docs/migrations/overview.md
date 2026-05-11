@@ -67,7 +67,7 @@ Quma only applies the file that matches the current driver.
 
 ## Running migrations from the CLI
 
-Quma exposes a `migrations` command through `Duon\Quma\Commands::get()`.
+Quma exposes a `migrations` command through `Celemas\Quma\Commands::get()`.
 
 Without `--apply`, the command never mutates the database. SQLite and PostgreSQL run the batch inside a transaction and roll it back. MySQL shows a plan only because Quma cannot safely roll back a full MySQL migration batch.
 
@@ -161,15 +161,15 @@ As with query templates, do not put static placeholders inside PHP code blocks o
 
 ## PHP migrations
 
-A `.php` migration must return an object that implements `Duon\Quma\MigrationInterface`.
+A `.php` migration must return an object that implements `Celemas\Quma\MigrationInterface`.
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-use Duon\Quma\Environment;
-use Duon\Quma\MigrationInterface;
+use Celemas\Quma\Environment;
+use Celemas\Quma\MigrationInterface;
 
 return new class () implements MigrationInterface {
     public function run(Environment $env): void
