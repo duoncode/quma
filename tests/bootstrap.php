@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Duon\Quma\Tests\TestCase;
+use Celemas\Quma\Tests\TestCase;
 
 require __DIR__ . '/../vendor/autoload.php';
 

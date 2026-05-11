@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Commands;
+namespace Celemas\Quma\Commands;
 
-use Duon\Cli\Command as BaseCommand;
-use Duon\Quma\Connection;
-use Duon\Quma\Environment;
+use Celemas\Cli\Command as BaseCommand;
+use Celemas\Quma\Connection;
+use Celemas\Quma\Environment;
 
 abstract class Command extends BaseCommand
 {

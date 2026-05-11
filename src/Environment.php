@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma;
+namespace Celemas\Quma;
 
-use Duon\Cli\Opts;
+use Celemas\Cli\Opts;
 use PDO;
 use RuntimeException;
 

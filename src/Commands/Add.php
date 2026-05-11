@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Commands;
+namespace Celemas\Quma\Commands;
 
-use Duon\Cli\Opts;
+use Celemas\Cli\Opts;
 use Override;
 
 final class Add extends Command
@@ -126,9 +126,9 @@ final class Add extends Command
 declare(strict_types=1);
 
 use \\PDO;
-use Duon\\Quma\\Connection;
-use Duon\\Quma\\Database;
-use Duon\\Quma\\MigrationInterface;
+use Celemas\\Quma\\Connection;
+use Celemas\\Quma\\Database;
+use Celemas\\Quma\\MigrationInterface;
 
 
 class {$className} implements MigrationInterface

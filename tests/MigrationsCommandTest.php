@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests;
+namespace Celemas\Quma\Tests;
 
-use Duon\Quma\Commands\Migrations;
-use Duon\Quma\Connection;
-use Duon\Quma\Database;
+use Celemas\Quma\Commands\Migrations;
+use Celemas\Quma\Connection;
+use Celemas\Quma\Database;
 use PDO;
 use ReflectionMethod;
 use RuntimeException;

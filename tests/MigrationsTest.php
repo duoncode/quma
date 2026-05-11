@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests;
+namespace Celemas\Quma\Tests;
 
-use Duon\Cli\Runner;
-use Duon\Quma\Connection;
-use Duon\Quma\Database;
-use Duon\Quma\Delimiters;
+use Celemas\Cli\Runner;
+use Celemas\Quma\Connection;
+use Celemas\Quma\Database;
+use Celemas\Quma\Delimiters;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Depends;
@@ -359,7 +359,7 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'migrations', '--namespace', 'feature', '--apply'];
 
 		ob_start();
-		$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+		$result = new Runner(\Celemas\Quma\Commands::get($conn))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -380,7 +380,7 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'migrations', '--namespace', 'nonexistent', '--apply'];
 
 		ob_start();
-		$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+		$result = new Runner(\Celemas\Quma\Commands::get($conn))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -400,7 +400,7 @@ class MigrationsTest extends TestCase
 		$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 		ob_start();
-		$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+		$result = new Runner(\Celemas\Quma\Commands::get($conn))->run();
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -426,7 +426,7 @@ class MigrationsTest extends TestCase
 			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 			ob_start();
-			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			$result = new Runner(\Celemas\Quma\Commands::get($conn))->run();
 			ob_end_clean();
 
 			$db = new Database($conn);
@@ -477,7 +477,7 @@ class MigrationsTest extends TestCase
 			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 			ob_start();
-			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			$result = new Runner(\Celemas\Quma\Commands::get($conn))->run();
 			ob_end_clean();
 
 			$db = new Database($conn);
@@ -528,7 +528,7 @@ class MigrationsTest extends TestCase
 			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 			ob_start();
-			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			$result = new Runner(\Celemas\Quma\Commands::get($conn))->run();
 			ob_end_clean();
 
 			$db = new Database($conn);
@@ -562,7 +562,7 @@ class MigrationsTest extends TestCase
 			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 			ob_start();
-			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			$result = new Runner(\Celemas\Quma\Commands::get($conn))->run();
 			$content = ob_get_contents();
 			ob_end_clean();
 
@@ -593,7 +593,7 @@ class MigrationsTest extends TestCase
 			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 			ob_start();
-			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			$result = new Runner(\Celemas\Quma\Commands::get($conn))->run();
 			ob_end_clean();
 
 			$cacheFiles = glob($cacheDir . '/tpql-*.php');
@@ -624,7 +624,7 @@ class MigrationsTest extends TestCase
 			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 			ob_start();
-			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			$result = new Runner(\Celemas\Quma\Commands::get($conn))->run();
 			$content = ob_get_contents();
 			ob_end_clean();
 
@@ -661,7 +661,7 @@ class MigrationsTest extends TestCase
 			$_SERVER['argv'] = ['run', 'migrations'];
 
 			ob_start();
-			$result = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			$result = new Runner(\Celemas\Quma\Commands::get($conn))->run();
 			$output = ob_get_contents();
 			ob_end_clean();
 
@@ -702,13 +702,13 @@ class MigrationsTest extends TestCase
 			$_SERVER['argv'] = ['run', 'migrations', '--apply'];
 
 			ob_start();
-			$defaultResult = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			$defaultResult = new Runner(\Celemas\Quma\Commands::get($conn))->run();
 			ob_end_clean();
 
 			$_SERVER['argv'] = ['run', 'migrations', '--namespace', 'feature', '--apply'];
 
 			ob_start();
-			$featureResult = new Runner(\Duon\Quma\Commands::get($conn))->run();
+			$featureResult = new Runner(\Celemas\Quma\Commands::get($conn))->run();
 			ob_end_clean();
 
 			$db = new Database($conn);

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma;
+namespace Celemas\Quma;
 
+use Celemas\Quma\Hydration\Hydrator;
 use Closure;
-use Duon\Quma\Hydration\Hydrator;
 use Generator;
 use InvalidArgumentException;
 use PDO;

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests\Util;
+namespace Celemas\Quma\Tests\Util;
 
-use Duon\Quma\Connection;
-use Duon\Quma\Database;
-use Duon\Quma\Query;
+use Celemas\Quma\Connection;
+use Celemas\Quma\Database;
+use Celemas\Quma\Query;
 
 final class FakeDatabase extends Database
 {

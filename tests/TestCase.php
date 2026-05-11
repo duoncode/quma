@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests;
+namespace Celemas\Quma\Tests;
 
-use Duon\Cli\Commands;
-use Duon\Quma\Commands as QumaCommands;
-use Duon\Quma\Connection;
-use Duon\Quma\Database;
+use Celemas\Cli\Commands;
+use Celemas\Quma\Commands as QumaCommands;
+use Celemas\Quma\Connection;
+use Celemas\Quma\Database;
 use PDO;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Throwable;

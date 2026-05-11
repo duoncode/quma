@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Commands;
+namespace Celemas\Quma\Commands;
 
-use Duon\Cli\Command;
-use Duon\Cli\Opts;
-use Duon\Quma\Connection;
-use Duon\Quma\Database;
-use Duon\Quma\Environment;
-use Duon\Quma\MigrationInterface;
+use Celemas\Cli\Command;
+use Celemas\Cli\Opts;
+use Celemas\Quma\Connection;
+use Celemas\Quma\Database;
+use Celemas\Quma\Environment;
+use Celemas\Quma\MigrationInterface;
 use Override;
 use RuntimeException;
 use Throwable;

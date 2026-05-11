@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma;
+namespace Celemas\Quma;
 
 use Attribute;
 

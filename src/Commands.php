@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma;
+namespace Celemas\Quma;
 
-use Duon\Cli\Commands as BaseCommands;
-use Duon\Quma\Commands\Add;
-use Duon\Quma\Commands\CreateMigrationsTable;
-use Duon\Quma\Commands\Migrations;
+use Celemas\Cli\Commands as BaseCommands;
+use Celemas\Quma\Commands\Add;
+use Celemas\Quma\Commands\CreateMigrationsTable;
+use Celemas\Quma\Commands\Migrations;
 
 /** @api */
 class Commands

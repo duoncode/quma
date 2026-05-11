@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Hydration;
+namespace Celemas\Quma\Hydration;
 
+use Celemas\Quma\Hydratable;
+use Celemas\Quma\HydrationException;
+use Celemas\Quma\InvalidHydrationTargetException;
+use Celemas\Quma\MissingColumnException;
+use Celemas\Quma\TypeCoercionException;
 use Closure;
-use Duon\Quma\Hydratable;
-use Duon\Quma\HydrationException;
-use Duon\Quma\InvalidHydrationTargetException;
-use Duon\Quma\MissingColumnException;
-use Duon\Quma\TypeCoercionException;
 use Throwable;
 use TypeError;
 

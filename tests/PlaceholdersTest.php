@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests;
+namespace Celemas\Quma\Tests;
 
-use Duon\Quma\Delimiters;
-use Duon\Quma\Placeholders;
+use Celemas\Quma\Delimiters;
+use Celemas\Quma\Placeholders;
 use InvalidArgumentException;
 use RuntimeException;
 

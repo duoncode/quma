@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests;
+namespace Celemas\Quma\Tests;
 
-use Duon\Quma\Config;
-use Duon\Quma\Connection;
-use Duon\Quma\Delimiters;
+use Celemas\Quma\Config;
+use Celemas\Quma\Connection;
+use Celemas\Quma\Delimiters;
 use PDO;
 use ReflectionMethod;
 use RuntimeException;

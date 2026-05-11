@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests;
+namespace Celemas\Quma\Tests;
 
-use Duon\Quma\Connection;
-use Duon\Quma\Environment;
-use Duon\Quma\Tests\Util\FakeDatabase;
+use Celemas\Quma\Connection;
+use Celemas\Quma\Environment;
+use Celemas\Quma\Tests\Util\FakeDatabase;
 use ReflectionProperty;
 
 /**

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests\Util;
+namespace Celemas\Quma\Tests\Util;
 
-use Duon\Quma\Environment;
-use Duon\Quma\MigrationInterface;
+use Celemas\Quma\Environment;
+use Celemas\Quma\MigrationInterface;
 use PDO;
 
 final class TestMigration1 implements MigrationInterface

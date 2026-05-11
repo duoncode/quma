@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests\Util;
+namespace Celemas\Quma\Tests\Util;
 
-use Duon\Quma\Args;
-use Duon\Quma\Script;
+use Celemas\Quma\Args;
+use Celemas\Quma\Script;
 
 final class TestableScript extends Script
 {

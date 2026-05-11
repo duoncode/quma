@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Hydration;
+namespace Celemas\Quma\Hydration;
 
 /** @internal */
 final readonly class ClassMetadata

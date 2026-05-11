@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests;
+namespace Celemas\Quma\Tests;
 
+use Celemas\Quma\Column;
+use Celemas\Quma\Hydratable;
+use Celemas\Quma\Hydration\ClassMetadata;
+use Celemas\Quma\Hydration\HydrationContext;
+use Celemas\Quma\Hydration\Hydrator;
+use Celemas\Quma\Hydration\MetadataCache;
+use Celemas\Quma\Hydration\NamedTypeMetadata;
+use Celemas\Quma\Hydration\StaticReflectionCache;
+use Celemas\Quma\Hydration\TypeCoercer;
+use Celemas\Quma\Hydration\TypeMetadata;
+use Celemas\Quma\HydrationException;
+use Celemas\Quma\InvalidHydrationTargetException;
+use Celemas\Quma\MissingColumnException;
+use Celemas\Quma\TypeCoercionException;
 use Countable;
 use DateTime;
 use DateTimeImmutable;
-use Duon\Quma\Column;
-use Duon\Quma\Hydratable;
-use Duon\Quma\Hydration\ClassMetadata;
-use Duon\Quma\Hydration\HydrationContext;
-use Duon\Quma\Hydration\Hydrator;
-use Duon\Quma\Hydration\MetadataCache;
-use Duon\Quma\Hydration\NamedTypeMetadata;
-use Duon\Quma\Hydration\StaticReflectionCache;
-use Duon\Quma\Hydration\TypeCoercer;
-use Duon\Quma\Hydration\TypeMetadata;
-use Duon\Quma\HydrationException;
-use Duon\Quma\InvalidHydrationTargetException;
-use Duon\Quma\MissingColumnException;
-use Duon\Quma\TypeCoercionException;
 use Iterator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
@@ -570,7 +570,7 @@ class HydrationTest extends TestCase
 	{
 		return [
 			'scalar target' => ['int'],
-			'unknown target' => ['Duon\\Quma\\Tests\\NoSuchHydrationClass'],
+			'unknown target' => ['Celemas\\Quma\\Tests\\NoSuchHydrationClass'],
 			'abstract target' => [HydrationAbstractTarget::class],
 			'untyped parameter' => [HydrationUntypedParameter::class],
 			'array parameter' => [HydrationArrayParameter::class],

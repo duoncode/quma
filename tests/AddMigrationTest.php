@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests;
+namespace Celemas\Quma\Tests;
 
-use Duon\Cli\Runner;
-use Duon\Quma\Commands\Add;
+use Celemas\Cli\Runner;
+use Celemas\Quma\Commands\Add;
 use ReflectionMethod;
 
 /**

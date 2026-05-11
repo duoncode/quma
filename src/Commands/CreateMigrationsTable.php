@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Commands;
+namespace Celemas\Quma\Commands;
 
 use Override;
 use Throwable;

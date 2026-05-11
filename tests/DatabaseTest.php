@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests;
+namespace Celemas\Quma\Tests;
 
-use Duon\Quma\Database;
-use Duon\Quma\Tests\Util\InspectableDatabase;
-use Duon\Quma\UnexpectedResultCountException;
+use Celemas\Quma\Database;
+use Celemas\Quma\Tests\Util\InspectableDatabase;
+use Celemas\Quma\UnexpectedResultCountException;
 use InvalidArgumentException;
 use PDO;
 use PDOStatement;

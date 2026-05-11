@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests\Util;
+namespace Celemas\Quma\Tests\Util;
 
-use Duon\Quma\Database;
+use Celemas\Quma\Database;
 use PDO;
 
 final class InspectableDatabase extends Database

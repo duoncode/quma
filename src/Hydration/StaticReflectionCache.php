@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Hydration;
+namespace Celemas\Quma\Hydration;
 
 use BackedEnum;
+use Celemas\Quma\Column;
+use Celemas\Quma\Hydratable;
+use Celemas\Quma\InvalidHydrationTargetException;
 use DateTime;
 use DateTimeImmutable;
-use Duon\Quma\Column;
-use Duon\Quma\Hydratable;
-use Duon\Quma\InvalidHydrationTargetException;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionParameter;

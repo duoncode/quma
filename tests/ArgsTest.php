@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests;
+namespace Celemas\Quma\Tests;
 
-use Duon\Quma\Args;
-use Duon\Quma\ArgType;
+use Celemas\Quma\Args;
+use Celemas\Quma\ArgType;
 
 /**
  * @internal

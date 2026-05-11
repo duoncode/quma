@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests;
+namespace Celemas\Quma\Tests;
 
-use Duon\Quma\Args;
-use Duon\Quma\Database;
-use Duon\Quma\Tests\Util\TestableScript;
+use Celemas\Quma\Args;
+use Celemas\Quma\Database;
+use Celemas\Quma\Tests\Util\TestableScript;
 use RuntimeException;
 
 /**

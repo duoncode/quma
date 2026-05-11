@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Tests\Util;
+namespace Celemas\Quma\Tests\Util;
 
+use Celemas\Quma\Query;
 use Closure;
-use Duon\Quma\Query;
 
 final class FakeQuery extends Query
 {

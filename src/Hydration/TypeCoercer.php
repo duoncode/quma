@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma\Hydration;
+namespace Celemas\Quma\Hydration;
 
 use BackedEnum;
+use Celemas\Quma\TypeCoercionException;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
-use Duon\Quma\TypeCoercionException;
 use ReflectionEnum;
 use ReflectionNamedType;
 use ValueError;

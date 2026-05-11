@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Duon\Quma;
+namespace Celemas\Quma;
 
-use Duon\Quma\Hydration\HydrationContext;
+use Celemas\Quma\Hydration\HydrationContext;
 use Throwable;
 
 /** @api */
