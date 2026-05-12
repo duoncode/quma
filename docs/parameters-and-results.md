@@ -267,10 +267,7 @@ $sql = (string) $query;
 
 You can also enable debug output without changing application code.
 
-> **⚠ Warning — Development only.** Never enable debug output in production.
-> Interpolated SQL writes real query data to disk or stdout, including secrets,
-> credentials, tokens, and PII. There is no production guard — the debug system
-> activates purely from environment variables.
+> **⚠ Warning — Development only.** Never enable debug output in production. Interpolated SQL writes real query data to disk or stdout, including secrets, credentials, tokens, and PII. There is no production guard — the debug system activates purely from environment variables.
 
 ```bash
 QUMA_DEBUG=1 QUMA_DEBUG_PRINT=1 php app.php
