@@ -1,4 +1,4 @@
-name: CI
+name: ci
 
 on:
   push:
@@ -51,6 +51,13 @@ jobs:
 
       - name: Analyze coverage
         run: composer coverage:analyze
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./.coverage/coverage.xml
+          fail_ci_if_error: true
 
       - name: Run static type checks
         run: composer types -- --output-format=github --shepherd
