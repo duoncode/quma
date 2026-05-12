@@ -43,8 +43,8 @@
 		"test:pgsql": "QUMA_TEST_DRIVERS=pgsql composer test:base",
 		"test:all": "QUMA_TEST_DRIVERS=sqlite,mysql,pgsql composer test:base",
 		"test": "composer test:base",
-		"coverage:test": "@php -d xdebug.mode=coverage ./vendor/bin/phpunit --testdox --path-coverage --coverage-text --coverage-php=.coverage/cover.php --colors=always",
-		"coverage:analyze": "./vendor/bin/coverlyzer .coverage/cover.php",
+		"coverage:test": "php -d xdebug.mode=coverage ./vendor/bin/phpunit --testdox --path-coverage --colors=always",
+		"coverage:analyze": "./vendor/bin/coverlyzer .coverage/coverage.php",
 		"coverage": [
 			"composer coverage:test",
 			"composer coverage:analyze"
