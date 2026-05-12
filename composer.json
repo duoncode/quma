@@ -31,7 +31,7 @@
 		"ext-pdo": "*",
 		"ext-readline": "*",
 		"ext-tokenizer": "*",
-		"celemas/cli": "^0.1"
+		"celemas/cli": "^0.2"
 	},
 	"require-dev": {
 		"celemas/dev": "^4.1"
