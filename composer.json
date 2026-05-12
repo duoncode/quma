@@ -1,28 +1,28 @@
 {
-	"name": "duon/quma",
+	"name": "celemas/quma",
 	"description": "A no-ORM database library for executing raw SQL files",
 	"type": "library",
 	"license": "MIT",
 	"authors": [
 		{
 			"name": "Ernst",
-			"email": "ernst@duon.sh"
+			"email": "ernst@celemas.dev"
 		}
 	],
-	"homepage": "https://duon.sh/quma",
+	"homepage": "https://celemas.dev/quma",
 	"keywords": [
-		"duon",
+		"celemas",
 		"database",
 		"sql"
 	],
 	"autoload": {
 		"psr-4": {
-			"Duon\\Quma\\": "src/"
+			"Celemas\\Quma\\": "src/"
 		}
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"Duon\\Quma\\Tests\\": "tests"
+			"Celemas\\Quma\\Tests\\": "tests"
 		}
 	},
 	"require": {
@@ -31,10 +31,10 @@
 		"ext-pdo": "*",
 		"ext-readline": "*",
 		"ext-tokenizer": "*",
-		"duon/cli": "^0.1"
+		"celemas/cli": "^0.1"
 	},
 	"require-dev": {
-		"duon/dev": "^3.0"
+		"celemas/dev": "^3.0"
 	},
 	"scripts": {
 		"test:base": "./vendor/bin/phpunit --testdox --no-coverage --colors=always",
