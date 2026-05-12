@@ -47,14 +47,8 @@ jobs:
           ./vendor/bin/mago lint
 
       - name: Run tests
-        run: php -d pcov.enabled=1 ./vendor/bin/phpunit --coverage-clover=coverage.xml --coverage-filter=src --coverage-html=coverage
+        run: php -d pcov.enabled=1 ./vendor/bin/phpunit --coverage-filter=src --coverage-html=coverage
 
       - name: Run Psalm
         run: ./vendor/bin/psalm --output-format=github --shepherd
 
-      - name: Upload coverage report to Codacy
-        continue-on-error: true
-        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699 # v1.3.0
-        with:
-          api-token: ${{ secrets.CODACY_API_TOKEN }}
-          coverage-reports: coverage.xml
