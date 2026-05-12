@@ -1,10 +1,9 @@
 # Quma
 
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/274d61ae59344c48868d88da2acd6a5c)](https://app.codacy.com/gh/duoncode/quma/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/274d61ae59344c48868d88da2acd6a5c?branch=main)](https://app.codacy.com/gh/duoncode/quma/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
-[![Psalm level](https://shepherd.dev/github/duoncode/quma/level.svg?)](https://duon.sh/quma)
-[![Psalm coverage](https://shepherd.dev/github/duoncode/quma/coverage.svg?)](https://shepherd.dev/github/duoncode/quma)
+[![CI](https://github.com/celemas/quma/actions/workflows/ci.yml/badge.svg)](https://github.com/celemas/quma/actions)
+[![Psalm level](https://shepherd.dev/github/celemas/quma/level.svg?)](https://celemas.dev/quma)
+[![Psalm coverage](https://shepherd.dev/github/celemas/quma/coverage.svg?)](https://shepherd.dev/github/celemas/quma)
 
 Quma is a no-ORM database library for PHP. You store SQL in files, group those files in folders, and execute them through a small PDO-backed API. Quma also ships with template queries and a migration runner.
 
@@ -20,7 +19,7 @@ Quma currently requires:
 ## Install
 
 ```bash
-composer require duon/quma
+composer require celemas/quma
 ```
 
 ## Quickstart
@@ -47,8 +46,8 @@ Then configure Quma and run the query:
 
 declare(strict_types=1);
 
-use Duon\Quma\Connection;
-use Duon\Quma\Database;
+use Celemas\Quma\Connection;
+use Celemas\Quma\Database;
 
 $conn = new Connection(
     'sqlite:' . __DIR__ . '/app.sqlite',
