@@ -34,7 +34,7 @@
 		"celemas/cli": "^0.1"
 	},
 	"require-dev": {
-		"celemas/dev": "^3.0"
+		"celemas/dev": "^4.1"
 	},
 	"scripts": {
 		"test:base": "./vendor/bin/phpunit --testdox --no-coverage --colors=always",
@@ -53,12 +53,13 @@
 			"./vendor/bin/mago fmt --check",
 			"./vendor/bin/mago lint"
 		],
-		"mdlint": "markdownlint-cli2 README.md CHANGELOG.md LICENSE.md docs/",
+		"docs:format": "npx prettier@3.6.2 --write --config ./docs/.prettierrc README.md CHANGELOG.md LICENSE.md docs/",
+		"docs:lint": "npx markdownlint-cli2@0.22.1 --config ./vendor/celemas/dev/config/markdownlint.jsonc README.md CHANGELOG.md LICENSE.md docs/",
 		"ci": [
 			"composer lint",
 			"composer coverage:all",
 			"composer types",
-			"composer mdlint"
+			"composer docs:lint"
 		]
 	}
 }

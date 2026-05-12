@@ -17,7 +17,7 @@ composer test:all
 composer coverage
 composer coverage:all
 composer types
-composer mdlint
+composer docs:lint
 composer ci
 ```
 
