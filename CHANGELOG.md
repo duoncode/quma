@@ -1,9 +1,10 @@
 # Changelog
 
-## [Unreleased](https://github.com/duoncode/quma/compare/0.1.1...HEAD)
+## [Unreleased](https://github.com/celemas/quma/compare/0.1.1...HEAD)
 
-### Breaking
+### Breaking Changes
 
+- Rename package metadata, root namespace, repository URLs, homepage, and contact email to Celemas.
 - Changed `Connection` to require only DSN and SQL directories in the constructor. Optional PDO, migration, placeholder, cache, and fetch mode settings now use fluent methods.
 - Changed the default query fetch mode from `PDO::FETCH_BOTH` to `PDO::FETCH_ASSOC`.
 - Changed query terminal method signatures so the optional hydration map is the first argument and the per-call fetch mode is the second argument or `fetchMode` named argument.
@@ -33,7 +34,7 @@
 - Fixed custom migration metadata table and column names when reading and recording applied migrations.
 - Fixed dynamic SQL folder and script resolution to reject invalid path segments.
 
-## [0.1.1](https://github.com/duoncode/quma/releases/tag/0.1.1) (2026-02-07)
+## [0.1.1](https://github.com/celemas/quma/releases/tag/0.1.1) (2026-02-07)
 
 ### Changed
 
@@ -46,7 +47,7 @@
 - Added stricter migration loading validation with clearer failures for missing files and invalid migration objects.
 - Added a defensive runtime guard when reading the PDO connection before initialization.
 
-## [0.1.0](https://github.com/duoncode/quma/releases/tag/0.1.0) (2026-01-31)
+## [0.1.0](https://github.com/celemas/quma/releases/tag/0.1.0) (2026-01-31)
 
 Initial release.
 
